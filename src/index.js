@@ -4,7 +4,7 @@ import React, { Component } from 'react';
 
 type Props = {
   delay?: number,
-  loadingFunc: () => ?Promise<any>,
+  loadingFunc: () => Promise<any>,
   onLoadingRenderer: ({ hasTimedOut: boolean }) => any,
   onLoadedRenderer: ({ response?: any, error?: any }) => any,
   timeout?: number
@@ -43,15 +43,12 @@ export default class Loads extends Component<Props, State> {
     }
   };
 
-  componentDidMount = async () => {
+  componentDidMount = () => {
     const { loadingFunc } = this.props;
     this._setTimeouts();
-    try {
-      const response = await loadingFunc();
-      this.handleResponse({ response });
-    } catch (err) {
-      this.handleResponse({ error: err });
-    }
+    loadingFunc()
+      .then(response => this.handleResponse({ response }))
+      .catch(err => this.handleResponse({ error: err }));
   };
 
   handleResponse = ({ response, error }: { response?: any, error?: any }) => { // eslint-disable-line

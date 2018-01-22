@@ -11,7 +11,7 @@ export default {
       'react-dom': 'ReactDOM'
     }
   },
-  external: ['react', 'react-dom'],
+  external: ['react', 'react-dom', 'babel-polyfill'],
   plugins: [
     babel({
       presets: [['env', { modules: false }], 'react'],

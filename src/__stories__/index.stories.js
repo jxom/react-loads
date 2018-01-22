@@ -7,7 +7,8 @@ import Loads from '../index';
 
 storiesOf('Loads', module)
   .add('default usage', () => {
-    const delayedFn = () => new Promise(resolve => setTimeout(() => resolve('This response resolved in 100ms.'), 1000));
+    const delayedFn = () =>
+      new Promise(resolve => setTimeout(() => resolve('This response resolved in 1000ms.'), 1000));
     return (
       <Loads
         loadingFunc={delayedFn}
