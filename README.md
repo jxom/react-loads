@@ -21,6 +21,7 @@ $ npm install react-loads
 ## Usage
 
 ```js
+import React, { Fragment } from 'react';
 import Loads from 'react-loads';
 
 const delayedPromise = () => setTimeout(() => Promise.resolve(), 200);
@@ -30,9 +31,16 @@ export default () => (
     delay={500}
     timeout={10000}
     loadingFunc={delayedFn}
-    onLoadingRenderer={({ hasTimedOut }) => (hasTimedOut ? <div>timed out</div> : <div>loading</div>)}
-    onLoadedRenderer={({ response, error }) => (error ? <div>nooo!</div> : <div>{response}</div>)}
-  />
+    onLoadingRenderer={({ hasTimedOut }) => (hasTimedOut ? <div>timed out</div> : <div>loading</div>)}
+  >
+    {({ response, error, handleLoad }) =>
+      <Fragment>
+        {error && <div>no!</div>}
+        {response && <div>{response}</div>}
+        <button onClick={handleLoad}>Click me!</button>
+      </Fragment>
+    }
+  </Loads>
 );
 ```
 

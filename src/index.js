@@ -3,15 +3,15 @@
 import React, { Component } from 'react';
 
 type Props = {
+  children: ({ response?: any, error?: any, load?: () => void }) => any,
   delay?: number,
+  loadImmediately?: boolean,
   loadingFunc: () => Promise<any>,
-  onLoadingRenderer: ({ hasTimedOut: boolean }) => any,
-  onLoadedRenderer: ({ response?: any, error?: any }) => any,
+  onLoadingRenderer: ({ hasTimedOut?: boolean }) => any,
   timeout?: number
 };
 type State = {
   error: any,
-  hasLoaded: boolean,
   hasTimedOut: boolean,
   isLoading: boolean,
   response: any
@@ -20,12 +20,13 @@ type State = {
 export default class Loads extends Component<Props, State> {
   static defaultProps = {
     delay: 300,
+    loadImmediately: false,
     timeout: 0
   };
   _delayTimeout: any;
   _timeoutTimeout: any;
 
-  state = { error: null, hasLoaded: false, isLoading: false, hasTimedOut: false, response: null };
+  state = { error: null, isLoading: false, hasTimedOut: false, response: null };
 
   _clearTimeouts = () => {
     clearTimeout(this._delayTimeout);
@@ -44,26 +45,29 @@ export default class Loads extends Component<Props, State> {
   };
 
   componentDidMount = () => {
+    const { loadImmediately } = this.props;
+    loadImmediately && this.handleLoad()
+  };
+
+  handleLoad = () => {
     const { loadingFunc } = this.props;
     this._setTimeouts();
     loadingFunc()
       .then(response => this.handleResponse({ response }))
       .catch(err => this.handleResponse({ error: err }));
-  };
+  }
 
   handleResponse = ({ response, error }: { response?: any, error?: any }) => { // eslint-disable-line
     this._clearTimeouts();
-    this.setState({ error, isLoading: false, hasLoaded: true, response });
+    this.setState({ error, isLoading: false, response });
   };
 
   render = () => {
-    const { onLoadingRenderer, onLoadedRenderer } = this.props;
-    const { error, hasLoaded, hasTimedOut, isLoading, response } = this.state;
+    const { children, onLoadingRenderer } = this.props;
+    const { error, hasTimedOut, isLoading, response } = this.state;
     if (isLoading || hasTimedOut) {
       return onLoadingRenderer({ hasTimedOut });
-    } else if (hasLoaded) {
-      return onLoadedRenderer({ error, response });
     }
-    return <div />;
+    return children({ error, response, load: this.handleLoad });
   };
 }
