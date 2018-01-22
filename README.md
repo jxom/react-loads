@@ -24,7 +24,7 @@ $ npm install react-loads
 import React, { Fragment } from 'react';
 import Loads from 'react-loads';
 
-const delayedPromise = () => setTimeout(() => Promise.resolve(), 200);
+const delayedFn = () => new Promise(resolve => setTimeout(() => resolve('This response resolved in 1000ms.'), 1000));
 
 export default () => (
   <Loads
