@@ -1,0 +1,66 @@
+{
+  "name": "react-loads",
+  "version": "0.0.0",
+  "description": "A simple React component to handle loading state",
+  "license": "MIT",
+  "repository": "jxom/react-loads",
+  "author": {
+    "name": "jxom",
+    "email": "jakemoxey@gmail.com",
+    "url": "jxom.io"
+  },
+  "scripts": {
+    "build": "npm run clean && rollup -c rollup.config.js",
+    "clean": "rimraf lib/",
+    "develop": "rollup -c rollup.config.js -w",
+    "flow": "flow",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
+    "test": "npm run lint",
+    "prepublish": "npm run lint && npm run build",
+    "storybook": "start-storybook -p 6006",
+    "build-storybook": "build-storybook"
+  },
+  "main": "lib/index.js",
+  "keywords": [
+    ""
+  ],
+  "dependencies": {},
+  "peerDependencies": {
+    "react": "^0.14.9 || ^15.3.0 || ^16.0.0-rc || ^16.0",
+    "react-dom": "^0.14.9 || ^15.3.0 || ^16.0.0-rc || ^16.0"
+  },
+  "devDependencies": {
+    "@medipass/eslint-config-react-medipass": "8.3.0",
+    "@storybook/addon-actions": "^3.3.10",
+    "@storybook/addon-links": "^3.3.10",
+    "@storybook/addons": "^3.3.10",
+    "@storybook/react": "^3.3.10",
+    "babel-cli": "6.26.0",
+    "babel-core": "6.26.0",
+    "babel-eslint": "8.2.1",
+    "babel-plugin-external-helpers": "^6.22.0",
+    "babel-plugin-transform-class-properties": "6.24.1",
+    "babel-plugin-transform-object-rest-spread": "6.26.0",
+    "babel-preset-env": "1.6.1",
+    "babel-preset-react": "6.24.1",
+    "eslint": "4.16.0",
+    "eslint-config-react-app": "2.1.0",
+    "eslint-plugin-flowtype": "2.41.0",
+    "eslint-plugin-jsx-a11y": "6.0.3",
+    "eslint-plugin-prettier": "2.5.0",
+    "eslint-plugin-react": "7.5.1",
+    "flow-bin": "^0.63.1",
+    "prettier": "1.10.2",
+    "react": "16.2.0",
+    "react-dom": "16.2.0",
+    "rimraf": "2.6.2",
+    "rollup": "^0.54.1",
+    "rollup-plugin-babel": "^3.0.3"
+  },
+  "eslintConfig": {
+    "extends": [
+      "@medipass/react-medipass"
+    ]
+  }
+}
