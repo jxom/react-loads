@@ -17,8 +17,6 @@ type State = {
   response: any
 };
 
-// todo: pastDelay, timedOut
-
 export default class Loads extends Component<Props, State> {
   static defaultProps = {
     delay: 300,
