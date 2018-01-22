@@ -26,8 +26,9 @@ const delayedPromise = () => setTimeout(() => Promise.resolve(), 200);
 export default () => (
   <Loads
     delay={500}
+    timeout={10000}
     loadingFunc={delayedFn}
-    onLoadingRenderer={() => <div>loading</div>}
+    onLoadingRenderer={({ hasTimedOut }) => (hasTimedOut ? <div>timed out</div> : <div>loading</div>)}
     onLoadedRenderer={({ response, error }) => (error ? <div>nooo!</div> : <div>{response}</div>)}
   />
 );
