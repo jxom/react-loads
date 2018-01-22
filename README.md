@@ -33,11 +33,11 @@ export default () => (
     loadingFunc={delayedFn}
     onLoadingRenderer={({ hasTimedOut }) => (hasTimedOut ? <div>timed out</div> : <div>loading</div>)}
   >
-    {({ response, error, handleLoad }) =>
+    {({ response, error, load }) =>
       <Fragment>
         {error && <div>no!</div>}
         {response && <div>{response}</div>}
-        <button onClick={handleLoad}>Click me!</button>
+        <button onClick={load}>Click me!</button>
       </Fragment>
     }
   </Loads>
