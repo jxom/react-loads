@@ -2,6 +2,8 @@
 
 > A simple React component to handle loading state and kills 'FOUL' (see below).
 
+[https://jxom.github.io/react-loads/](https://jxom.github.io/react-loads/)
+
 ## Motivation
 
 > FOUL
