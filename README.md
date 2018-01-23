@@ -53,7 +53,7 @@ export default () => (
   <tr><td>  loadImmediately </td><td><code>boolean</code></td><td><code>false</code></td> <td>Whether or not to immediately invoke the load function on mount.</td></tr>
   <tr><td>  loadingFunc </td><td><code>() => Promise&lt;void&gt;</code></td><td>N/A (required)</td> <td>The function to load.</td></tr>
   <tr><td>  onLoadingRenderer </td><td><code>({ hasTimedOut: boolean }) => any</code></td><td>N/A (required)</td> <td>The loading component renderer (displays when loading).</td></tr>
-  <tr><td>  onLoadedRenderer </td><td><code>({ response?: any, error?: any }) => any</code></td><td>N/A (required)</td> <td>The loaded component renderer (displays on successful/errored load).</td></tr>
+  <tr><td>  onLoadedRenderer </td><td><code>({ load?: Function ,response?: any, error?: any }) => any</code></td><td>N/A (required)</td> <td>The loaded component renderer (displays on successful/errored load).</td></tr>
   <tr><td>  timeout </td><td><code>number</code></td><td><code>0</code></td> <td>Number of milliseconds before the loading component times out.</td></tr>
 </tbody>
 </table>
