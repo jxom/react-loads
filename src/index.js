@@ -1,6 +1,6 @@
 // @flow
 
-import React, { Component } from 'react';
+import { Component } from 'react';
 
 type Props = {
   children: ({ response?: any, error?: any, load?: () => void }) => any,
@@ -46,7 +46,7 @@ export default class Loads extends Component<Props, State> {
 
   componentDidMount = () => {
     const { loadImmediately } = this.props;
-    loadImmediately && this.handleLoad()
+    loadImmediately && this.handleLoad();
   };
 
   handleLoad = () => {
@@ -55,7 +55,7 @@ export default class Loads extends Component<Props, State> {
     loadingFunc()
       .then(response => this.handleResponse({ response }))
       .catch(err => this.handleResponse({ error: err }));
-  }
+  };
 
   handleResponse = ({ response, error }: { response?: any, error?: any }) => { // eslint-disable-line
     this._clearTimeouts();
