@@ -6,7 +6,7 @@ type Props = {
   children: ({ response?: any, error?: any, load?: () => Promise<void> }) => any,
   delay?: number,
   loadImmediately?: boolean,
-  loadingFunc: () => Promise<any>,
+  loadingFunc: (...args: any) => Promise<any>,
   onLoadingRenderer?: ({ hasTimedOut?: boolean }) => any,
   timeout?: number
 };
@@ -50,10 +50,10 @@ export default class Loads extends Component<Props, State> {
     loadImmediately && this.handleLoad();
   };
 
-  handleLoad = () => {
+  handleLoad = (...args: any) => {
     const { loadingFunc } = this.props;
     this._setTimeouts();
-    return loadingFunc()
+    return loadingFunc(...args)
       .then(response => this.handleResponse({ response }))
       .catch(err => this.handleResponse({ error: err }));
   };
