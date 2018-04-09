@@ -3,15 +3,16 @@
 import { Component } from 'react';
 
 type Props = {
-  children: ({ response?: any, error?: any, load?: () => void }) => any,
+  children: ({ response?: any, error?: any, load?: () => Promise<void> }) => any,
   delay?: number,
   loadImmediately?: boolean,
   loadingFunc: () => Promise<any>,
-  onLoadingRenderer: ({ hasTimedOut?: boolean }) => any,
+  onLoadingRenderer?: ({ hasTimedOut?: boolean }) => any,
   timeout?: number
 };
 type State = {
   error: any,
+  hasLoaded: boolean,
   hasTimedOut: boolean,
   isLoading: boolean,
   response: any
@@ -26,7 +27,7 @@ export default class Loads extends Component<Props, State> {
   _delayTimeout: any;
   _timeoutTimeout: any;
 
-  state = { error: null, isLoading: false, hasTimedOut: false, response: null };
+  state = { error: null, hasLoaded: false, isLoading: false, hasTimedOut: false, response: null };
 
   _clearTimeouts = () => {
     clearTimeout(this._delayTimeout);
@@ -52,22 +53,22 @@ export default class Loads extends Component<Props, State> {
   handleLoad = () => {
     const { loadingFunc } = this.props;
     this._setTimeouts();
-    loadingFunc()
+    return loadingFunc()
       .then(response => this.handleResponse({ response }))
       .catch(err => this.handleResponse({ error: err }));
   };
 
   handleResponse = ({ response, error }: { response?: any, error?: any }) => { // eslint-disable-line
     this._clearTimeouts();
-    this.setState({ error, isLoading: false, response });
+    this.setState({ error, hasLoaded: true, isLoading: false, response });
   };
 
   render = () => {
     const { children, onLoadingRenderer } = this.props;
-    const { error, hasTimedOut, isLoading, response } = this.state;
-    if (isLoading || hasTimedOut) {
+    const { error, hasTimedOut, hasLoaded, isLoading, response } = this.state;
+    if (onLoadingRenderer && (isLoading || hasTimedOut)) {
       return onLoadingRenderer({ hasTimedOut });
     }
-    return children({ error, response, load: this.handleLoad });
+    return children({ error, hasLoaded, isLoading, hasTimedOut, response, load: this.handleLoad });
   };
 }
