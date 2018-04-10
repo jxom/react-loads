@@ -47,18 +47,25 @@ export default class Loads extends Component<Props, State> {
 
   componentDidMount = () => {
     const { loadImmediately } = this.props;
-    loadImmediately && this.handleLoad();
+    loadImmediately && this.handleLoad().catch(err => {});
   };
 
   handleLoad = (...args: any) => {
     const { loadingFunc } = this.props;
     this._setTimeouts();
     return loadingFunc(...args)
-      .then(response => this.handleResponse({ response }))
-      .catch(err => this.handleResponse({ error: err }));
+      .then(response => {
+        this.handleResponse({ response });
+        return response;
+      })
+      .catch(err => {
+        this.handleResponse({ error: err });
+        throw err;
+      });
   };
 
-  handleResponse = ({ response, error }: { response?: any, error?: any }) => { // eslint-disable-line
+  handleResponse = ({ response, error }: { response?: any, error?: any }) => {
+    // eslint-disable-line
     this._clearTimeouts();
     this.setState({ error, hasLoaded: true, isLoading: false, response });
   };
