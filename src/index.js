@@ -64,8 +64,7 @@ export default class Loads extends Component<Props, State> {
       });
   };
 
-  handleResponse = ({ response, error }: { response?: any, error?: any }) => {
-    // eslint-disable-line
+  handleResponse = ({ response, error }: { response?: any, error?: any }) => { // eslint-disable-line
     this._clearTimeouts();
     this.setState({ error, hasLoaded: true, isLoading: false, response });
   };
