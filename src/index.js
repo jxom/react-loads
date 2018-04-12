@@ -27,7 +27,7 @@ export default class Loads extends Component<Props, State> {
   _delayTimeout: any;
   _timeoutTimeout: any;
 
-  state = { error: null, hasLoaded: false, isLoading: false, hasTimedOut: false, response: null };
+  state = { error: null, hasLoaded: false, isLoading: this.props.delay === 0, hasTimedOut: false, response: null };
 
   _clearTimeouts = () => {
     clearTimeout(this._delayTimeout);
