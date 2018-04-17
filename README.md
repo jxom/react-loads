@@ -8,7 +8,7 @@ There are a few motivations behind creating React Loads:
 
 1. Managing loading state can be annoying and is prone to errors if you aren't careful.
 2. Hate seeing a flash of loading state? A spinner that displays for half a second? Yeah, it's annoying.
-3. Nested ternary's can get messy and hard to read. React Loads makes it a bit simpler and nicer. Example:
+3. Nested ternary's can get messy and hard to read. Example:
 
 ```jsx
 <div>
@@ -23,6 +23,8 @@ There are a few motivations behind creating React Loads:
   )}
 </div>
 ```
+
+React Loads makes this a bit simpler and nicer.
 
 ## Install
 
