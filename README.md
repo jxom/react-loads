@@ -88,7 +88,14 @@ A component to define which parts of the tree should be rendered for a given act
 
 #### Props
 
-This component is just an export of `<Action>` from [React Automata](https://github.com/MicheleBertoli/react-automata#action-). See there for props.
+This component is just an export of `<Action>` from [React Automata](https://github.com/MicheleBertoli/react-automata#action-).
+
+<table>
+<thead><tr><th>Prop</th><th>Type</th><th>Default value</th><th>Description</th></tr></thead>
+<tbody>
+  <tr><td>show</td><td><code>oneOfType(string, arrayOf(string))</code></td><td><code>N/A (required)</code></td> <td>The action(s) for which the children should be shown. Available actions: `idle`, `loading`, `timeout`, `success`, `error`</td></tr>
+</tbody>
+</table>
 
 ## Special thanks
 
