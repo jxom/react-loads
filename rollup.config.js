@@ -10,10 +10,11 @@ export default {
     format: 'umd',
     globals: {
       react: 'React',
-      'react-dom': 'ReactDOM'
+      'react-dom': 'ReactDOM',
+      'react-automata': 'ReactAutomata'
     }
   },
-  external: ['react', 'react-dom', 'babel-polyfill'],
+  external: ['react', 'react-dom', 'react-automata'],
   plugins: [
     babel({
       presets: [['env', { modules: false }], 'react'],

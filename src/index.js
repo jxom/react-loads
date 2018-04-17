@@ -101,10 +101,10 @@ class Loads extends Component<Props, State> {
     loadOnMount && this.handleLoad();
   };
 
-  handleLoad = () => {
+  handleLoad = (...args: any) => {
     const { isErrorSilent, fn, transition } = this.props;
     this._setTimeouts();
-    return fn(arguments)
+    return fn(...args)
       .then(response => {
         this.handleResponse({ response });
         transition('SUCCESS');
