@@ -2,133 +2,124 @@
 
 import React, { Fragment } from 'react';
 import { storiesOf } from '@storybook/react';
-
-import Loads from '../index';
+import axios from 'axios';
+import Loads, { Action } from '../index';
 
 storiesOf('Loads', module)
   .add('default usage', () => {
-    const delayedFn = () =>
-      new Promise(resolve => setTimeout(() => resolve('This response resolved in 1000ms.'), 1000));
+    const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
     return (
-      <Loads loadingFunc={delayedFn} onLoadingRenderer={() => <div>loading</div>}>
-        {({ load, response, error }) => (
-          <Fragment>
-            {error && <div>no!</div>}
-            {response && <div>{response}</div>}
-            {!error &&
-              !response && (
-                <div>
-                  content <button onClick={load}>Load content</button>
-                </div>
-              )}
-          </Fragment>
+      <Loads fn={getRandomDog}>
+        {({ load, response, state, error }) => (
+          <div>
+            <p>Current state: {state}</p>
+            <Action show="idle">
+              <button onClick={load}>Load random dog</button>
+            </Action>
+            <Action show="loading">loading...</Action>
+            <Action show="success">
+              {response && <img src={response.data.message} alt="Dog" />}
+              <div>
+                <button onClick={load}>Load another dog</button>
+              </div>
+            </Action>
+            <Action show="error">Error! {error}</Action>
+          </div>
         )}
       </Loads>
     );
   })
-  .add('with delay on loading renderer', () => {
-    const delayedFn = () =>
-      new Promise(resolve =>
-        setTimeout(() => resolve("This response resolved in 300ms.  We don't need a loading indicator!"), 300)
-      );
+  .add('load on mount', () => {
+    const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
     return (
-      <Loads delay={500} loadingFunc={delayedFn} onLoadingRenderer={() => <div>loading</div>}>
-        {({ load, response, error }) => (
-          <Fragment>
-            {error && <div>no!</div>}
-            {response && <div>{response}</div>}
-            {!error &&
-              !response && (
-                <div>
-                  content <button onClick={load}>Load content</button>
-                </div>
-              )}
-          </Fragment>
+      <Loads loadOnMount fn={getRandomDog}>
+        {({ load, response, state, error }) => (
+          <div>
+            <p>Current state: {state}</p>
+            <Action show="idle">
+              <button onClick={load}>Load random dog</button>
+            </Action>
+            <Action show="loading">loading...</Action>
+            <Action show="success">
+              {response && <img src={response.data.message} alt="Dog" />}
+              <div>
+                <button onClick={load}>Load another dog</button>
+              </div>
+            </Action>
+            <Action show="error">Error! {error}</Action>
+          </div>
         )}
       </Loads>
     );
   })
-  .add('with delay on loading renderer (longer resolve)', () => {
-    const delayedFn = () =>
-      new Promise(resolve => setTimeout(() => resolve('This response resolved in 1000ms.'), 1000));
+  .add('with delay to initiate loading state', () => {
+    const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
     return (
-      <Loads delay={500} loadingFunc={delayedFn} onLoadingRenderer={() => <div>loading</div>}>
-        {({ load, response, error }) => (
+      <Loads delay={1500} fn={getRandomDog}>
+        {({ load, response, state, error }) => (
           <Fragment>
-            {error && <div>no!</div>}
-            {response && <div>{response}</div>}
-            {!error &&
-              !response && (
-                <div>
-                  content <button onClick={load}>Load content</button>
-                </div>
-              )}
+            <p>Current state: {state}</p>
+            <Action show="idle">
+              <button onClick={load}>Load random dog</button>
+            </Action>
+            <Action show="loading">loading...</Action>
+            <Action show="success">
+              {response && <img src={response.data.message} alt="Dog" />}
+              <div>
+                <button onClick={load}>Load another dog</button>
+              </div>
+            </Action>
+            <Action show="error">Error! {error}</Action>
           </Fragment>
         )}
       </Loads>
     );
   })
   .add('with error', () => {
-    const delayedFn = () =>
-      new Promise((resolve, reject) => setTimeout(() => reject('This response rejected in 1000ms.'), 1000));
+    const getRandomDog = async () => {
+      throw new Error('Woof woof - there was an error.');
+    };
     return (
-      <Loads delay={500} loadingFunc={delayedFn} onLoadingRenderer={() => <div>loading</div>}>
-        {({ load, response, error }) => (
+      <Loads fn={getRandomDog}>
+        {({ load, response, state, error }) => (
           <Fragment>
-            {error && <div>no!</div>}
-            {response && <div>{response}</div>}
-            {!error &&
-              !response && (
-                <div>
-                  content <button onClick={load}>Load content</button>
-                </div>
-              )}
+            <p>Current state: {state}</p>
+            <Action show="idle">
+              <button onClick={load}>Load random dog</button>
+            </Action>
+            <Action show="loading">loading...</Action>
+            <Action show="success">
+              {response && <img src={response.data.message} alt="Dog" />}
+              <div>
+                <button onClick={load}>Load another dog</button>
+              </div>
+            </Action>
+            <Action show="error">Error! {error && error.message}</Action>
           </Fragment>
         )}
       </Loads>
     );
   })
   .add('with timeout', () => {
-    const delayedFn = () =>
-      new Promise(resolve => setTimeout(() => resolve('This response resolved in 10000ms. It should time out.'), 3000));
+    const getRandomDog = () =>
+      new Promise(resolve => setTimeout(() => resolve(axios.get('https://dog.ceo/api/breeds/image/random')), 3000));
     return (
-      <Loads
-        delay={500}
-        timeout={2000}
-        loadingFunc={delayedFn}
-        onLoadingRenderer={({ hasTimedOut }) => (hasTimedOut ? <div>timed out</div> : <div>loading</div>)}
-      >
-        {({ load, response, error }) => (
+      <Loads timeout={1500} fn={getRandomDog}>
+        {({ load, response, state, error }) => (
           <Fragment>
-            {error && <div>no!</div>}
-            {response && <div>{response}</div>}
-            {!error &&
-              !response && (
-                <div>
-                  content <button onClick={load}>Load content</button>
-                </div>
-              )}
-          </Fragment>
-        )}
-      </Loads>
-    );
-  })
-  .add('with load immediately', () => {
-    const delayedFn = () =>
-      new Promise(resolve => setTimeout(() => resolve('This response resolved in 10000ms. It should time out.'), 3000));
-    return (
-      <Loads
-        loadImmediately
-        delay={500}
-        timeout={2000}
-        loadingFunc={delayedFn}
-        onLoadingRenderer={({ hasTimedOut }) => (hasTimedOut ? <div>timed out</div> : <div>loading</div>)}
-      >
-        {({ load, response, error }) => (
-          <Fragment>
-            {error && <div>no!</div>}
-            {response && <div>{response}</div>}
-            {!error && !response && <div>content</div>}
+            <p>Current state: {state}</p>
+            <Action show="idle">
+              <button onClick={load}>Load random dog</button>
+            </Action>
+            <Action show="loading">loading...</Action>
+            <Action show="timeout">taking a while...</Action>
+            <Action show="success">
+              {response && <img src={response.data.message} alt="Dog" />}
+              <div>
+                <button onClick={load}>Load another dog</button>
+              </div>
+            </Action>
+            <Action show="error">Error! {error && error.message}</Action>
           </Fragment>
         )}
       </Loads>

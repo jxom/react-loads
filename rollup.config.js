@@ -1,4 +1,6 @@
 import babel from 'rollup-plugin-babel';
+import uglify from 'rollup-plugin-uglify';
+import { minify } from 'uglify-es';
 
 export default {
   input: `${__dirname}/src/index.js`,
@@ -16,6 +18,7 @@ export default {
     babel({
       presets: [['env', { modules: false }], 'react'],
       plugins: ['external-helpers', 'transform-class-properties', 'transform-object-rest-spread']
-    })
+    }),
+    uglify({}, minify)
   ]
 };

@@ -1,27 +1,75 @@
 // @flow
 
 import { Component } from 'react';
+import { withStatechart } from 'react-automata';
+export { Action } from 'react-automata';
+
+const statechart = {
+  initial: 'idle',
+  states: {
+    idle: {
+      on: {
+        FETCH: 'loading',
+        SUCCESS: 'success',
+        ERROR: 'error'
+      },
+      onEntry: 'idle'
+    },
+    loading: {
+      on: {
+        SUCCESS: 'success',
+        ERROR: 'error',
+        TIMEOUT: 'timeout'
+      },
+      onEntry: 'loading'
+    },
+    timeout: {
+      on: {
+        FETCH: 'loading',
+        SUCCESS: 'success',
+        ERROR: 'error'
+      },
+      onEntry: 'timeout'
+    },
+    success: {
+      on: {
+        FETCH: 'loading',
+        SUCCESS: 'success',
+        ERROR: 'error'
+      },
+      onEntry: 'success'
+    },
+    error: {
+      on: {
+        FETCH: 'loading',
+        SUCCESS: 'success',
+        ERROR: 'error'
+      },
+      onEntry: 'error'
+    }
+  }
+};
 
 type Props = {
   children: ({ response?: any, error?: any, load?: () => Promise<void> }) => any,
   delay?: number,
-  loadImmediately?: boolean,
-  loadingFunc: (...args: any) => Promise<any>,
-  onLoadingRenderer?: ({ hasTimedOut?: boolean }) => any,
-  timeout?: number
+  isErrorSilent?: boolean,
+  loadOnMount?: boolean,
+  fn: (...args: any) => Promise<any>,
+  machineState: { value: string },
+  timeout?: number,
+  transition: (state: string) => void
 };
 type State = {
   error: any,
-  hasLoaded: boolean,
-  hasTimedOut: boolean,
-  isLoading: boolean,
   response: any
 };
 
-export default class Loads extends Component<Props, State> {
+class Loads extends Component<Props, State> {
   static defaultProps = {
     delay: 300,
-    loadImmediately: false,
+    isErrorSilent: true,
+    loadOnMount: false,
     timeout: 0
   };
   _delayTimeout: any;
@@ -29,9 +77,6 @@ export default class Loads extends Component<Props, State> {
 
   state = {
     error: null,
-    hasLoaded: false,
-    isLoading: this.props.delay === 0 && this.props.loadImmediately,
-    hasTimedOut: false,
     response: null
   };
 
@@ -41,47 +86,50 @@ export default class Loads extends Component<Props, State> {
   };
 
   _setTimeouts = () => {
-    const { delay, timeout } = this.props;
-    this._delayTimeout = setTimeout(() => this.setState({ isLoading: true }), delay);
+    const { delay, timeout, transition } = this.props;
+    this._delayTimeout = setTimeout(() => transition('FETCH'), delay);
     if (timeout) {
       this._timeoutTimeout = setTimeout(() => {
-        this.setState({ hasTimedOut: true });
+        transition('TIMEOUT');
         this._clearTimeouts();
       }, timeout);
     }
   };
 
   componentDidMount = () => {
-    const { loadImmediately } = this.props;
-    loadImmediately && this.handleLoad().catch(err => {});
+    const { loadOnMount } = this.props;
+    loadOnMount && this.handleLoad();
   };
 
-  handleLoad = (...args: any) => {
-    const { loadingFunc } = this.props;
+  handleLoad = () => {
+    const { isErrorSilent, fn, transition } = this.props;
     this._setTimeouts();
-    return loadingFunc(...args)
+    return fn(arguments)
       .then(response => {
         this.handleResponse({ response });
+        transition('SUCCESS');
         return response;
       })
       .catch(err => {
         this.handleResponse({ error: err });
-        throw err;
+        transition('ERROR');
+        if (!isErrorSilent) {
+          throw err;
+        }
       });
   };
 
-  handleResponse = ({ response, error }: { response?: any, error?: any }) => {
-    // eslint-disable-line
+  handleResponse = ({ response, error }: { response?: any, error?: any }) => { // eslint-disable-line
     this._clearTimeouts();
-    this.setState({ error, hasLoaded: !error, isLoading: false, response });
+    this.setState({ error, response });
   };
 
   render = () => {
-    const { children, onLoadingRenderer } = this.props;
-    const { error, hasTimedOut, hasLoaded, isLoading, response } = this.state;
-    if (onLoadingRenderer && (isLoading || hasTimedOut)) {
-      return onLoadingRenderer({ hasTimedOut });
-    }
-    return children({ error, hasLoaded, isLoading, hasTimedOut, response, load: this.handleLoad });
+    const { children, machineState } = this.props;
+    const { error, response } = this.state;
+    const state = machineState.value;
+    return children({ error, response, state, load: this.handleLoad });
   };
 }
+
+export default withStatechart(statechart)(Loads);

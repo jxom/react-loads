@@ -1,16 +1,28 @@
 # react-loads
 
-> A simple React component to handle loading state and kills 'FOUL' (see below).
-
-[https://jxom.github.io/react-loads/](https://jxom.github.io/react-loads/)
+> A simple, declarative and lightweight (1.11kB) React component to handle loading state.
 
 ## Motivation
 
-> FOUL
->
-> (abbreviation: flash of unnecessary loading state) When a user interface responds to an action by immediately displaying a > spinner or placeholder, but the actual result only takes a few hundred milliseconds to load.
->
-> E.g. every web app circa 2018. - Andrew Clark, 2018 (https://twitter.com/acdlite/status/955390801827135488)
+There are a few motivations behind creating React Loads:
+
+1. Managing loading state can be annoying and is prone to errors if you aren't careful.
+2. Hate seeing a flash of loading state? A spinner that displays for half a second? Yeah, it's annoying.
+3. Nested ternary's can get messy. React Loads makes it a bit simpler and nicer. Example:
+
+```jsx
+<div>
+  {isLoading ? (
+    <p>{hasTimedOut ? 'Taking a while...' : 'Loading...'}</p>
+  ) : (
+    <div>
+      {!error && !response && <button onClick={this.handleLoad}>Click here to load!</button>}
+      {response && <p>{response}</p>}
+      {error && <p>{error.message}</p>}
+    </div>
+  )}
+</div>
+```
 
 ## Install
 
@@ -18,44 +30,65 @@
 $ npm install react-loads
 ```
 
-## Usage
+## Example
 
 ```js
-import React, { Fragment } from 'react';
-import Loads from 'react-loads';
+import React from 'react';
+import Loads, { Action } from 'react-loads';
 
-const delayedFn = () => new Promise(resolve => setTimeout(() => resolve('This response resolved in 1000ms.'), 1000));
+const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
 
 export default () => (
-  <Loads
-    delay={500}
-    timeout={10000}
-    loadingFunc={delayedFn}
-    onLoadingRenderer={({ hasTimedOut }) => (hasTimedOut ? <div>timed out</div> : <div>loading</div>)}
-  >
-    {({ response, error, load }) =>
-      <Fragment>
-        {error && <div>no!</div>}
-        {response && <div>{response}</div>}
-        <button onClick={load}>Click me!</button>
-      </Fragment>
-    }
+  <Loads fn={getRandomDog}>
+    {({ load, response, error }) => (
+      <div>
+        <Action show="idle">
+          <button onClick={load}>Load random dog</button>
+        </Action>
+        <Action show="loading">loading...</Action>
+        <Action show="success">
+          {response && <img src={response.data.message} alt="Dog" />}
+          <div>
+            <button onClick={load}>Load another dog</button>
+          </div>
+        </Action>
+        <Action show="error">Error! {error}</Action>
+      </div>
+    )}
   </Loads>
 );
 ```
 
-## Props
+[Click here to see more](./src/__stories__/index.stories.js)
+
+## API
+
+### `<Loads>`
+
+#### Props
 
 <table>
 <thead><tr><th>Prop</th><th>Type</th><th>Default value</th><th>Description</th></tr></thead>
 <tbody>
-  <tr><td>  children </td><td><code>({ response?: any, isLoading?: boolean, hasLoaded?: boolean, hasTimedOut?: boolean, error?: any, load: () => Promise<void> }) => any</code></td><td>N/A (required)</td> <td></td></tr>
-  <tr><td>  delay </td><td><code>number</code></td><td><code>300</code></td> <td>Number of milliseconds before the loading component (`onLoadingRenderer`) appears.</td></tr>
-  <tr><td>  loadImmediately </td><td><code>boolean</code></td><td><code>false</code></td> <td>Whether or not to immediately invoke the load function on mount.</td></tr>
-  <tr><td>  loadingFunc </td><td><code>() => Promise&lt;void&gt;</code></td><td>N/A (required)</td> <td>The function to load.</td></tr>
-  <tr><td>  timeout </td><td><code>number</code></td><td><code>0</code></td> <td>Number of milliseconds before the loading component times out.</td></tr>
+  <tr><td>  children </td><td><code>({ response?: any, error?: any, load: Function, state: 'idle' | 'loading' | 'timeout' | 'success' | 'error' })</code></td><td>N/A (required)</td> <td></td></tr>
+  <tr><td>  delay </td><td><code>number</code></td><td><code>300</code></td> <td>Number of milliseconds before component transitions to `loading` state upon invoking `fn`/`load`.</td></tr>
+  <tr><td>  loadOnMount </td><td><code>boolean</code></td><td><code>false</code></td> <td>Whether or not to invoke the `fn` on mount.</td></tr>
+  <tr><td>  fn </td><td><code>(...args: any) => Promise&lt;any&gt;</code></td><td>N/A (required)</td> <td>The function to load.</td></tr>
+  <tr><td>  timeout </td><td><code>number</code></td><td><code>0</code></td> <td>Number of milliseconds before the loading component times out. Set to `0` to disable.</td></tr>
 </tbody>
 </table>
+
+### `<Action>`
+
+The component to define which parts of the tree should be rendered for a given action (or set of actions).
+
+#### Props
+
+This component is just an export of `<Action>` from [React Automata](https://github.com/MicheleBertoli/react-automata#action-). See there for props.
+
+## Special thanks
+
+- [Michele Bertoli](https://github.com/MicheleBertoli) for creating [React Automata](https://github.com/MicheleBertoli/react-automata) - it's awesome and you should check it out.
 
 ## License
 
