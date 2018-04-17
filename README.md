@@ -84,7 +84,7 @@ export default () => (
 
 ### `<Action>`
 
-The component to define which parts of the tree should be rendered for a given action (or set of actions).
+A component to define which parts of the tree should be rendered for a given action (or set of actions).
 
 #### Props
 
