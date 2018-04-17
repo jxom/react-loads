@@ -59,7 +59,10 @@ export default () => (
 );
 ```
 
-[Click here to see more](./src/__stories__/index.stories.js)
+### More examples
+
+- [Code](./src/__stories__/index.stories.js)
+- [Storybook](https://jxom.github.io/react-loads/)
 
 ## API
 
