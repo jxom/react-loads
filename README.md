@@ -93,7 +93,7 @@ This component is just an export of `<Action>` from [React Automata](https://git
 <table>
 <thead><tr><th>Prop</th><th>Type</th><th>Default value</th><th>Description</th></tr></thead>
 <tbody>
-  <tr><td>show</td><td><code>oneOfType(string, arrayOf(string))</code></td><td><code>N/A (required)</code></td> <td>The action(s) for which the children should be shown. Available actions: `idle`, `loading`, `timeout`, `success`, `error`</td></tr>
+  <tr><td>show</td><td>oneOfType(string, arrayOf(string))</td><td>N/A (required)</td> <td>The action(s) for which the children should be shown. Available actions: <code>'idle'</code>, <code>'loading'</code>, <code>'timeout'</code>, <code>'success'</code>, <code>'error'</code></td></tr>
 </tbody>
 </table>
 
