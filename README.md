@@ -8,7 +8,7 @@ There are a few motivations behind creating React Loads:
 
 1. Managing loading state can be annoying and is prone to errors if you aren't careful.
 2. Hate seeing a flash of loading state? A spinner that displays for half a second? Yeah, it's annoying.
-3. Nested ternary's can get messy. React Loads makes it a bit simpler and nicer. Example:
+3. Nested ternary's can get messy and hard to read. React Loads makes it a bit simpler and nicer. Example:
 
 ```jsx
 <div>
@@ -74,7 +74,7 @@ export default () => (
   <tr><td>  delay </td><td><code>number</code></td><td><code>300</code></td> <td>Number of milliseconds before component transitions to `loading` state upon invoking `fn`/`load`.</td></tr>
   <tr><td>  loadOnMount </td><td><code>boolean</code></td><td><code>false</code></td> <td>Whether or not to invoke the `fn` on mount.</td></tr>
   <tr><td>  fn </td><td><code>(...args: any) => Promise&lt;any&gt;</code></td><td>N/A (required)</td> <td>The function to load.</td></tr>
-  <tr><td>  timeout </td><td><code>number</code></td><td><code>0</code></td> <td>Number of milliseconds before the loading component times out. Set to `0` to disable.</td></tr>
+  <tr><td>  timeout </td><td><code>number</code></td><td><code>0</code></td> <td>Number of milliseconds before component transitions to `timeout` state. Set to `0` to disable.</td></tr>
 </tbody>
 </table>
 
