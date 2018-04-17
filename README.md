@@ -46,6 +46,7 @@ export default () => (
           <button onClick={load}>Load random dog</button>
         </Action>
         <Action show="loading">loading...</Action>
+        <Action show="timeout">taking a while...</Action>
         <Action show="success">
           {response && <img src={response.data.message} alt="Dog" />}
           <div>
