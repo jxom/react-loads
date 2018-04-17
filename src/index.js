@@ -27,7 +27,13 @@ export default class Loads extends Component<Props, State> {
   _delayTimeout: any;
   _timeoutTimeout: any;
 
-  state = { error: null, hasLoaded: false, isLoading: this.props.delay === 0, hasTimedOut: false, response: null };
+  state = {
+    error: null,
+    hasLoaded: false,
+    isLoading: this.props.delay === 0 && this.props.loadImmediately,
+    hasTimedOut: false,
+    response: null
+  };
 
   _clearTimeouts = () => {
     clearTimeout(this._delayTimeout);
@@ -64,7 +70,8 @@ export default class Loads extends Component<Props, State> {
       });
   };
 
-  handleResponse = ({ response, error }: { response?: any, error?: any }) => { // eslint-disable-line
+  handleResponse = ({ response, error }: { response?: any, error?: any }) => {
+    // eslint-disable-line
     this._clearTimeouts();
     this.setState({ error, hasLoaded: !error, isLoading: false, response });
   };
