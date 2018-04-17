@@ -8,7 +8,7 @@ There are a few motivations behind creating React Loads:
 
 1. Managing loading state can be annoying and is prone to errors if you aren't careful.
 2. Hate seeing a flash of loading state? A spinner that displays for half a second? Yeah, it's annoying.
-3. Nested ternary's can get messy and hard to read. React Loads makes it a bit simpler and nicer. Example:
+3. Nested ternary's can get messy and hard to read. Example:
 
 ```jsx
 <div>
@@ -23,6 +23,8 @@ There are a few motivations behind creating React Loads:
   )}
 </div>
 ```
+
+React Loads makes this a bit simpler and nicer.
 
 ## Install
 
@@ -46,6 +48,7 @@ export default () => (
           <button onClick={load}>Load random dog</button>
         </Action>
         <Action show="loading">loading...</Action>
+        <Action show="timeout">taking a while...</Action>
         <Action show="success">
           {response && <img src={response.data.message} alt="Dog" />}
           <div>
@@ -74,20 +77,27 @@ export default () => (
 <thead><tr><th>Prop</th><th>Type</th><th>Default value</th><th>Description</th></tr></thead>
 <tbody>
   <tr><td>  children </td><td><code>({ response?: any, error?: any, load: Function, state: 'idle' | 'loading' | 'timeout' | 'success' | 'error' })</code></td><td>N/A (required)</td> <td></td></tr>
-  <tr><td>  delay </td><td><code>number</code></td><td><code>300</code></td> <td>Number of milliseconds before component transitions to `loading` state upon invoking `fn`/`load`.</td></tr>
-  <tr><td>  loadOnMount </td><td><code>boolean</code></td><td><code>false</code></td> <td>Whether or not to invoke the `fn` on mount.</td></tr>
-  <tr><td>  fn </td><td><code>(...args: any) => Promise&lt;any&gt;</code></td><td>N/A (required)</td> <td>The function to load.</td></tr>
-  <tr><td>  timeout </td><td><code>number</code></td><td><code>0</code></td> <td>Number of milliseconds before component transitions to `timeout` state. Set to `0` to disable.</td></tr>
+  <tr><td>  delay </td><td><code>number</code></td><td><code>300</code></td> <td>Number of milliseconds before component transitions to <code>loading</code> state upon invoking <code>fn</code>/<code>load</code>.</td></tr>
+  <tr><td>  loadOnMount </td><td><code>boolean</code></td><td><code>false</code></td> <td>Whether or not to invoke the <code>fn</code> on mount.</td></tr>
+  <tr><td>  fn </td><td><code>(...args: any) => Promise&lt;any&gt;</code></td><td>N/A (required)</td> <td>The promise to invoke.</td></tr>
+  <tr><td>  timeout </td><td><code>number</code></td><td><code>0</code></td> <td>Number of milliseconds before component transitions to <code>timeout</code> state. Set to <code>0</code> to disable.</td></tr>
 </tbody>
 </table>
 
 ### `<Action>`
 
-The component to define which parts of the tree should be rendered for a given action (or set of actions).
+A component to define which parts of the tree should be rendered for a given action (or set of actions).
 
 #### Props
 
-This component is just an export of `<Action>` from [React Automata](https://github.com/MicheleBertoli/react-automata#action-). See there for props.
+This component is just an export of `<Action>` from [React Automata](https://github.com/MicheleBertoli/react-automata#action-).
+
+<table>
+<thead><tr><th>Prop</th><th>Type</th><th>Default value</th><th>Description</th></tr></thead>
+<tbody>
+  <tr><td>show</td><td>oneOfType(string, arrayOf(string))</td><td>N/A (required)</td> <td>The action(s) for which the children should be shown. Available actions: <code>'idle'</code>, <code>'loading'</code>, <code>'timeout'</code>, <code>'success'</code>, <code>'error'</code></td></tr>
+</tbody>
+</table>
 
 ## Special thanks
 
