@@ -124,4 +124,27 @@ storiesOf('Loads', module)
         )}
       </Loads>
     );
+  })
+  .add('with function arguments', () => {
+    const getRandomDogByBreed = breed => axios.get(`http://dog.ceo/api/breed/${breed}/images/random`);
+    return (
+      <Loads fn={getRandomDogByBreed}>
+        {({ load, response, state, error }) => (
+          <div>
+            <p>Current state: {state}</p>
+            <Action show="idle">
+              <button onClick={() => load('beagle')}>Load random beagle</button>
+            </Action>
+            <Action show="loading">loading...</Action>
+            <Action show="success">
+              {response && <img src={response.data.message} alt="Dog" />}
+              <div>
+                <button onClick={() => load('beagle')}>Load another beagle</button>
+              </div>
+            </Action>
+            <Action show="error">Error! {error}</Action>
+          </div>
+        )}
+      </Loads>
+    );
   });
