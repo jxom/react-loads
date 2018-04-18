@@ -1,7 +1,7 @@
 // @flow
 
-import { Component } from 'react';
-import { withStatechart } from 'react-automata';
+import React, { Component, createElement } from 'react';
+import { Action as AutomataAction, withStatechart } from 'react-automata';
 export { Action } from 'react-automata';
 
 const statechart = {
@@ -55,6 +55,7 @@ type Props = {
   delay?: number,
   isErrorSilent?: boolean,
   loadOnMount?: boolean,
+  name?: string,
   fn: (...args: any) => Promise<any>,
   machineState: { value: string },
   timeout?: number,
@@ -70,6 +71,7 @@ class Loads extends Component<Props, State> {
     delay: 300,
     isErrorSilent: true,
     loadOnMount: false,
+    name: null,
     timeout: 0
   };
   _delayTimeout: any;
@@ -125,11 +127,22 @@ class Loads extends Component<Props, State> {
   };
 
   render = () => {
-    const { children, machineState } = this.props;
+    const { children, name, machineState } = this.props;
     const { error, response } = this.state;
     const state = machineState.value;
-    return children({ error, response, state, load: this.handleLoad });
+    return children({
+      Action: props => <AutomataAction channel={name} {...props} />,
+      error,
+      response,
+      state,
+      load: this.handleLoad
+    });
   };
 }
 
-export default withStatechart(statechart)(Loads);
+const _default = ({ name, ...props }: { name?: ?string }) =>
+  createElement(withStatechart(statechart, { channel: name })(Loads), { name, ...props });
+
+_default.defaultProps = { name: null };
+
+export default _default;

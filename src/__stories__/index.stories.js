@@ -147,4 +147,35 @@ storiesOf('Loads', module)
         )}
       </Loads>
     );
+  })
+  .add('with nested <Loads>', () => {
+    const getRandomDog = () => axios.get(`https://dog.ceo/api/breeds/image/random`);
+    const saveDog = randomDogResponse => new Promise(resolve => setTimeout(() => resolve(randomDogResponse), 1000));
+    return (
+      <Loads name="randomDog" fn={getRandomDog}>
+        {({ Action: RandomDogAction, load: loadRandomDog, response: randomDogResponse, error: randomDogError }) => (
+          <Loads name="saveDog" fn={saveDog}>
+            {({ Action: SaveDogAction, load: saveDog }) => (
+              <div>
+                <RandomDogAction show="idle">
+                  <button onClick={loadRandomDog}>Load random dog</button>
+                </RandomDogAction>
+                <RandomDogAction show="loading">loading...</RandomDogAction>
+                <RandomDogAction show="success">
+                  {randomDogResponse && <img src={randomDogResponse.data.message} alt="Dog" />}
+                  <div>
+                    <SaveDogAction show="idle">
+                      <button onClick={() => saveDog(randomDogResponse)}>Save dog</button>
+                    </SaveDogAction>
+                    <SaveDogAction show="loading">saving...</SaveDogAction>
+                    <SaveDogAction show="success">saved dog!</SaveDogAction>
+                  </div>
+                </RandomDogAction>
+                <RandomDogAction show="error">Error! {randomDogError}</RandomDogAction>
+              </div>
+            )}
+          </Loads>
+        )}
+      </Loads>
+    );
   });
