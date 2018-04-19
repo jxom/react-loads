@@ -1,4 +1,4 @@
-# react-loads
+# React Loads
 
 > A simple, declarative and lightweight React component to handle loading state. Powered by [React Automata](https://github.com/MicheleBertoli/react-automata)
 
