@@ -102,24 +102,12 @@ These components determine what node to render based on the loading/response sta
 <thead><tr><th>Prop</th><th>Type</th><th>Default value</th><th>Description</th></tr></thead>
 <tbody>
   <tr><td>channel</td><td>string</td><td><code>null</code></td> <td>The key of the context from where to read the state.</td></tr>
-  <tr><td>children</td><td>oneOfType(node, func)</td><td>N/A (required)</td> <td>The children to be rendered when the
-  conditions match. Can also pass children as a function (render props).</td></tr>
+  <tr><td>children</td><td>node</td><td>N/A (required)</td> <td>The children to be rendered when the
+  conditions match.</td></tr>
   <tr><td>onShow</td><td>func</td><td></td> <td>The function invoked when the component becomes visible.</td></tr>
   <tr><td>onHide</td><td>func</td><td></td> <td>The function invoked when the component becomes hidden.</td></tr>
 </tbody>
 </table>
-
-```jsx
-<IfSuccess>
-  Yaaassss!
-</IfSuccess>
-```
-
-```jsx
-<IfError>
-  {visible => visible && <div>An error occured.</div>}
-</IfError>
-```
 
 ### `<IfState>`
 
@@ -132,8 +120,8 @@ A component to define which parts of the tree should be rendered for a set of st
 <tbody>
   <tr><td>is</td><td>oneOfType(arrayOf(string), string)</td><td>N/A (required)</td> <td>The states(s) for which the children should be shown. Available states: <code>'idle'</code>, <code>'loading'</code>, <code>'timeout'</code>, <code>'success'</code>, <code>'error'</code></td></tr>
   <tr><td>channel</td><td>string</td><td><code>null</code></td> <td>The key of the context from where to read the state.</td></tr>
-  <tr><td>children</td><td>oneOfType(node, func)</td><td>N/A (required)</td> <td>The children to be rendered when the
-  conditions match. Can also pass children as a function (render props).</td></tr>
+  <tr><td>children</td><td>node</td><td>N/A (required)</td> <td>The children to be rendered when the
+  conditions match.</td></tr>
   <tr><td>onShow</td><td>func</td><td></td> <td>The function invoked when the component becomes visible.</td></tr>
   <tr><td>onHide</td><td>func</td><td></td> <td>The function invoked when the component becomes hidden.</td></tr>
 </tbody>
@@ -142,12 +130,6 @@ A component to define which parts of the tree should be rendered for a set of st
 ```jsx
 <IfState is={['idle', 'success']}>
   Hello world!
-</IfState>
-```
-
-```jsx
-<IfState is={['idle', 'success']}>
-  {visible => visible && <div>Hello world!</div>}
 </IfState>
 ```
 
