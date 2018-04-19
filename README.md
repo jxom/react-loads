@@ -1,6 +1,6 @@
-# react-loads
+# React Loads
 
-> A simple, declarative and lightweight (1.11kB) React component to handle loading state.
+> A simple, declarative and lightweight React component to handle loading state. Powered by [React Automata](https://github.com/MicheleBertoli/react-automata)
 
 ## Motivation
 
@@ -36,7 +36,7 @@ $ npm install react-loads
 
 ```js
 import React from 'react';
-import Loads, { Action } from 'react-loads';
+import Loads, { IfIdle, IfLoading, IfTimeout, IfSuccess, IfError } from 'react-loads';
 
 const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
 
@@ -44,18 +44,18 @@ export default () => (
   <Loads fn={getRandomDog}>
     {({ load, response, error }) => (
       <div>
-        <Action show="idle">
+        <IfIdle>
           <button onClick={load}>Load random dog</button>
-        </Action>
-        <Action show="loading">loading...</Action>
-        <Action show="timeout">taking a while...</Action>
-        <Action show="success">
+        </IfIdle>
+        <IfLoading>loading...</IfLoading>
+        <IfTimeout>taking a while...</IfTimeout>
+        <IfSuccess>
           {response && <img src={response.data.message} alt="Dog" />}
           <div>
             <button onClick={load}>Load another dog</button>
           </div>
-        </Action>
-        <Action show="error">Error! {error}</Action>
+        </IfSuccess>
+        <IfError>Error! {error}</IfError>
       </div>
     )}
   </Loads>
@@ -84,20 +84,54 @@ export default () => (
 </tbody>
 </table>
 
-### `<Action>`
+### `<IfIdle>`, `<IfLoading>`, `<IfTimeout>`, `<IfSuccess>`, `<IfError>`
 
-A component to define which parts of the tree should be rendered for a given action (or set of actions).
+These components determine what node to render based on the loading/response state.
+
+#### Definitions
+
+- `IfIdle` - Will render when the state is 'idle' (the initial state).
+- `IfLoading` - Will render when the state is 'loading' (triggered when the promise (`fn`) is pending).
+- `IfTimeout` - Will render when the state is 'timeout' (triggered when the promise (`fn`) has not resolved/rejected after a period of time).
+- `IfSuccess` - Will render when the state is 'success' (triggered when the promise (`fn`) resolves).
+- `IfError` - Will render when the state is 'error' (triggered when the promise (`fn`) rejects).
 
 #### Props
-
-This component is just an export of `<Action>` from [React Automata](https://github.com/MicheleBertoli/react-automata#action-).
 
 <table>
 <thead><tr><th>Prop</th><th>Type</th><th>Default value</th><th>Description</th></tr></thead>
 <tbody>
-  <tr><td>show</td><td>oneOfType(string, arrayOf(string))</td><td>N/A (required)</td> <td>The action(s) for which the children should be shown. Available actions: <code>'idle'</code>, <code>'loading'</code>, <code>'timeout'</code>, <code>'success'</code>, <code>'error'</code></td></tr>
+  <tr><td>channel</td><td>string</td><td><code>null</code></td> <td>The key of the context from where to read the state.</td></tr>
+  <tr><td>children</td><td>node</td><td>N/A (required)</td> <td>The children to be rendered when the
+  conditions match.</td></tr>
+  <tr><td>onShow</td><td>func</td><td></td> <td>The function invoked when the component becomes visible.</td></tr>
+  <tr><td>onHide</td><td>func</td><td></td> <td>The function invoked when the component becomes hidden.</td></tr>
 </tbody>
 </table>
+
+### `<IfState>`
+
+A component to define which parts of the tree should be rendered for a set of states.
+
+#### Props
+
+<table>
+<thead><tr><th>Prop</th><th>Type</th><th>Default value</th><th>Description</th></tr></thead>
+<tbody>
+  <tr><td>is</td><td>oneOfType(arrayOf(string), string)</td><td>N/A (required)</td> <td>The states(s) for which the children should be shown. Available states: <code>'idle'</code>, <code>'loading'</code>, <code>'timeout'</code>, <code>'success'</code>, <code>'error'</code></td></tr>
+  <tr><td>channel</td><td>string</td><td><code>null</code></td> <td>The key of the context from where to read the state.</td></tr>
+  <tr><td>children</td><td>node</td><td>N/A (required)</td> <td>The children to be rendered when the
+  conditions match.</td></tr>
+  <tr><td>onShow</td><td>func</td><td></td> <td>The function invoked when the component becomes visible.</td></tr>
+  <tr><td>onHide</td><td>func</td><td></td> <td>The function invoked when the component becomes hidden.</td></tr>
+</tbody>
+</table>
+
+```jsx
+<IfState is={['idle', 'success']}>
+  Hello world!
+</IfState>
+```
 
 ## Special thanks
 
