@@ -51,7 +51,7 @@ const statechart = {
 };
 
 type Props = {
-  children: ({ response?: any, error?: any, load?: () => Promise<void> }) => any,
+  children: ({ response?: any, error?: any, load?: () => ?Promise<void> }) => any,
   delay?: number,
   isErrorSilent?: boolean,
   loadOnMount?: boolean,
@@ -62,6 +62,7 @@ type Props = {
 };
 type State = {
   error: any,
+  pause: boolean,
   response: any
 };
 
@@ -77,6 +78,7 @@ class Loads extends Component<Props, State> {
 
   state = {
     error: null,
+    pause: false,
     response: null
   };
 
@@ -87,7 +89,11 @@ class Loads extends Component<Props, State> {
 
   _setTimeouts = () => {
     const { delay, timeout, transition } = this.props;
-    this._delayTimeout = setTimeout(() => transition('FETCH'), delay);
+    if (delay) this.setState({ pause: true });
+    this._delayTimeout = setTimeout(() => {
+      this.setState({ pause: false });
+      transition('FETCH');
+    }, delay);
     if (timeout) {
       this._timeoutTimeout = setTimeout(() => {
         transition('TIMEOUT');
@@ -103,6 +109,8 @@ class Loads extends Component<Props, State> {
 
   handleLoad = (...args: any) => {
     const { isErrorSilent, fn, transition } = this.props;
+    const { pause } = this.state;
+    if (pause) return null;
     this._setTimeouts();
     return fn(...args)
       .then(response => {
@@ -121,7 +129,7 @@ class Loads extends Component<Props, State> {
 
   handleResponse = ({ response, error }: { response?: any, error?: any }) => { // eslint-disable-line
     this._clearTimeouts();
-    this.setState({ error, response });
+    this.setState({ error, pause: false, response });
   };
 
   render = () => {
