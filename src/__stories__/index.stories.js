@@ -3,7 +3,7 @@
 import React, { Fragment } from 'react';
 import { storiesOf } from '@storybook/react';
 import axios from 'axios';
-import Loads, { Action } from '../index';
+import Loads, { IfState, IfIdle, IfLoading, IfSuccess, IfTimeout, IfError } from '../index';
 
 storiesOf('Loads', module)
   .add('default usage', () => {
@@ -13,17 +13,17 @@ storiesOf('Loads', module)
         {({ load, response, state, error }) => (
           <div>
             <p>Current state: {state}</p>
-            <Action show="idle">
+            <IfIdle>
               <button onClick={load}>Load random dog</button>
-            </Action>
-            <Action show="loading">loading...</Action>
-            <Action show="success">
+            </IfIdle>
+            <IfLoading>loading...</IfLoading>
+            <IfSuccess>
               {response && <img src={response.data.message} alt="Dog" />}
               <div>
                 <button onClick={load}>Load another dog</button>
               </div>
-            </Action>
-            <Action show="error">Error! {error}</Action>
+            </IfSuccess>
+            <IfError>Error! {error}</IfError>
           </div>
         )}
       </Loads>
@@ -36,17 +36,17 @@ storiesOf('Loads', module)
         {({ load, response, state, error }) => (
           <div>
             <p>Current state: {state}</p>
-            <Action show="idle">
+            <IfIdle>
               <button onClick={load}>Load random dog</button>
-            </Action>
-            <Action show="loading">loading...</Action>
-            <Action show="success">
+            </IfIdle>
+            <IfLoading>loading...</IfLoading>
+            <IfSuccess>
               {response && <img src={response.data.message} alt="Dog" />}
               <div>
                 <button onClick={load}>Load another dog</button>
               </div>
-            </Action>
-            <Action show="error">Error! {error}</Action>
+            </IfSuccess>
+            <IfError>Error! {error}</IfError>
           </div>
         )}
       </Loads>
@@ -59,17 +59,17 @@ storiesOf('Loads', module)
         {({ load, response, state, error }) => (
           <Fragment>
             <p>Current state: {state}</p>
-            <Action show="idle">
+            <IfIdle>
               <button onClick={load}>Load random dog</button>
-            </Action>
-            <Action show="loading">loading...</Action>
-            <Action show="success">
+            </IfIdle>
+            <IfLoading>loading...</IfLoading>
+            <IfSuccess>
               {response && <img src={response.data.message} alt="Dog" />}
               <div>
                 <button onClick={load}>Load another dog</button>
               </div>
-            </Action>
-            <Action show="error">Error! {error}</Action>
+            </IfSuccess>
+            <IfError>Error! {error}</IfError>
           </Fragment>
         )}
       </Loads>
@@ -84,17 +84,17 @@ storiesOf('Loads', module)
         {({ load, response, state, error }) => (
           <Fragment>
             <p>Current state: {state}</p>
-            <Action show="idle">
+            <IfIdle>
               <button onClick={load}>Load random dog</button>
-            </Action>
-            <Action show="loading">loading...</Action>
-            <Action show="success">
+            </IfIdle>
+            <IfLoading>loading...</IfLoading>
+            <IfSuccess>
               {response && <img src={response.data.message} alt="Dog" />}
               <div>
                 <button onClick={load}>Load another dog</button>
               </div>
-            </Action>
-            <Action show="error">Error! {error && error.message}</Action>
+            </IfSuccess>
+            <IfError>Error! {error && error.message}</IfError>
           </Fragment>
         )}
       </Loads>
@@ -108,18 +108,18 @@ storiesOf('Loads', module)
         {({ load, response, state, error }) => (
           <Fragment>
             <p>Current state: {state}</p>
-            <Action show="idle">
+            <IfIdle>
               <button onClick={load}>Load random dog</button>
-            </Action>
-            <Action show="loading">loading...</Action>
-            <Action show="timeout">taking a while...</Action>
-            <Action show="success">
+            </IfIdle>
+            <IfLoading>loading...</IfLoading>
+            <IfTimeout>taking a while...</IfTimeout>
+            <IfSuccess>
               {response && <img src={response.data.message} alt="Dog" />}
               <div>
                 <button onClick={load}>Load another dog</button>
               </div>
-            </Action>
-            <Action show="error">Error! {error && error.message}</Action>
+            </IfSuccess>
+            <IfError>Error! {error && error.message}</IfError>
           </Fragment>
         )}
       </Loads>
@@ -132,17 +132,17 @@ storiesOf('Loads', module)
         {({ load, response, state, error }) => (
           <div>
             <p>Current state: {state}</p>
-            <Action show="idle">
+            <IfIdle>
               <button onClick={() => load('beagle')}>Load random beagle</button>
-            </Action>
-            <Action show="loading">loading...</Action>
-            <Action show="success">
+            </IfIdle>
+            <IfLoading>loading...</IfLoading>
+            <IfSuccess>
               {response && <img src={response.data.message} alt="Dog" />}
               <div>
                 <button onClick={() => load('beagle')}>Load another beagle</button>
               </div>
-            </Action>
-            <Action show="error">Error! {error}</Action>
+            </IfSuccess>
+            <IfError>Error! {error}</IfError>
           </div>
         )}
       </Loads>
@@ -152,26 +152,26 @@ storiesOf('Loads', module)
     const getRandomDog = () => axios.get(`https://dog.ceo/api/breeds/image/random`);
     const saveDog = randomDogResponse => new Promise(resolve => setTimeout(() => resolve(randomDogResponse), 1000));
     return (
-      <Loads name="randomDog" fn={getRandomDog}>
-        {({ Action: RandomDogAction, load: loadRandomDog, response: randomDogResponse, error: randomDogError }) => (
-          <Loads name="saveDog" fn={saveDog}>
-            {({ Action: SaveDogAction, load: saveDog }) => (
+      <Loads channel="randomDog" fn={getRandomDog}>
+        {({ load: loadRandomDog, response: randomDogResponse, error: randomDogError }) => (
+          <Loads channel="saveDog" fn={saveDog}>
+            {({ load: saveDog, state: saveDogState }) => (
               <div>
-                <RandomDogAction show="idle">
+                <IfIdle channel="randomDog">
                   <button onClick={loadRandomDog}>Load random dog</button>
-                </RandomDogAction>
-                <RandomDogAction show="loading">loading...</RandomDogAction>
-                <RandomDogAction show="success">
+                </IfIdle>
+                <IfLoading channel="randomDog">loading...</IfLoading>
+                <IfSuccess channel="randomDog">
                   {randomDogResponse && <img src={randomDogResponse.data.message} alt="Dog" />}
                   <div>
-                    <SaveDogAction show="idle">
+                    <IfLoading channel="saveDog">saving...</IfLoading>
+                    <IfSuccess channel="saveDog">saved dog!</IfSuccess>
+                    <IfState is={['idle', 'success']} channel="saveDog">
                       <button onClick={() => saveDog(randomDogResponse)}>Save dog</button>
-                    </SaveDogAction>
-                    <SaveDogAction show="loading">saving...</SaveDogAction>
-                    <SaveDogAction show="success">saved dog!</SaveDogAction>
+                    </IfState>
                   </div>
-                </RandomDogAction>
-                <RandomDogAction show="error">Error! {randomDogError}</RandomDogAction>
+                </IfSuccess>
+                <IfError channel="randomDog">Error! {randomDogError}</IfError>
               </div>
             )}
           </Loads>

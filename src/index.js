@@ -1,8 +1,8 @@
 // @flow
 
-import React, { Component, createElement } from 'react';
-import { Action as AutomataAction, withStatechart } from 'react-automata';
-export { Action } from 'react-automata';
+import { Component, createElement } from 'react';
+import { withStatechart } from 'react-automata';
+export * from './actions';
 
 const statechart = {
   initial: 'idle',
@@ -55,7 +55,6 @@ type Props = {
   delay?: number,
   isErrorSilent?: boolean,
   loadOnMount?: boolean,
-  name?: string,
   fn: (...args: any) => Promise<any>,
   machineState: { value: string },
   timeout?: number,
@@ -71,7 +70,6 @@ class Loads extends Component<Props, State> {
     delay: 300,
     isErrorSilent: true,
     loadOnMount: false,
-    name: null,
     timeout: 0
   };
   _delayTimeout: any;
@@ -127,11 +125,10 @@ class Loads extends Component<Props, State> {
   };
 
   render = () => {
-    const { children, name, machineState } = this.props;
+    const { children, machineState } = this.props;
     const { error, response } = this.state;
     const state = machineState.value;
     return children({
-      Action: props => <AutomataAction channel={name} {...props} />,
       error,
       response,
       state,
@@ -140,9 +137,9 @@ class Loads extends Component<Props, State> {
   };
 }
 
-const _default = ({ name, ...props }: { name?: ?string }) =>
-  createElement(withStatechart(statechart, { channel: name })(Loads), { name, ...props });
+const _default = ({ channel, ...props }: { channel?: ?string }) =>
+  createElement(withStatechart(statechart, { channel })(Loads), props);
 
-_default.defaultProps = { name: null };
+_default.defaultProps = { channel: null };
 
 export default _default;
