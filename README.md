@@ -130,7 +130,7 @@ A component to define which parts of the tree should be rendered for a set of st
 <table>
 <thead><tr><th>Prop</th><th>Type</th><th>Default value</th><th>Description</th></tr></thead>
 <tbody>
-  <tr><td>is</td><td>arrayOf(string)</td><td>N/A (required)</td> <td>The states(s) for which the children should be shown. Available states: <code>'idle'</code>, <code>'loading'</code>, <code>'timeout'</code>, <code>'success'</code>, <code>'error'</code></td></tr>
+  <tr><td>is</td><td>oneOfType(arrayOf(string), string)</td><td>N/A (required)</td> <td>The states(s) for which the children should be shown. Available states: <code>'idle'</code>, <code>'loading'</code>, <code>'timeout'</code>, <code>'success'</code>, <code>'error'</code></td></tr>
   <tr><td>channel</td><td>string</td><td><code>null</code></td> <td>The key of the context from where to read the state.</td></tr>
   <tr><td>children</td><td>oneOfType(node, func)</td><td>N/A (required)</td> <td>The children to be rendered when the
   conditions match. Can also pass children as a function (render props).</td></tr>
