@@ -126,7 +126,7 @@ storiesOf('Loads', module)
     );
   })
   .add('with function arguments', () => {
-    const getRandomDogByBreed = breed => axios.get(`http://dog.ceo/api/breed/${breed}/images/random`);
+    const getRandomDogByBreed = breed => axios.get(`https://dog.ceo/api/breed/${breed}/images/random`);
     return (
       <Loads fn={getRandomDogByBreed}>
         {({ load, response, state, error }) => (
