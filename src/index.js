@@ -1,6 +1,6 @@
 // @flow
 
-import { Component, createElement } from 'react';
+import { createElement, Component } from 'react';
 import { withStatechart } from 'react-automata';
 export * from './actions';
 
@@ -62,7 +62,6 @@ type Props = {
 };
 type State = {
   error: any,
-  pause: boolean,
   response: any
 };
 
@@ -75,10 +74,11 @@ class Loads extends Component<Props, State> {
   };
   _delayTimeout: any;
   _timeoutTimeout: any;
+  _mounted: boolean;
+  _paused: boolean;
 
   state = {
     error: null,
-    pause: false,
     response: null
   };
 
@@ -88,15 +88,15 @@ class Loads extends Component<Props, State> {
   };
 
   _setTimeouts = () => {
-    const { delay, timeout, transition } = this.props;
-    if (delay) this.setState({ pause: true });
+    const { delay, timeout } = this.props;
+    if (delay) this._paused = true;
     this._delayTimeout = setTimeout(() => {
-      this.setState({ pause: false });
-      transition('FETCH');
+      this._paused = false;
+      this.transition('FETCH');
     }, delay);
     if (timeout) {
       this._timeoutTimeout = setTimeout(() => {
-        transition('TIMEOUT');
+        this.transition('TIMEOUT');
         this._clearTimeouts();
       }, timeout);
     }
@@ -104,32 +104,48 @@ class Loads extends Component<Props, State> {
 
   componentDidMount = () => {
     const { loadOnMount } = this.props;
+    this._mounted = true;
     loadOnMount && this.handleLoad();
   };
 
+  componentWillUnmount = () => {
+    this._clearTimeouts();
+    this._mounted = false;
+  };
+
   handleLoad = (...args: any) => {
-    const { isErrorSilent, fn, transition } = this.props;
-    const { pause } = this.state;
-    if (pause) return null;
+    const { isErrorSilent, fn } = this.props;
+    if (this._paused) return null;
     this._setTimeouts();
     return fn(...args)
       .then(response => {
-        this.handleResponse({ response });
-        transition('SUCCESS');
+        this.handleResponse({ response, event: 'SUCCESS' });
         return response;
       })
       .catch(err => {
-        this.handleResponse({ error: err });
-        transition('ERROR');
+        this.handleResponse({ error: err, event: 'ERROR' });
         if (!isErrorSilent) {
           throw err;
         }
       });
   };
 
-  handleResponse = ({ response, error }: { response?: any, error?: any }) => { // eslint-disable-line
+  handleResponse = ({ error, event, response }: { error?: any, event: string, response?: any }) => { // eslint-disable-line
+    if (!this._mounted) {
+      return;
+    }
     this._clearTimeouts();
-    this.setState({ error, pause: false, response });
+    this._paused = false;
+    this.setState({ error, response });
+    this.transition(event);
+  };
+
+  transition = (event: string) => {
+    const { transition } = this.props;
+    if (!this._mounted) {
+      return;
+    }
+    transition(event);
   };
 
   render = () => {
