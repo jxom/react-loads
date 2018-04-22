@@ -2,7 +2,7 @@
 
 import { createElement, Component } from 'react';
 import { withStatechart } from 'react-automata';
-export * from './actions';
+export * from './states';
 
 const statechart = {
   initial: 'idle',
@@ -12,40 +12,35 @@ const statechart = {
         FETCH: 'loading',
         SUCCESS: 'success',
         ERROR: 'error'
-      },
-      onEntry: 'idle'
+      }
     },
     loading: {
       on: {
+        TIMEOUT: 'timeout',
         SUCCESS: 'success',
-        ERROR: 'error',
-        TIMEOUT: 'timeout'
-      },
-      onEntry: 'loading'
+        ERROR: 'error'
+      }
     },
     timeout: {
       on: {
         FETCH: 'loading',
         SUCCESS: 'success',
         ERROR: 'error'
-      },
-      onEntry: 'timeout'
+      }
     },
     success: {
       on: {
         FETCH: 'loading',
         SUCCESS: 'success',
         ERROR: 'error'
-      },
-      onEntry: 'success'
+      }
     },
     error: {
       on: {
         FETCH: 'loading',
         SUCCESS: 'success',
         ERROR: 'error'
-      },
-      onEntry: 'error'
+      }
     }
   }
 };

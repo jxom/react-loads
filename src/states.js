@@ -1,6 +1,6 @@
 // @flow
 import React, { type Node } from 'react';
-import { Action } from 'react-automata';
+import { State as AutomataState } from 'react-automata';
 
 type State = 'success' | 'error' | 'timeout' | 'loading' | 'idle';
 type StateProps = {
@@ -9,9 +9,9 @@ type StateProps = {
 };
 
 export const IfState = ({ channel, children, is, ...props }: { ...StateProps, is: Array<State> | State }) => (
-  <Action channel={channel} show={is} {...props}>
+  <AutomataState channel={channel} value={is} {...props}>
     {children}
-  </Action>
+  </AutomataState>
 );
 export const IfIdle = (props: StateProps) => IfState({ is: 'idle', ...props });
 export const IfLoading = (props: StateProps) => IfState({ is: 'loading', ...props });
