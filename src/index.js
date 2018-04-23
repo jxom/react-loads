@@ -30,6 +30,7 @@ const statechart = {
     },
     success: {
       on: {
+        RESET: 'idle',
         FETCH: 'loading',
         SUCCESS: 'success',
         ERROR: 'error'
@@ -37,6 +38,7 @@ const statechart = {
     },
     error: {
       on: {
+        RESET: 'idle',
         FETCH: 'loading',
         SUCCESS: 'success',
         ERROR: 'error'
@@ -46,7 +48,13 @@ const statechart = {
 };
 
 type Props = {
-  children: ({ response?: any, error?: any, load?: () => ?Promise<void> }) => any,
+  children: ({
+    response?: any,
+    error?: any,
+    load?: (...args: any) => ?Promise<any>,
+    resetState: () => void,
+    state: string
+  }) => any,
   delay?: number,
   isErrorSilent?: boolean,
   loadOnMount?: boolean,
@@ -149,9 +157,10 @@ class Loads extends Component<Props, State> {
     const state = machineState.value;
     return children({
       error,
+      load: this.handleLoad,
+      resetState: () => this.transition('RESET'),
       response,
-      state,
-      load: this.handleLoad
+      state
     });
   };
 }

@@ -76,11 +76,24 @@ export default () => (
 <table>
 <thead><tr><th>Prop</th><th>Type</th><th>Default value</th><th>Description</th></tr></thead>
 <tbody>
-  <tr><td>  children </td><td><code>({ response?: any, error?: any, load: Function, state: 'idle' | 'loading' | 'timeout' | 'success' | 'error' })</code></td><td>N/A (required)</td> <td></td></tr>
+  <tr><td>  children </td><td><code>({ response?: any, error?: any, load: (...args: any) => ?Promise&lt;any&gt;, reset: Function, state: 'idle' | 'loading' | 'timeout' | 'success' | 'error' })</code></td><td>N/A (required)</td> <td></td></tr>
   <tr><td>  delay </td><td><code>number</code></td><td><code>300</code></td> <td>Number of milliseconds before component transitions to <code>loading</code> state upon invoking <code>fn</code>/<code>load</code>.</td></tr>
   <tr><td>  loadOnMount </td><td><code>boolean</code></td><td><code>false</code></td> <td>Whether or not to invoke the <code>fn</code> on mount.</td></tr>
   <tr><td>  fn </td><td><code>(...args: any) => Promise&lt;any&gt;</code></td><td>N/A (required)</td> <td>The promise to invoke.</td></tr>
   <tr><td>  timeout </td><td><code>number</code></td><td><code>0</code></td> <td>Number of milliseconds before component transitions to <code>timeout</code> state. Set to <code>0</code> to disable.</td></tr>
+</tbody>
+</table>
+
+##### `children` Render Props
+
+<table>
+<thead><tr><th>Prop</th><th>Type</th><th>Description</th></tr></thead>
+<tbody>
+  <tr><td>  response </td><td><code>any</code></td><td>Response from the resolved promise (`fn`)</td></tr>
+  <tr><td>  error </td><td><code>any</code></td><td>Error from the rejected promise (`fn`)</td></tr>
+  <tr><td>  load </td><td><code>(...args: any) => ?Promise&lt;any&gt;</code></td><td>Trigger to load `fn`</td></tr>
+  <tr><td>  resetState </td><td><code>() => void</code></td><td>Reset state back to `idle`.</td></tr>
+  <tr><td>  state </td><td><code>'idle' | 'loading' | 'timeout' | 'success' | 'error'</code></td><td>Current state.</td></tr>
 </tbody>
 </table>
 
