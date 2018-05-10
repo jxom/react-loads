@@ -48,10 +48,15 @@ const statechart = {
 
 type Props = {
   children: ({
-    response?: any,
-    error?: any,
-    load?: (...args: any) => ?Promise<any>,
+    error: any,
+    isError: boolean,
+    isIdle: boolean,
+    isLoading: boolean,
+    isSuccess: boolean,
+    isTimeout: boolean,
+    load: (...args: any) => ?Promise<any>,
     resetState: () => void,
+    response: any,
     state: string
   }) => any,
   delay?: number,
