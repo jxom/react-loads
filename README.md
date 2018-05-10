@@ -36,26 +36,24 @@ $ npm install react-loads
 
 ```js
 import React from 'react';
-import Loads, { IfIdle, IfLoading, IfTimeout, IfSuccess, IfError } from 'react-loads';
+import Loads from 'react-loads';
 
 const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
 
 export default () => (
   <Loads fn={getRandomDog}>
-    {({ load, response, error }) => (
+    {({ isIdle, isLoading, isSuccess, load, response, state, error }) => (
       <div>
-        <IfIdle>
-          <button onClick={load}>Load random dog</button>
-        </IfIdle>
-        <IfLoading>loading...</IfLoading>
-        <IfTimeout>taking a while...</IfTimeout>
-        <IfSuccess>
-          {response && <img src={response.data.message} alt="Dog" />}
+        {isIdle && <button onClick={load}>Load random dog</button>}
+        {isLoading && <div>loading...</div>}
+        {isSuccess && (
           <div>
-            <button onClick={load}>Load another dog</button>
+            {response && <img src={response.data.message} alt="Dog" />}
+            <div>
+              <button onClick={load}>Load another dog</button>
+            </div>
           </div>
-        </IfSuccess>
-        <IfError>Error! {error}</IfError>
+        )}
       </div>
     )}
   </Loads>
@@ -76,7 +74,7 @@ export default () => (
 <table>
 <thead><tr><th>Prop</th><th>Type</th><th>Default value</th><th>Description</th></tr></thead>
 <tbody>
-  <tr><td>  children </td><td><code>({ response?: any, error?: any, load: (...args: any) => ?Promise&lt;any&gt;, reset: Function, state: 'idle' | 'loading' | 'timeout' | 'success' | 'error' })</code></td><td>N/A (required)</td> <td></td></tr>
+  <tr><td>  children </td><td><code>({ response?: any, error?: any, load: (...args: any) => ?Promise&lt;any&gt;, resetState: Function })</code></td><td>N/A (required)</td> <td></td></tr>
   <tr><td>  delay </td><td><code>number</code></td><td><code>300</code></td> <td>Number of milliseconds before component transitions to <code>loading</code> state upon invoking <code>fn</code>/<code>load</code>.</td></tr>
   <tr><td>  loadOnMount </td><td><code>boolean</code></td><td><code>false</code></td> <td>Whether or not to invoke the <code>fn</code> on mount.</td></tr>
   <tr><td>  fn </td><td><code>(...args: any) => Promise&lt;any&gt;</code></td><td>N/A (required)</td> <td>The promise to invoke.</td></tr>
@@ -92,59 +90,14 @@ export default () => (
   <tr><td>  response </td><td><code>any</code></td><td>Response from the resolved promise (`fn`)</td></tr>
   <tr><td>  error </td><td><code>any</code></td><td>Error from the rejected promise (`fn`)</td></tr>
   <tr><td>  load </td><td><code>(...args: any) => ?Promise&lt;any&gt;</code></td><td>Trigger to load `fn`</td></tr>
+  <tr><td>  isIdle </td><td><code>boolean</code></td><td>Returns `true` if the state is idle (`fn` has not been triggered).</td></tr>
+  <tr><td>  isLoading </td><td><code>boolean</code></td><td>Returns `true` if the state is loading (`fn` is in a pending state).</td></tr>
+  <tr><td>  isTimeout </td><td><code>boolean</code></td><td>Returns `true` if the state is timeout (`fn` is in a pending state for longer than `delay` milliseconds).</td></tr>
+  <tr><td>  isSuccess </td><td><code>boolean</code></td><td>Returns `true` if the state is success (`fn` has been resolved).</td></tr>
+  <tr><td>  isError </td><td><code>boolean</code></td><td>Returns `true` if the state is error (`fn` has been rejected).</td></tr>
   <tr><td>  resetState </td><td><code>() => void</code></td><td>Reset state back to `idle`.</td></tr>
-  <tr><td>  state </td><td><code>'idle' | 'loading' | 'timeout' | 'success' | 'error'</code></td><td>Current state.</td></tr>
 </tbody>
 </table>
-
-### `<IfIdle>`, `<IfLoading>`, `<IfTimeout>`, `<IfSuccess>`, `<IfError>`
-
-These components determine what node to render based on the loading/response state.
-
-#### Definitions
-
-- `IfIdle` - Will render when the state is 'idle' (the initial state).
-- `IfLoading` - Will render when the state is 'loading' (triggered when the promise (`fn`) is pending).
-- `IfTimeout` - Will render when the state is 'timeout' (triggered when the promise (`fn`) has not resolved/rejected after a period of time).
-- `IfSuccess` - Will render when the state is 'success' (triggered when the promise (`fn`) resolves).
-- `IfError` - Will render when the state is 'error' (triggered when the promise (`fn`) rejects).
-
-#### Props
-
-<table>
-<thead><tr><th>Prop</th><th>Type</th><th>Default value</th><th>Description</th></tr></thead>
-<tbody>
-  <tr><td>channel</td><td>string</td><td><code>null</code></td> <td>The key of the context from where to read the state.</td></tr>
-  <tr><td>children</td><td>node</td><td>N/A (required)</td> <td>The children to be rendered when the
-  conditions match.</td></tr>
-  <tr><td>onShow</td><td>func</td><td></td> <td>The function invoked when the component becomes visible.</td></tr>
-  <tr><td>onHide</td><td>func</td><td></td> <td>The function invoked when the component becomes hidden.</td></tr>
-</tbody>
-</table>
-
-### `<IfState>`
-
-A component to define which parts of the tree should be rendered for a set of states.
-
-#### Props
-
-<table>
-<thead><tr><th>Prop</th><th>Type</th><th>Default value</th><th>Description</th></tr></thead>
-<tbody>
-  <tr><td>is</td><td>oneOfType(arrayOf(string), string)</td><td>N/A (required)</td> <td>The states(s) for which the children should be shown. Available states: <code>'idle'</code>, <code>'loading'</code>, <code>'timeout'</code>, <code>'success'</code>, <code>'error'</code></td></tr>
-  <tr><td>channel</td><td>string</td><td><code>null</code></td> <td>The key of the context from where to read the state.</td></tr>
-  <tr><td>children</td><td>node</td><td>N/A (required)</td> <td>The children to be rendered when the
-  conditions match.</td></tr>
-  <tr><td>onShow</td><td>func</td><td></td> <td>The function invoked when the component becomes visible.</td></tr>
-  <tr><td>onHide</td><td>func</td><td></td> <td>The function invoked when the component becomes hidden.</td></tr>
-</tbody>
-</table>
-
-```jsx
-<IfState is={['idle', 'success']}>
-  Hello world!
-</IfState>
-```
 
 ## Special thanks
 

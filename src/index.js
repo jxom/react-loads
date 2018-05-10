@@ -1,8 +1,7 @@
 // @flow
 
-import { createElement, Component } from 'react';
+import { Component } from 'react';
 import { withStatechart } from 'react-automata';
-export * from './states';
 
 const statechart = {
   initial: 'idle',
@@ -49,10 +48,15 @@ const statechart = {
 
 type Props = {
   children: ({
-    response?: any,
-    error?: any,
-    load?: (...args: any) => ?Promise<any>,
+    error: any,
+    isError: boolean,
+    isIdle: boolean,
+    isLoading: boolean,
+    isSuccess: boolean,
+    isTimeout: boolean,
+    load: (...args: any) => ?Promise<any>,
     resetState: () => void,
+    response: any,
     state: string
   }) => any,
   delay?: number,
@@ -157,6 +161,11 @@ class Loads extends Component<Props, State> {
     const state = machineState.value;
     return children({
       error,
+      isIdle: state === 'idle',
+      isLoading: state === 'loading',
+      isTimeout: state === 'timeout',
+      isSuccess: state === 'success',
+      isError: state === 'error',
       load: this.handleLoad,
       resetState: () => this.transition('RESET'),
       response,
@@ -165,9 +174,4 @@ class Loads extends Component<Props, State> {
   };
 }
 
-const _default = ({ channel, ...props }: { channel?: ?string }) =>
-  createElement(withStatechart(statechart, { channel })(Loads), props);
-
-_default.defaultProps = { channel: null };
-
-export default _default;
+export default withStatechart(statechart)(Loads);
