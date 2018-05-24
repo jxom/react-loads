@@ -1,6 +1,8 @@
 # React Loads
 
-> A declarative and lightweight React component to handle loading state. Powered by [React Automata](https://github.com/MicheleBertoli/react-automata)
+> A declarative and lightweight React component to handle loading state.
+
+[Read the Medium article](https://medium.com/@jxom/introducing-react-loads-a-simple-react-component-to-handle-loading-response-state-fca9ec460faa)
 
 ## Motivation
 
