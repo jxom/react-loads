@@ -1,5 +1,6 @@
 // @flow
 import React, { type Node } from 'react';
+import store from 'store';
 
 // $FlowFixMe
 const { Provider, Consumer } = React.createContext({ data: {}, setResponse: () => {} });
@@ -10,17 +11,36 @@ type ProviderProps = {
 type ProviderState = {
   data: Object
 };
+type StorageItem = {
+  response?: any,
+  error?: any
+};
 
+const LocalStoragePrefix = 'LOADS_';
 class LoadsProvider extends React.Component<ProviderProps, ProviderState> {
   state = { data: {} };
 
-  setResponse = (key: string, { response = null, error = null }: { response?: any, error?: any }) => {
+  setStaticResponse = (key: string, { response = null, error = null }: StorageItem) => {
     this.setState({ data: { ...this.state.data, [key]: { response, error } } });
+  };
+
+  setLocalStorageResponse = (key: string, { response = null, error = null }: StorageItem) => {
+    store.set(`${LocalStoragePrefix}${key}`, { data: { response, error }, timestamp: Date.now() });
   };
 
   render = () => {
     const { children } = this.props;
-    return <Provider value={{ data: this.state.data, setResponse: this.setResponse }}>{children}</Provider>;
+    return (
+      <Provider
+        value={{
+          data: this.state.data,
+          setStaticResponse: this.setStaticResponse,
+          setLocalStorageResponse: this.setLocalStorageResponse
+        }}
+      >
+        {children}
+      </Provider>
+    );
   };
 }
 
@@ -29,16 +49,35 @@ type ConsumerProps = {
   children: Function
 };
 
-class LoadsConsumer extends React.Component<ConsumerProps> {
+class LoadsStateConsumer extends React.Component<ConsumerProps> {
   render = () => {
     const { cacheKey, children } = this.props;
+
     return (
       <Consumer>
         {context => {
           return children({
             ...context.data[cacheKey],
             hasResponseInCache: typeof context.data[cacheKey] !== 'undefined',
-            setResponse: data => context.setResponse(cacheKey, data)
+            setResponse: data => context.setStaticResponse(cacheKey, data)
+          });
+        }}
+      </Consumer>
+    );
+  };
+}
+class LoadsLocalStorageConsumer extends React.Component<ConsumerProps> {
+  render = () => {
+    const { cacheKey, children } = this.props;
+    return (
+      <Consumer>
+        {context => {
+          const { data, timestamp } = store.get(`${LocalStoragePrefix}${cacheKey}`) || {};
+          return children({
+            ...data,
+            cacheTimestamp: timestamp,
+            hasResponseInCache: typeof data !== 'undefined',
+            setResponse: data => context.setLocalStorageResponse(cacheKey, data)
           });
         }}
       </Consumer>
@@ -48,5 +87,6 @@ class LoadsConsumer extends React.Component<ConsumerProps> {
 
 export default class extends React.PureComponent<{}> {
   static Provider = LoadsProvider;
-  static Consumer = LoadsConsumer;
+  static StateConsumer = LoadsStateConsumer;
+  static LocalStorageConsumer = LoadsLocalStorageConsumer;
 }

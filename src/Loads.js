@@ -2,7 +2,11 @@ import { Component } from 'react';
 
 type Props = {
   children: ({
+    state: string,
     error: any,
+    response: any,
+    hasResponseInCache: boolean,
+    cacheTimestamp?: Number,
     isError: boolean,
     isIdle: boolean,
     isLoading: boolean,
@@ -10,12 +14,12 @@ type Props = {
     isTimeout: boolean,
     load: (...args: any) => ?Promise<any>,
     resetState: () => void,
-    response: any,
-    state: string
+    response: any
   }) => any,
   delay?: number,
   error?: any,
   hasResponseInCache?: boolean,
+  cacheTimestamp?: Number,
   isErrorSilent?: boolean,
   loadOnMount?: boolean,
   fn: (...args: any) => Promise<any>,
@@ -33,12 +37,13 @@ type State = {
 export default class Loads extends Component<Props, State> {
   static defaultProps = {
     delay: 300,
-    error: null,
-    hasResponseInCache: false,
+    timeout: 0,
     isErrorSilent: true,
     loadOnMount: false,
+    error: null,
     response: null,
-    timeout: 0
+    hasResponseInCache: false,
+    cacheTimestamp: undefined
   };
   _delayTimeout: any;
   _timeoutTimeout: any;
@@ -71,9 +76,14 @@ export default class Loads extends Component<Props, State> {
   };
 
   componentDidMount = () => {
-    const { loadOnMount } = this.props;
+    const { loadOnMount, response } = this.props;
     this._mounted = true;
-    loadOnMount && this.handleLoad();
+
+    if (response) {
+      this.transition('SUCCESS');
+    } else {
+      loadOnMount && this.handleLoad();
+    }
   };
 
   componentWillUnmount = () => {
@@ -119,21 +129,22 @@ export default class Loads extends Component<Props, State> {
   };
 
   render = () => {
-    const { children, hasResponseInCache, machineState } = this.props;
+    const { children, hasResponseInCache, cacheTimestamp, machineState } = this.props;
     const { error, response } = this.state;
     const state = machineState.value;
     const props = {
+      state,
       error,
+      response,
       hasResponseInCache,
+      cacheTimestamp,
       isIdle: state === 'idle',
       isLoading: state === 'loading',
       isTimeout: state === 'timeout',
       isSuccess: state === 'success',
       isError: state === 'error',
       load: this.handleLoad,
-      resetState: () => this.transition('RESET'),
-      response,
-      state
+      resetState: () => this.transition('RESET')
     };
     return children(props);
   };

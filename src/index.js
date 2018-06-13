@@ -47,27 +47,47 @@ const statechart = {
   }
 };
 
-const LoadsContainer = (props: { cacheKey?: ?string }) => {
-  if (props.cacheKey) {
+const LoadsContainer = (props: { cacheKey?: ?string, useLocalStorage?: any }) => {
+  if (props.useLocalStorage && props.cacheKey) {
     return (
-      <LoadsContext.Consumer cacheKey={props.cacheKey}>
-        {({ error, hasResponseInCache, response, setResponse }) => (
-          <Loads
-            {...props}
-            error={error}
-            hasResponseInCache={hasResponseInCache}
-            response={response}
-            setResponse={setResponse}
-          />
-        )}
-      </LoadsContext.Consumer>
+      <LoadsContext.LocalStorageConsumer cacheKey={props.cacheKey}>
+        {({ error, hasResponseInCache, cacheTimestamp, response, setResponse }) => {
+          return (
+            <Loads
+              {...props}
+              error={error}
+              hasResponseInCache={hasResponseInCache}
+              cacheTimestamp={cacheTimestamp}
+              response={response}
+              setResponse={setResponse}
+            />
+          );
+        }}
+      </LoadsContext.LocalStorageConsumer>
+    );
+  } else if (props.cacheKey) {
+    return (
+      <LoadsContext.StateConsumer cacheKey={props.cacheKey}>
+        {({ error, hasResponseInCache, response, setResponse }) => {
+          return (
+            <Loads
+              {...props}
+              error={error}
+              hasResponseInCache={hasResponseInCache}
+              response={response}
+              setResponse={setResponse}
+            />
+          );
+        }}
+      </LoadsContext.StateConsumer>
     );
   }
   return <Loads {...props} />;
 };
 
 LoadsContainer.defaultProps = {
-  cacheKey: null
+  cacheKey: null,
+  useLocalStorage: false
 };
 
 export default withStatechart(statechart)(LoadsContainer);
