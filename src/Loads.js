@@ -76,14 +76,10 @@ export default class Loads extends Component<Props, State> {
   };
 
   componentDidMount = () => {
-    const { loadOnMount, response } = this.props;
+    const { loadOnMount } = this.props;
     this._mounted = true;
 
-    if (response) {
-      this.transition('SUCCESS');
-    } else {
-      loadOnMount && this.handleLoad();
-    }
+    loadOnMount && this.handleLoad();
   };
 
   componentWillUnmount = () => {

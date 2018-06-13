@@ -214,20 +214,21 @@ storiesOf('Loads', module)
     const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
     return (
       <Loads cacheKey="hotdog" useLocalStorage fn={getRandomDog}>
-        {({ isIdle, isLoading, isSuccess, load, response, state, error, cacheTimestamp }) => (
+        {({ isIdle, isLoading, isSuccess, load, response, state, error, hasResponseInCache, cacheTimestamp }) => (
           <div>
             <p>Current state: {state}</p>
-            {cacheTimestamp && <p>Last retrived: {new Date(cacheTimestamp).toString()}</p>}
-            {isIdle && <button onClick={load}>Load random dog</button>}
+            {cacheTimestamp && !isLoading && <p>Last retrieved: {new Date(cacheTimestamp).toString()}</p>}
+            {isIdle && !hasResponseInCache && <button onClick={load}>Load random dog</button>}
             {isLoading && <div>loading...</div>}
-            {isSuccess && (
-              <div>
-                {response && <img src={response.data.message} alt="Dog" />}
+            {(isSuccess || hasResponseInCache) &&
+              !isLoading && (
                 <div>
-                  <button onClick={load}>Load another dog</button>
+                  {response && <img src={response.data.message} alt="Dog" />}
+                  <div>
+                    <button onClick={load}>Load another dog</button>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
           </div>
         )}
       </Loads>
