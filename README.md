@@ -80,7 +80,7 @@ export default () => (
   <tr><td>  useLocalStorage </td><td><code>boolean</code></td>false<td></td> <td>Use local storage to cache the response data.</td></tr>
   <tr><td>  children </td><td><code>({ response?: any, error?: any, load: (...args: any) => ?Promise&lt;any&gt;, resetState: Function })</code></td><td>N/A (required)</td> <td></td></tr>
   <tr><td>  delay </td><td><code>number</code></td><td><code>300</code></td> <td>Number of milliseconds before component transitions to <code>loading</code> state upon invoking <code>fn</code>/<code>load</code>.</td></tr>
-  <tr><td>  loadOnMount </td><td><code>boolean</code></td><td><code>false</code></td> <td>Whether or not to invoke the <code>fn</code> on mount.</td></tr>
+  <tr><td>  loadOnMount </td><td><code>boolean</code></td><td><code>false</code></td> <td>Whether or not to invoke the <code>fn</code> on mount. Will force a refresh if provided with the <code>useLocalStorage</code> prop.</td></tr>
   <tr><td>  fn </td><td><code>(...args: any) => Promise&lt;any&gt;</code></td><td>N/A (required)</td> <td>The promise to invoke.</td></tr>
   <tr><td>  timeout </td><td><code>number</code></td><td><code>0</code></td> <td>Number of milliseconds before component transitions to <code>timeout</code> state. Set to <code>0</code> to disable.</td></tr>
 </tbody>
@@ -137,7 +137,7 @@ export default () => (
 );
 ```
 
-Alternatively, localStorage can be utilised instead of caching data in the provider itself.
+Alternatively, localStorage can be utilised instead of caching data in the provider itself. Using localStorage is not currently compatible with the `loadOnMount` prop.
 
 ```jsx
 import React from 'react';
