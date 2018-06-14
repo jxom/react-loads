@@ -105,7 +105,10 @@ export default () => (
 </tbody>
 </table>
 
-##### `LoadsProvider` Props
+
+### `<LoadsProvider>`
+
+#### Props
 
 <table>
 <thead><tr><th>Prop</th><th>Type</th><th>Default value</th><th>Description</th></tr></thead>
