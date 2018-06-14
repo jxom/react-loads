@@ -105,6 +105,15 @@ export default () => (
 </tbody>
 </table>
 
+##### `LoadsProvider` Props
+
+<table>
+<thead><tr><th>Prop</th><th>Type</th><th>Description</th></tr></thead>
+<tbody>
+  <tr><td>  storagePrefix </td><td><code>string</code></td>react_loads_<td>The prefix to use when storing items with this provider. It is recommended you set this to the name of your app or module to avoid namespace collisions in storage.</td></tr>
+</tbody>
+</table>
+
 ## Caching response/error data
 
 React Loads has the ability to cache the response and error data. Your application must be wrapped in a `<LoadsProvider>` to enable caching. Here is an example to toggle on caching:
@@ -146,7 +155,7 @@ import Loads, { LoadsProvider } from 'react-loads';
 const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
 
 export default () => (
-  <LoadsProvider>
+  <LoadsProvider storagePrefix="myappname_">
     <Loads cacheKey="randomDog" useLocalStorage fn={getRandomDog}>
       {({ hasResponseInCache, cacheTimestamp, isLoading, isSuccess, load, response }) => (
         <div>

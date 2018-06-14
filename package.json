@@ -33,8 +33,7 @@
     "react-dom": "^16.0.0"
   },
   "dependencies": {
-    "react-automata": "^2.0.0",
-    "store": "^2.0.12"
+    "react-automata": "^2.0.0"
   },
   "devDependencies": {
     "@medipass/eslint-config-react-medipass": "8.3.0",

@@ -1,38 +1,43 @@
 // @flow
 import React, { type Node } from 'react';
-import store from 'store';
+import LocalStorage from './storages/local';
 
 // $FlowFixMe
 const { Provider, Consumer } = React.createContext({ data: {}, setResponse: () => {} });
 
 type ProviderProps = {
-  children: Node
+  children: Node,
+  storagePrefix: string
 };
 type ProviderState = {
   data: Object
 };
-type StorageItem = {
-  response?: any,
-  error?: any
+type ResponsePair = {
+  response: any,
+  error: any
 };
 
-const LocalStoragePrefix = 'LOADS_';
+const DefaultStoragePrefix = 'react_loads_';
+
 class LoadsProvider extends React.Component<ProviderProps, ProviderState> {
+  static defaultProps = { storagePrefix: DefaultStoragePrefix };
+
   state = { data: {} };
 
-  setStaticResponse = (key: string, { response = null, error = null }: StorageItem) => {
+  setStaticResponse = (key: string, { response = null, error = null }: ResponsePair) => {
     this.setState({ data: { ...this.state.data, [key]: { response, error } } });
   };
 
-  setLocalStorageResponse = (key: string, { response = null, error = null }: StorageItem) => {
-    store.set(`${LocalStoragePrefix}${key}`, { data: { response, error }, timestamp: Date.now() });
+  setLocalStorageResponse = (key: string, { response = null, error = null }: ResponsePair) => {
+    LocalStorage.set(`${this.props.storagePrefix}${key}`, { data: { response, error }, timestamp: Date.now() });
   };
 
   render = () => {
-    const { children } = this.props;
+    const { storagePrefix, children } = this.props;
     return (
       <Provider
         value={{
+          storagePrefix,
           data: this.state.data,
           setStaticResponse: this.setStaticResponse,
           setLocalStorageResponse: this.setLocalStorageResponse
@@ -72,7 +77,7 @@ class LoadsLocalStorageConsumer extends React.Component<ConsumerProps> {
     return (
       <Consumer>
         {context => {
-          const { data, timestamp } = store.get(`${LocalStoragePrefix}${cacheKey}`) || {};
+          const { data, timestamp } = LocalStorage.get(`${context.storagePrefix}${cacheKey}`) || {};
           return children({
             ...data,
             cacheTimestamp: timestamp,
