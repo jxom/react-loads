@@ -108,9 +108,9 @@ export default () => (
 ##### `LoadsProvider` Props
 
 <table>
-<thead><tr><th>Prop</th><th>Type</th><th>Description</th></tr></thead>
+<thead><tr><th>Prop</th><th>Type</th><th>Default value</th><th>Description</th></tr></thead>
 <tbody>
-  <tr><td>  storagePrefix </td><td><code>string</code></td>react_loads_<td>The prefix to use when storing items with this provider. It is recommended you set this to the name of your app or module to avoid namespace collisions in storage.</td></tr>
+  <tr><td>  storagePrefix </td><td><code>string</code></td><td>react_loads_</td><td>The prefix to use when storing items with this provider. It is recommended you set this to the name of your app or module to avoid namespace collisions in storage.</td></tr>
 </tbody>
 </table>
 
