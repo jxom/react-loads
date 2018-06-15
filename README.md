@@ -113,7 +113,7 @@ export default () => (
 <table>
 <thead><tr><th>Prop</th><th>Type</th><th>Default value</th><th>Description</th></tr></thead>
 <tbody>
-  <tr><td>  storagePrefix </td><td><code>string</code></td><td>react_loads_</td><td>The prefix to use when storing items with this provider. It is recommended you set this to the name of your app or module to avoid namespace collisions in storage.</td></tr>
+  <tr><td>  storagePrefix </td><td><code>string</code></td><td>react-loads.</td><td>The prefix to use when storing items with this provider. It is recommended you set this to the name of your app or module to avoid namespace collisions in storage.</td></tr>
 </tbody>
 </table>
 
@@ -158,7 +158,7 @@ import Loads, { LoadsProvider } from 'react-loads';
 const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
 
 export default () => (
-  <LoadsProvider storagePrefix="myappname_">
+  <LoadsProvider storagePrefix="my-app.">
     <Loads cacheKey="randomDog" useLocalStorage fn={getRandomDog}>
       {({ hasResponseInCache, cacheTimestamp, isLoading, isSuccess, load, response }) => (
         <div>

@@ -20,7 +20,7 @@ type ResponsePair = {
 type SetResponseParams = {
   key: string,
   data: ResponsePair,
-  useLocalStorage: boolean
+  useLocalStorage?: boolean
 };
 
 const DEFAULT_STORAGE_PREFIX = 'react-loads.';
@@ -61,7 +61,7 @@ class LoadsProvider extends React.Component<ProviderProps, ProviderState> {
 
 type ConsumerProps = {
   cacheKey: string,
-  useLocalStorage: boolean,
+  useLocalStorage?: boolean,
   children: Function
 };
 

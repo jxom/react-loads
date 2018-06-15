@@ -47,7 +47,7 @@ const statechart = {
   }
 };
 
-const LoadsContainer = (props: { cacheKey?: ?string, useLocalStorage?: any }) => {
+const LoadsContainer = (props: { cacheKey?: ?string, useLocalStorage?: boolean }) => {
   if (props.cacheKey) {
     return (
       <LoadsContext.Consumer cacheKey={props.cacheKey} useLocalStorage={props.useLocalStorage}>
