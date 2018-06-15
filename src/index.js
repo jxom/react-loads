@@ -48,9 +48,9 @@ const statechart = {
 };
 
 const LoadsContainer = (props: { cacheKey?: ?string, useLocalStorage?: any }) => {
-  if (props.useLocalStorage && props.cacheKey) {
+  if (props.cacheKey) {
     return (
-      <LoadsContext.LocalStorageConsumer cacheKey={props.cacheKey}>
+      <LoadsContext.Consumer cacheKey={props.cacheKey} useLocalStorage={props.useLocalStorage}>
         {({ error, hasResponseInCache, cacheTimestamp, response, setResponse }) => {
           return (
             <Loads
@@ -63,23 +63,7 @@ const LoadsContainer = (props: { cacheKey?: ?string, useLocalStorage?: any }) =>
             />
           );
         }}
-      </LoadsContext.LocalStorageConsumer>
-    );
-  } else if (props.cacheKey) {
-    return (
-      <LoadsContext.StateConsumer cacheKey={props.cacheKey}>
-        {({ error, hasResponseInCache, response, setResponse }) => {
-          return (
-            <Loads
-              {...props}
-              error={error}
-              hasResponseInCache={hasResponseInCache}
-              response={response}
-              setResponse={setResponse}
-            />
-          );
-        }}
-      </LoadsContext.StateConsumer>
+      </LoadsContext.Consumer>
     );
   }
   return <Loads {...props} />;

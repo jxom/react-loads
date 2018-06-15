@@ -1,6 +1,6 @@
 // @flow
 import React, { type Node } from 'react';
-import LocalStorage from './storages/local';
+import LocalStorage from './storages/local-storage';
 
 // $FlowFixMe
 const { Provider, Consumer } = React.createContext({ data: {}, setResponse: () => {} });
@@ -10,26 +10,36 @@ type ProviderProps = {
   storagePrefix: string
 };
 type ProviderState = {
-  data: Object
+  data: Object,
+  cacheTimestamps: Object
 };
 type ResponsePair = {
   response: any,
   error: any
 };
+type SetResponseParams = {
+  key: string,
+  data: ResponsePair,
+  useLocalStorage: boolean
+};
 
-const DefaultStoragePrefix = 'react_loads_';
+const DEFAULT_STORAGE_PREFIX = 'react-loads.';
 
 class LoadsProvider extends React.Component<ProviderProps, ProviderState> {
-  static defaultProps = { storagePrefix: DefaultStoragePrefix };
+  static defaultProps = { storagePrefix: DEFAULT_STORAGE_PREFIX };
 
-  state = { data: {} };
+  state = { data: {}, cacheTimestamps: {} };
 
-  setStaticResponse = (key: string, { response = null, error = null }: ResponsePair) => {
-    this.setState({ data: { ...this.state.data, [key]: { response, error } } });
-  };
-
-  setLocalStorageResponse = (key: string, { response = null, error = null }: ResponsePair) => {
-    LocalStorage.set(`${this.props.storagePrefix}${key}`, { data: { response, error }, timestamp: Date.now() });
+  setResponse = (params: SetResponseParams) => {
+    const { key, data = { response: null, error: null }, useLocalStorage } = params;
+    const timestamp = Date.now();
+    if (useLocalStorage) {
+      LocalStorage.set(`${this.props.storagePrefix}${key}`, { data, timestamp });
+    }
+    this.setState({
+      data: { ...this.state.data, [key]: data },
+      cacheTimestamps: { ...this.state.cacheTimestamps, [key]: timestamp }
+    });
   };
 
   render = () => {
@@ -39,8 +49,8 @@ class LoadsProvider extends React.Component<ProviderProps, ProviderState> {
         value={{
           storagePrefix,
           data: this.state.data,
-          setStaticResponse: this.setStaticResponse,
-          setLocalStorageResponse: this.setLocalStorageResponse
+          cacheTimestamps: this.state.cacheTimestamps,
+          setResponse: this.setResponse
         }}
       >
         {children}
@@ -51,38 +61,27 @@ class LoadsProvider extends React.Component<ProviderProps, ProviderState> {
 
 type ConsumerProps = {
   cacheKey: string,
+  useLocalStorage: boolean,
   children: Function
 };
 
-class LoadsStateConsumer extends React.Component<ConsumerProps> {
+class LoadsConsumer extends React.Component<ConsumerProps> {
   render = () => {
-    const { cacheKey, children } = this.props;
+    const { cacheKey, useLocalStorage, children } = this.props;
 
-    return (
-      <Consumer>
-        {context => {
-          return children({
-            ...context.data[cacheKey],
-            hasResponseInCache: typeof context.data[cacheKey] !== 'undefined',
-            setResponse: data => context.setStaticResponse(cacheKey, data)
-          });
-        }}
-      </Consumer>
-    );
-  };
-}
-class LoadsLocalStorageConsumer extends React.Component<ConsumerProps> {
-  render = () => {
-    const { cacheKey, children } = this.props;
     return (
       <Consumer>
         {context => {
           const { data, timestamp } = LocalStorage.get(`${context.storagePrefix}${cacheKey}`) || {};
+
+          const cachedData = context.data[cacheKey] || data;
+          const cacheTimestamp = context.cacheTimestamps[cacheKey] || timestamp;
+
           return children({
-            ...data,
-            cacheTimestamp: timestamp,
-            hasResponseInCache: typeof data !== 'undefined',
-            setResponse: data => context.setLocalStorageResponse(cacheKey, data)
+            ...cachedData,
+            cacheTimestamp,
+            hasResponseInCache: typeof cachedData !== 'undefined',
+            setResponse: data => context.setResponse({ key: cacheKey, data, useLocalStorage })
           });
         }}
       </Consumer>
@@ -92,6 +91,5 @@ class LoadsLocalStorageConsumer extends React.Component<ConsumerProps> {
 
 export default class extends React.PureComponent<{}> {
   static Provider = LoadsProvider;
-  static StateConsumer = LoadsStateConsumer;
-  static LocalStorageConsumer = LoadsLocalStorageConsumer;
+  static Consumer = LoadsConsumer;
 }
