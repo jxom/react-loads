@@ -3,9 +3,7 @@ import idx from 'idx';
 import { EVENTS, STATES } from './statechart';
 
 type Props = {
-  enableBackgroundIdleState?: boolean,
-  enableBackgroundLoadingState?: boolean,
-  enableBackgroundTimeoutState?: boolean,
+  enableBackgroundStates?: boolean,
   cache?: {
     error?: any,
     response?: any,
@@ -39,13 +37,12 @@ type State = {
 
 export default class Loads extends Component<Props, State> {
   static defaultProps = {
+    enableBackgroundStates: false,
     delay: 300,
     error: null,
     isErrorSilent: true,
     loadOnMount: false,
     response: null,
-    enableBackgroundIdleState: false,
-    enableBackgroundLoadingState: false,
     timeout: 0
   };
   _delayTimeout: any;
@@ -136,14 +133,7 @@ export default class Loads extends Component<Props, State> {
   };
 
   render = () => {
-    const {
-      enableBackgroundIdleState,
-      enableBackgroundLoadingState,
-      enableBackgroundTimeoutState,
-      cache,
-      children,
-      machineState
-    } = this.props;
+    const { enableBackgroundStates, cache, children, machineState } = this.props;
     const { error, response } = this.state;
     const cacheState = cache ? cache.state : null;
     const hasResponseInCache = typeof cache !== 'undefined';
@@ -151,9 +141,9 @@ export default class Loads extends Component<Props, State> {
     const props = {
       error,
       hasResponseInCache,
-      isIdle: state === STATES.IDLE && (hasResponseInCache && enableBackgroundIdleState),
-      isLoading: state === STATES.LOADING && (hasResponseInCache && enableBackgroundLoadingState),
-      isTimeout: state === STATES.TIMEOUT && (hasResponseInCache && enableBackgroundTimeoutState),
+      isIdle: state === STATES.IDLE && (hasResponseInCache && enableBackgroundStates),
+      isLoading: state === STATES.LOADING && (hasResponseInCache && enableBackgroundStates),
+      isTimeout: state === STATES.TIMEOUT && (hasResponseInCache && enableBackgroundStates),
       isSuccess: state === STATES.SUCCESS || (hasResponseInCache && cacheState === STATES.SUCCESS),
       isError: state === STATES.ERROR || (hasResponseInCache && cacheState === STATES.ERROR),
       load: this.handleLoad,
