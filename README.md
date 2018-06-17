@@ -76,11 +76,10 @@ export default () => (
 <table>
 <thead><tr><th>Prop</th><th>Type</th><th>Default value</th><th>Description</th></tr></thead>
 <tbody>
+  <tr><td>  fn </td><td><code>function()</code></td><td></td> <td>The function to invoke - <strong>it must return a promise</strong>.</td></tr>
   <tr><td>  cacheKey </td><td><code>string</code></td><td></td> <td>Unique identifier to store the response/error data. Your application must be wrapped in a <code>&lt;LoadsProvider&gt;</code> to enable caching (see 'Caching response/error data' below).</td></tr>
-  <tr><td>  children </td><td><code>({ response?: any, error?: any, load: (...args: any) => ?Promise&lt;any&gt;, resetState: Function })</code></td><td>N/A (required)</td> <td></td></tr>
   <tr><td>  delay </td><td><code>number</code></td><td><code>300</code></td> <td>Number of milliseconds before component transitions to <code>loading</code> state upon invoking <code>fn</code>/<code>load</code>.</td></tr>
   <tr><td>  loadOnMount </td><td><code>boolean</code></td><td><code>false</code></td> <td>Whether or not to invoke the <code>fn</code> on mount.</td></tr>
-  <tr><td>  fn </td><td><code>(...args: any) => Promise&lt;any&gt;</code></td><td>N/A (required)</td> <td>The promise to invoke.</td></tr>
   <tr><td>  timeout </td><td><code>number</code></td><td><code>0</code></td> <td>Number of milliseconds before component transitions to <code>timeout</code> state. Set to <code>0</code> to disable.</td></tr>
 </tbody>
 </table>
@@ -90,16 +89,16 @@ export default () => (
 <table>
 <thead><tr><th>Prop</th><th>Type</th><th>Description</th></tr></thead>
 <tbody>
-  <tr><td>  response </td><td><code>any</code></td><td>Response from the resolved promise (`fn`)</td></tr>
-  <tr><td>  error </td><td><code>any</code></td><td>Error from the rejected promise (`fn`)</td></tr>
-  <tr><td>  load </td><td><code>(...args: any) => ?Promise&lt;any&gt;</code></td><td>Trigger to load `fn`</td></tr>
-  <tr><td>  hasResponseInCache </td><td><code>boolean</code></td><td>Returns `true` if data already exists in the context cache.</td></tr>
-  <tr><td>  isIdle </td><td><code>boolean</code></td><td>Returns `true` if the state is idle (`fn` has not been triggered).</td></tr>
-  <tr><td>  isLoading </td><td><code>boolean</code></td><td>Returns `true` if the state is loading (`fn` is in a pending state).</td></tr>
-  <tr><td>  isTimeout </td><td><code>boolean</code></td><td>Returns `true` if the state is timeout (`fn` is in a pending state for longer than `delay` milliseconds).</td></tr>
-  <tr><td>  isSuccess </td><td><code>boolean</code></td><td>Returns `true` if the state is success (`fn` has been resolved).</td></tr>
-  <tr><td>  isError </td><td><code>boolean</code></td><td>Returns `true` if the state is error (`fn` has been rejected).</td></tr>
-  <tr><td>  resetState </td><td><code>() => void</code></td><td>Reset state back to `idle`.</td></tr>
+  <tr><td>  response </td><td><code>any</code></td><td>Response from the resolved promise (<code>fn</code>)</td></tr>
+  <tr><td>  error </td><td><code>any</code></td><td>Error from the rejected promise (<code>fn</code>)</td></tr>
+  <tr><td>  load </td><td><code>function(...args)</code></td><td>Trigger to load <code>fn</code></td></tr>
+  <tr><td>  hasResponseInCache </td><td><code>boolean</code></td><td>Returns <code>true</code> if data already exists in the context cache.</td></tr>
+  <tr><td>  isIdle </td><td><code>boolean</code></td><td>Returns <code>true</code> if the state is idle (<code>fn</code> has not been triggered).</td></tr>
+  <tr><td>  isLoading </td><td><code>boolean</code></td><td>Returns <code>true</code> if the state is loading (<code>fn</code> is in a pending state).</td></tr>
+  <tr><td>  isTimeout </td><td><code>boolean</code></td><td>Returns <code>true</code> if the state is timeout (<code>fn</code> is in a pending state for longer than `delay` milliseconds).</td></tr>
+  <tr><td>  isSuccess </td><td><code>boolean</code></td><td>Returns <code>true</code> if the state is success (<code>fn</code> has been resolved).</td></tr>
+  <tr><td>  isError </td><td><code>boolean</code></td><td>Returns <code>true</code> if the state is error (<code>fn</code> has been rejected).</td></tr>
+  <tr><td>  resetState </td><td><code>function()</code></td><td>Reset state back to <code>idle</code>.</td></tr>
 </tbody>
 </table>
 
