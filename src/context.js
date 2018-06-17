@@ -40,13 +40,12 @@ class LoadsConsumer extends React.Component<ConsumerProps> {
     const { cacheKey, children } = this.props;
     return (
       <Consumer>
-        {context => {
-          const cache = context.data[cacheKey];
-          return children({
-            cache,
+        {context =>
+          children({
+            cache: context.data[cacheKey],
             setResponse: data => context.setResponse(cacheKey, data)
-          });
-        }}
+          })
+        }
       </Consumer>
     );
   };
