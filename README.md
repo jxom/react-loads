@@ -105,7 +105,7 @@ export default () => (
 
 ## Caching response/error data
 
-React Loads has the ability to cache the response and error data. Your application must be wrapped in a `<LoadsProvider>` to enable caching. Here is an example to toggle on caching:
+React Loads has the ability to cache the response and error data on an application context level (meaning the cache will clear upon unmounting the application). Your application must be wrapped in a `<LoadsProvider>` to enable caching. Here is an example to enable it:
 
 ```jsx
 import React from 'react';
@@ -113,25 +113,31 @@ import Loads, { LoadsProvider } from 'react-loads';
 
 const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
 
-export default () => (
-  <LoadsProvider>
-    <Loads cacheKey="randomDog" loadOnMount fn={getRandomDog}>
-      {({ hasResponseInCache, isLoading, isSuccess, load, response }) => (
-        <div>
-          {isLoading && <div>loading...</div>}
-          {(isSuccess || hasResponseInCache) && (
+const RandomDog = () => (
+  <Loads cacheKey="randomDog" loadOnMount fn={getRandomDog}>
+    {({ hasResponseInCache, isLoading, isSuccess, load, response }) => (
+      <div>
+        {isLoading && <div>loading...</div>}
+        {(isSuccess || hasResponseInCache) && (
+          <div>
+            {response && <img src={response.data.message} alt="Dog" />}
             <div>
-              {response && <img src={response.data.message} alt="Dog" />}
-              <div>
-                <button onClick={load}>Load another dog</button>
-              </div>
+              <button onClick={load}>Load another dog</button>
             </div>
-          )}
-        </div>
-      )}
-    </Loads>
+          </div>
+        )}
+      </div>
+    )}
+  </Loads>
+);
+
+const App = () => (
+  <LoadsProvider>
+    <RandomDog />
   </LoadsProvider>
 );
+
+export default App;
 ```
 
 ## Special thanks
