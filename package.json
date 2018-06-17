@@ -30,10 +30,11 @@
   ],
   "peerDependencies": {
     "react": ">=16.3.0",
-    "react-dom": "^16.0.0"
+    "react-dom": ">=16.3.0"
   },
   "dependencies": {
-    "react-automata": "^2.0.0"
+    "idx": "2.4.0",
+    "react-automata": "3.0.0"
   },
   "devDependencies": {
     "@medipass/eslint-config-react-medipass": "8.3.0",

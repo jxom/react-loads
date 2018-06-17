@@ -113,7 +113,7 @@ storiesOf('Loads', module)
                 </div>
               </div>
             )}
-            {isError && <div>Error! {error}</div>}
+            {isError && <div>Error! {error.message}</div>}
           </Fragment>
         )}
       </Loads>
@@ -206,6 +206,28 @@ storiesOf('Loads', module)
               </div>
             )}
           </Loads>
+        )}
+      </Loads>
+    );
+  })
+  .add('load on mount (context cache)', () => {
+    const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
+    return (
+      <Loads cacheKey="random-dog" fn={getRandomDog}>
+        {({ isIdle, isLoading, isSuccess, load, response, state, error }) => (
+          <div>
+            <p>Current state: {state}</p>
+            {isIdle && <button onClick={load}>Load random dog</button>}
+            {isLoading && <div>loading...</div>}
+            {isSuccess && (
+              <div>
+                {response && <img src={response.data.message} alt="Dog" />}
+                <div>
+                  <button onClick={load}>Load another dog</button>
+                </div>
+              </div>
+            )}
+          </div>
         )}
       </Loads>
     );

@@ -3,63 +3,13 @@ import React from 'react';
 import { withStatechart } from 'react-automata';
 import Loads from './Loads';
 import LoadsContext from './context';
-
-const statechart = {
-  initial: 'idle',
-  states: {
-    idle: {
-      on: {
-        FETCH: 'loading',
-        SUCCESS: 'success',
-        ERROR: 'error'
-      }
-    },
-    loading: {
-      on: {
-        TIMEOUT: 'timeout',
-        SUCCESS: 'success',
-        ERROR: 'error'
-      }
-    },
-    timeout: {
-      on: {
-        FETCH: 'loading',
-        SUCCESS: 'success',
-        ERROR: 'error'
-      }
-    },
-    success: {
-      on: {
-        RESET: 'idle',
-        FETCH: 'loading',
-        SUCCESS: 'success',
-        ERROR: 'error'
-      }
-    },
-    error: {
-      on: {
-        RESET: 'idle',
-        FETCH: 'loading',
-        SUCCESS: 'success',
-        ERROR: 'error'
-      }
-    }
-  }
-};
+import statechart from './statechart';
 
 const LoadsContainer = (props: { cacheKey?: ?string }) => {
   if (props.cacheKey) {
     return (
       <LoadsContext.Consumer cacheKey={props.cacheKey}>
-        {({ error, hasResponseInCache, response, setResponse }) => (
-          <Loads
-            {...props}
-            error={error}
-            hasResponseInCache={hasResponseInCache}
-            response={response}
-            setResponse={setResponse}
-          />
-        )}
+        {({ cache, setResponse }) => <Loads {...props} cache={cache} setResponse={setResponse} />}
       </LoadsContext.Consumer>
     );
   }
