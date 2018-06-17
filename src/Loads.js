@@ -5,6 +5,7 @@ import { EVENTS, STATES } from './statechart';
 type Props = {
   enableBackgroundIdleState?: boolean,
   enableBackgroundLoadingState?: boolean,
+  enableBackgroundTimeoutState?: boolean,
   cache?: {
     error?: any,
     response?: any,
@@ -135,7 +136,14 @@ export default class Loads extends Component<Props, State> {
   };
 
   render = () => {
-    const { enableBackgroundIdleState, enableBackgroundLoadingState, cache, children, machineState } = this.props;
+    const {
+      enableBackgroundIdleState,
+      enableBackgroundLoadingState,
+      enableBackgroundTimeoutState,
+      cache,
+      children,
+      machineState
+    } = this.props;
     const { error, response } = this.state;
     const cacheState = cache ? cache.state : null;
     const hasResponseInCache = typeof cache !== 'undefined';
@@ -145,7 +153,7 @@ export default class Loads extends Component<Props, State> {
       hasResponseInCache,
       isIdle: state === STATES.IDLE && (hasResponseInCache && enableBackgroundIdleState),
       isLoading: state === STATES.LOADING && (hasResponseInCache && enableBackgroundLoadingState),
-      isTimeout: state === STATES.TIMEOUT,
+      isTimeout: state === STATES.TIMEOUT && (hasResponseInCache && enableBackgroundTimeoutState),
       isSuccess: state === STATES.SUCCESS || (hasResponseInCache && cacheState === STATES.SUCCESS),
       isError: state === STATES.ERROR || (hasResponseInCache && cacheState === STATES.ERROR),
       load: this.handleLoad,
