@@ -135,17 +135,17 @@ export default class Loads extends Component<Props, State> {
   render = () => {
     const { enableBackgroundStates, cache, children, machineState } = this.props;
     const { error, response } = this.state;
-    const cacheState = cache ? cache.state : null;
+    const cachedState = cache ? cache.state : null;
     const hasResponseInCache = typeof cache !== 'undefined';
     const state = machineState.value;
     const props = {
       error,
       hasResponseInCache,
-      isIdle: state === STATES.IDLE && (hasResponseInCache && enableBackgroundStates),
-      isLoading: state === STATES.LOADING && (hasResponseInCache && enableBackgroundStates),
-      isTimeout: state === STATES.TIMEOUT && (hasResponseInCache && enableBackgroundStates),
-      isSuccess: state === STATES.SUCCESS || (hasResponseInCache && cacheState === STATES.SUCCESS),
-      isError: state === STATES.ERROR || (hasResponseInCache && cacheState === STATES.ERROR),
+      isIdle: state === STATES.IDLE && (!hasResponseInCache || enableBackgroundStates),
+      isLoading: state === STATES.LOADING && (!hasResponseInCache || enableBackgroundStates),
+      isTimeout: state === STATES.TIMEOUT && (!hasResponseInCache || enableBackgroundStates),
+      isSuccess: state === STATES.SUCCESS || (hasResponseInCache && cachedState === STATES.SUCCESS),
+      isError: state === STATES.ERROR || (hasResponseInCache && cachedState === STATES.ERROR),
       load: this.handleLoad,
       resetState: () => this.transition(EVENTS.RESET),
       response,
