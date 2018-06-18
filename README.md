@@ -76,13 +76,15 @@ export default () => (
 <table>
 <thead><tr><th>Prop</th><th>Type</th><th>Default value</th><th>Description</th></tr></thead>
 <tbody>
-  <tr><td>  cacheKey </td><td><code>string</code></td><td></td> <td>Unique identifier to store the response/error data. Your application must be wrapped in a <code>&lt;LoadsProvider&gt;</code> to enable caching (see 'Caching response/error data' below).</td></tr>
-  <tr><td>  useLocalStorage </td><td><code>boolean</code></td>false<td></td> <td>Use local storage to cache the response data.</td></tr>
-  <tr><td>  children </td><td><code>({ response?: any, error?: any, load: (...args: any) => ?Promise&lt;any&gt;, resetState: Function })</code></td><td>N/A (required)</td> <td></td></tr>
+  <tr><td>  fn </td><td><code>function()</code></td><td></td> <td>The function to invoke - <strong>it must return a promise</strong>.</td></tr>
+  <tr><td colspan="100" style="height: 10px"></td></tr>
   <tr><td>  delay </td><td><code>number</code></td><td><code>300</code></td> <td>Number of milliseconds before component transitions to <code>loading</code> state upon invoking <code>fn</code>/<code>load</code>.</td></tr>
   <tr><td>  loadOnMount </td><td><code>boolean</code></td><td><code>false</code></td> <td>Whether or not to invoke the <code>fn</code> on mount.</td></tr>
-  <tr><td>  fn </td><td><code>(...args: any) => Promise&lt;any&gt;</code></td><td>N/A (required)</td> <td>The promise to invoke.</td></tr>
   <tr><td>  timeout </td><td><code>number</code></td><td><code>0</code></td> <td>Number of milliseconds before component transitions to <code>timeout</code> state. Set to <code>0</code> to disable.</td></tr>
+  <tr><td colspan="100" style="height: 10px"></tr>
+  <tr><td>  cacheKey </td><td><code>string</code></td><td></td> <td>Unique identifier to store the response/error data in cache. Your application must be wrapped in a <code>&lt;LoadsProvider&gt;</code> to enable caching (see 'Caching response/error data' below).</td></tr>
+  <tr><td>enableBackgroundStates</td><td><code>boolean</code></td><td><code>false</code></td><td>If true and the data is in cache, <code>isIdle</code>, <code>isLoading</code> and <code>isTimeout</code> will be evaluated on subsequent loads. When <code>false</code> (default), these states are only evaluated on initial load and are falsy on subsequent loads - this is helpful if you want to show the cached response and not have a idle/loading/timeout indicator when <code>fn</code> is invoked again. You must have a  <code>cacheKey</code> set to enable background states.</td></tr>
+  <tr><td>  enableLocalStorageCache </td><td><code>boolean</code></td><td><code>false</code></td> <td>Enable local storage caching of response data.</td></tr>
 </tbody>
 </table>
 
@@ -91,17 +93,16 @@ export default () => (
 <table>
 <thead><tr><th>Prop</th><th>Type</th><th>Description</th></tr></thead>
 <tbody>
-  <tr><td>  response </td><td><code>any</code></td><td>Response from the resolved promise (`fn`)</td></tr>
-  <tr><td>  error </td><td><code>any</code></td><td>Error from the rejected promise (`fn`)</td></tr>
-  <tr><td>  load </td><td><code>(...args: any) => ?Promise&lt;any&gt;</code></td><td>Trigger to load `fn`</td></tr>
-  <tr><td>  hasResponseInCache </td><td><code>boolean</code></td><td>Returns `true` if data already exists in cache.</td></tr>
-  <tr><td>  cacheTimestamp </td><td><code>timestamp</code></td><td>Returns time since epoch of the cached response in localStorage.</td></tr>
-  <tr><td>  isIdle </td><td><code>boolean</code></td><td>Returns `true` if the state is idle (`fn` has not been triggered).</td></tr>
-  <tr><td>  isLoading </td><td><code>boolean</code></td><td>Returns `true` if the state is loading (`fn` is in a pending state).</td></tr>
-  <tr><td>  isTimeout </td><td><code>boolean</code></td><td>Returns `true` if the state is timeout (`fn` is in a pending state for longer than `delay` milliseconds).</td></tr>
-  <tr><td>  isSuccess </td><td><code>boolean</code></td><td>Returns `true` if the state is success (`fn` has been resolved).</td></tr>
-  <tr><td>  isError </td><td><code>boolean</code></td><td>Returns `true` if the state is error (`fn` has been rejected).</td></tr>
-  <tr><td>  resetState </td><td><code>() => void</code></td><td>Reset state back to `idle`.</td></tr>
+  <tr><td>  response </td><td><code>any</code></td><td>Response from the resolved promise (<code>fn</code>)</td></tr>
+  <tr><td>  error </td><td><code>any</code></td><td>Error from the rejected promise (<code>fn</code>)</td></tr>
+  <tr><td>  load </td><td><code>function(...args)</code></td><td>Trigger to load <code>fn</code></td></tr>
+  <tr><td>  hasResponseInCache </td><td><code>boolean</code></td><td>Returns <code>true</code> if data already exists in the context cache.</td></tr>
+  <tr><td>  isIdle </td><td><code>boolean</code></td><td>Returns <code>true</code> if the state is idle (<code>fn</code> has not been triggered).</td></tr>
+  <tr><td>  isLoading </td><td><code>boolean</code></td><td>Returns <code>true</code> if the state is loading (<code>fn</code> is in a pending state).</td></tr>
+  <tr><td>  isTimeout </td><td><code>boolean</code></td><td>Returns <code>true</code> if the state is timeout (<code>fn</code> is in a pending state for longer than <code>delay</code> milliseconds).</td></tr>
+  <tr><td>  isSuccess </td><td><code>boolean</code></td><td>Returns <code>true</code> if the state is success (<code>fn</code> has been resolved).</td></tr>
+  <tr><td>  isError </td><td><code>boolean</code></td><td>Returns <code>true</code> if the state is error (<code>fn</code> has been rejected).</td></tr>
+  <tr><td>  resetState </td><td><code>function()</code></td><td>Reset state back to <code>idle</code>.</td></tr>
 </tbody>
 </table>
 
@@ -119,7 +120,7 @@ export default () => (
 
 ## Caching response/error data
 
-React Loads has the ability to cache the response and error data. Your application must be wrapped in a `<LoadsProvider>` to enable caching. Here is an example to toggle on caching:
+React Loads has the ability to cache the response and error data on an application context level (meaning the cache will clear upon unmounting the application). Your application must be wrapped in a `<LoadsProvider>` to enable caching. Here is an example to enable it:
 
 ```jsx
 import React from 'react';
@@ -127,29 +128,34 @@ import Loads, { LoadsProvider } from 'react-loads';
 
 const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
 
-export default () => (
-  <LoadsProvider>
-    <Loads cacheKey="randomDog" loadOnMount fn={getRandomDog}>
-      {({ hasResponseInCache, isLoading, isSuccess, load, response }) => (
-        <div>
-          {isIdle && <button onClick={load}>Load random dog</button>}
-          {isLoading && <div>loading...</div>}
-          {(isSuccess || hasResponseInCache) && (
+const RandomDog = () => (
+  <Loads cacheKey="randomDog" loadOnMount fn={getRandomDog}>
+    {({ isLoading, isSuccess, load, response }) => (
+      <div>
+        {isLoading && <div>loading...</div>}
+        {isSuccess && (
+          <div>
+            {response && <img src={response.data.message} alt="Dog" />}
             <div>
-              {response && <img src={response.data.message} alt="Dog" />}
-              <div>
-                <button onClick={load}>Load another dog</button>
-              </div>
+              <button onClick={load}>Load another dog</button>
             </div>
-          )}
-        </div>
-      )}
-    </Loads>
+          </div>
+        )}
+      </div>
+    )}
+  </Loads>
+);
+
+const App = () => (
+  <LoadsProvider>
+    <RandomDog />
   </LoadsProvider>
 );
+
+export default App;
 ```
 
-Alternatively, localStorage can be utilised instead of caching data in the provider itself. Using localStorage is not currently compatible with the `loadOnMount` prop.
+However, if you would like the ability to persist response data upon unmounting the application (e.g. page refresh or closing window). Local storage can also be utilised to cache response data. Just add the `enableLocalStorageCaching` prop (and set it to `true`) in `<Loads>`:
 
 ```jsx
 import React from 'react';
@@ -157,27 +163,31 @@ import Loads, { LoadsProvider } from 'react-loads';
 
 const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
 
-export default () => (
-  <LoadsProvider storagePrefix="my-app.">
-    <Loads cacheKey="randomDog" useLocalStorage fn={getRandomDog}>
-      {({ hasResponseInCache, cacheTimestamp, isLoading, isSuccess, load, response }) => (
-        <div>
-          {isIdle && !hasResponseInCache && <button onClick={load}>Load random dog</button>}
-          {isLoading && <div>loading...</div>}
-          {cacheTimestamp && <p>Last retrieved: {new Date(cacheTimestamp).toString()}</p>}
-          {(isSuccess || hasResponseInCache) && (
+const RandomDog = () => (
+  <Loads cacheKey="randomDog" enableLocalStorageCache loadOnMount fn={getRandomDog}>
+    {({ isLoading, isSuccess, load, response }) => (
+      <div>
+        {isLoading && <div>loading...</div>}
+        {isSuccess && (
+          <div>
+            {response && <img src={response.data.message} alt="Dog" />}
             <div>
-              {response && <img src={response.data.message} alt="Dog" />}
-              <div>
-                <button onClick={load}>Load another dog</button>
-              </div>
+              <button onClick={load}>Load another dog</button>
             </div>
-          )}
-        </div>
-      )}
-    </Loads>
+          </div>
+        )}
+      </div>
+    )}
+  </Loads>
+);
+
+const App = () => (
+  <LoadsProvider>
+    <RandomDog />
   </LoadsProvider>
 );
+
+export default App;
 ```
 
 

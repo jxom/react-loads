@@ -113,7 +113,7 @@ storiesOf('Loads', module)
                 </div>
               </div>
             )}
-            {isError && <div>Error! {error}</div>}
+            {isError && <div>Error! {error.message}</div>}
           </Fragment>
         )}
       </Loads>

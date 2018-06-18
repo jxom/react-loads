@@ -1,6 +1,14 @@
 import { Component } from 'react';
+import idx from 'idx';
+import { EVENTS, STATES } from './statechart';
 
 type Props = {
+  enableBackgroundStates?: boolean,
+  cache?: {
+    error?: any,
+    response?: any,
+    state?: ?(STATES.SUCCESS | STATES.ERROR)
+  },
   children: ({
     state: string,
     error: any,
@@ -17,14 +25,10 @@ type Props = {
     response: any
   }) => any,
   delay?: number,
-  error?: any,
-  hasResponseInCache?: boolean,
-  cacheTimestamp?: Number,
   isErrorSilent?: boolean,
   loadOnMount?: boolean,
   fn: (...args: any) => Promise<any>,
   machineState: { value: string },
-  response?: any,
   setResponse?: (data: { error?: any, response?: any }) => void,
   timeout?: number,
   transition: (state: string) => void
@@ -36,8 +40,10 @@ type State = {
 
 export default class Loads extends Component<Props, State> {
   static defaultProps = {
+    enableBackgroundStates: false,
     delay: 300,
     timeout: 0,
+    error: null,
     isErrorSilent: true,
     loadOnMount: false,
     error: null,
@@ -51,8 +57,8 @@ export default class Loads extends Component<Props, State> {
   _paused: boolean;
 
   state = {
-    error: this.props.error,
-    response: this.props.response
+    error: idx(this.props, _ => _.cache.error),
+    response: idx(this.props, _ => _.cache.response)
   };
 
   _clearTimeouts = () => {
@@ -65,11 +71,11 @@ export default class Loads extends Component<Props, State> {
     if (delay) this._paused = true;
     this._delayTimeout = setTimeout(() => {
       this._paused = false;
-      this.transition('FETCH');
+      this.transition(EVENTS.FETCH);
     }, delay);
     if (timeout) {
       this._timeoutTimeout = setTimeout(() => {
-        this.transition('TIMEOUT');
+        this.transition(EVENTS.TIMEOUT);
         this._clearTimeouts();
       }, timeout);
     }
@@ -93,26 +99,35 @@ export default class Loads extends Component<Props, State> {
     this._setTimeouts();
     return fn(...args)
       .then(response => {
-        this.handleResponse({ response, event: 'SUCCESS' });
+        this.handleResponse({ response, event: EVENTS.SUCCESS });
         return response;
       })
       .catch(err => {
-        this.handleResponse({ error: err, event: 'ERROR' });
+        this.handleResponse({ error: err, event: EVENTS.ERROR });
         if (!isErrorSilent) {
           throw err;
         }
       });
   };
 
-  handleResponse = ({ error, event, response }: { error?: any, event: string, response?: any }) => { // eslint-disable-line
+  handleResponse = ({ error, event, response }: { error?: any, event: EVENTS.SUCCESS | EVENTS.ERROR, response?: any }) => { // eslint-disable-line
     const { setResponse } = this.props;
     if (!this._mounted) {
       return;
     }
+    const value = {
+      ...(event === EVENTS.SUCCESS ? { response } : {}),
+      ...(event === EVENTS.ERROR ? { error } : {})
+    };
     this._clearTimeouts();
     this._paused = false;
-    this.setState({ error, response });
-    setResponse && setResponse({ error, response });
+    this.setState(value);
+    setResponse &&
+      setResponse({
+        ...value,
+        ...(event === EVENTS.SUCCESS ? { state: STATES.SUCCESS } : {}),
+        ...(event === EVENTS.ERROR ? { state: STATES.ERROR } : {})
+      });
     this.transition(event);
   };
 
@@ -125,22 +140,25 @@ export default class Loads extends Component<Props, State> {
   };
 
   render = () => {
-    const { children, hasResponseInCache, cacheTimestamp, machineState } = this.props;
+    const { enableBackgroundStates, cache, children, machineState } = this.props;
     const { error, response } = this.state;
+    const cachedState = cache ? cache.state : null;
+    const hasResponseInCache = typeof cache !== 'undefined';
     const state = machineState.value;
     const props = {
       state,
       error,
       response,
       hasResponseInCache,
-      cacheTimestamp,
-      isIdle: state === 'idle',
-      isLoading: state === 'loading',
-      isTimeout: state === 'timeout',
-      isSuccess: state === 'success',
-      isError: state === 'error',
+      isIdle: state === STATES.IDLE && (!hasResponseInCache || enableBackgroundStates),
+      isLoading: state === STATES.LOADING && (!hasResponseInCache || enableBackgroundStates),
+      isTimeout: state === STATES.TIMEOUT && (!hasResponseInCache || enableBackgroundStates),
+      isSuccess: state === STATES.SUCCESS || (hasResponseInCache && cachedState === STATES.SUCCESS),
+      isError: state === STATES.ERROR || (hasResponseInCache && cachedState === STATES.ERROR),
       load: this.handleLoad,
-      resetState: () => this.transition('RESET')
+      resetState: () => this.transition(EVENTS.RESET),
+      response,
+      state
     };
     return children(props);
   };

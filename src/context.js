@@ -1,6 +1,7 @@
 // @flow
 import React, { type Node } from 'react';
 import LocalStorage from './storages/local-storage';
+import { STATES } from './statechart';
 
 // $FlowFixMe
 const { Provider, Consumer } = React.createContext({ data: {}, setResponse: () => {} });
@@ -10,12 +11,12 @@ type ProviderProps = {
   storagePrefix: string
 };
 type ProviderState = {
-  data: Object,
-  cacheTimestamps: Object
+  data: Object
 };
 type ResponsePair = {
-  response: any,
-  error: any
+  response?: any,
+  error?: any,
+  state: STATES.SUCCESS | STATES.ERROR
 };
 type SetResponseParams = {
   key: string,
@@ -28,17 +29,20 @@ const DEFAULT_STORAGE_PREFIX = 'react-loads.';
 class LoadsProvider extends React.Component<ProviderProps, ProviderState> {
   static defaultProps = { storagePrefix: DEFAULT_STORAGE_PREFIX };
 
-  state = { data: {}, cacheTimestamps: {} };
+  state = { data: {} };
 
   setResponse = (params: SetResponseParams) => {
-    const { key, data = { response: null, error: null }, useLocalStorage } = params;
-    const timestamp = Date.now();
+    const { key, data: { error, response, state }, useLocalStorage } = params;
+    const value = {
+      ...(state === STATES.SUCCESS ? { response } : {}),
+      ...(state === STATES.ERROR ? { error } : {}),
+      state
+    };
     if (useLocalStorage) {
-      LocalStorage.set(`${this.props.storagePrefix}${key}`, { data, timestamp });
+      LocalStorage.set(`${this.props.storagePrefix}${key}`, value);
     }
     this.setState({
-      data: { ...this.state.data, [key]: data },
-      cacheTimestamps: { ...this.state.cacheTimestamps, [key]: timestamp }
+      data: { ...this.state.data, [key]: value }
     });
   };
 
@@ -49,7 +53,6 @@ class LoadsProvider extends React.Component<ProviderProps, ProviderState> {
         value={{
           storagePrefix,
           data: this.state.data,
-          cacheTimestamps: this.state.cacheTimestamps,
           setResponse: this.setResponse
         }}
       >
@@ -72,15 +75,10 @@ class LoadsConsumer extends React.Component<ConsumerProps> {
     return (
       <Consumer>
         {context => {
-          const { data, timestamp } = LocalStorage.get(`${context.storagePrefix}${cacheKey}`) || {};
-
-          const cachedData = context.data[cacheKey] || data;
-          const cacheTimestamp = context.cacheTimestamps[cacheKey] || timestamp;
-
+          const localStorageData = LocalStorage.get(`${context.storagePrefix}${cacheKey}`) || {};
+          const cachedData = context.data[cacheKey] || localStorageData;
           return children({
-            ...cachedData,
-            cacheTimestamp,
-            hasResponseInCache: typeof cachedData !== 'undefined',
+            cache: cachedData,
             setResponse: data => context.setResponse({ key: cacheKey, data, useLocalStorage })
           });
         }}
