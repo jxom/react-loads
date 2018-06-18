@@ -46,7 +46,6 @@ export default class Loads extends Component<Props, State> {
     error: null,
     isErrorSilent: true,
     loadOnMount: false,
-    error: null,
     response: null,
     hasResponseInCache: false,
     cacheTimestamp: undefined
@@ -156,9 +155,7 @@ export default class Loads extends Component<Props, State> {
       isSuccess: state === STATES.SUCCESS || (hasResponseInCache && cachedState === STATES.SUCCESS),
       isError: state === STATES.ERROR || (hasResponseInCache && cachedState === STATES.ERROR),
       load: this.handleLoad,
-      resetState: () => this.transition(EVENTS.RESET),
-      response,
-      state
+      resetState: () => this.transition(EVENTS.RESET)
     };
     return children(props);
   };

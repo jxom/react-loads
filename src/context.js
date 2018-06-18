@@ -21,7 +21,7 @@ type ResponsePair = {
 type SetResponseParams = {
   key: string,
   data: ResponsePair,
-  useLocalStorage?: boolean
+  enableLocalStorageCache?: boolean
 };
 
 const DEFAULT_STORAGE_PREFIX = 'react-loads.';
@@ -32,13 +32,17 @@ class LoadsProvider extends React.Component<ProviderProps, ProviderState> {
   state = { data: {} };
 
   setResponse = (params: SetResponseParams) => {
-    const { key, data: { error, response, state }, useLocalStorage } = params;
+    const {
+      key,
+      data: { error, response, state },
+      enableLocalStorageCache
+    } = params;
     const value = {
       ...(state === STATES.SUCCESS ? { response } : {}),
       ...(state === STATES.ERROR ? { error } : {}),
       state
     };
-    if (useLocalStorage) {
+    if (enableLocalStorageCache) {
       LocalStorage.set(`${this.props.storagePrefix}${key}`, value);
     }
     this.setState({
@@ -64,13 +68,13 @@ class LoadsProvider extends React.Component<ProviderProps, ProviderState> {
 
 type ConsumerProps = {
   cacheKey: string,
-  useLocalStorage?: boolean,
+  enableLocalStorageCache?: boolean,
   children: Function
 };
 
 class LoadsConsumer extends React.Component<ConsumerProps> {
   render = () => {
-    const { cacheKey, useLocalStorage, children } = this.props;
+    const { cacheKey, enableLocalStorageCache, children } = this.props;
 
     return (
       <Consumer>
@@ -79,7 +83,7 @@ class LoadsConsumer extends React.Component<ConsumerProps> {
           const cachedData = context.data[cacheKey] || localStorageData;
           return children({
             cache: cachedData,
-            setResponse: data => context.setResponse({ key: cacheKey, data, useLocalStorage })
+            setResponse: data => context.setResponse({ key: cacheKey, data, enableLocalStorageCache })
           });
         }}
       </Consumer>

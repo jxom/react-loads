@@ -5,10 +5,10 @@ import Loads from './Loads';
 import LoadsContext from './context';
 import statechart from './statechart';
 
-const LoadsContainer = (props: { cacheKey?: ?string, useLocalStorage?: boolean }) => {
+const LoadsContainer = (props: { cacheKey?: ?string, enableLocalStorageCache?: boolean }) => {
   if (props.cacheKey) {
     return (
-      <LoadsContext.Consumer cacheKey={props.cacheKey}>
+      <LoadsContext.Consumer cacheKey={props.cacheKey} enableLocalStorageCache={props.enableLocalStorageCache}>
         {({ cache, setResponse }) => <Loads {...props} cache={cache} setResponse={setResponse} />}
       </LoadsContext.Consumer>
     );
@@ -18,7 +18,7 @@ const LoadsContainer = (props: { cacheKey?: ?string, useLocalStorage?: boolean }
 
 LoadsContainer.defaultProps = {
   cacheKey: null,
-  useLocalStorage: false
+  enableLocalStorageCache: false
 };
 
 export default withStatechart(statechart)(LoadsContainer);
