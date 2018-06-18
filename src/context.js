@@ -1,6 +1,6 @@
 // @flow
 import React, { type Node } from 'react';
-import LocalStorage from './storages/local-storage';
+import localStorage from './storages/local-storage';
 import { STATES } from './statechart';
 
 // $FlowFixMe
@@ -43,7 +43,7 @@ class LoadsProvider extends React.Component<ProviderProps, ProviderState> {
       state
     };
     if (enableLocalStorageCache) {
-      LocalStorage.set(`${this.props.storagePrefix}${key}`, value);
+      localStorage.set(`${this.props.storagePrefix}${key}`, value);
     }
     this.setState({
       data: { ...this.state.data, [key]: value }
@@ -79,7 +79,7 @@ class LoadsConsumer extends React.Component<ConsumerProps> {
     return (
       <Consumer>
         {context => {
-          const localStorageData = LocalStorage.get(`${context.storagePrefix}${cacheKey}`) || {};
+          const localStorageData = localStorage.get(`${context.storagePrefix}${cacheKey}`);
           const cachedData = context.data[cacheKey] || localStorageData;
           return children({
             cache: cachedData,

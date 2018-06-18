@@ -1,4 +1,3 @@
-
 import React from 'react'
 import { configure, addDecorator } from '@storybook/react';
 import { LoadsProvider } from '../src'

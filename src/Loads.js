@@ -13,16 +13,13 @@ type Props = {
     state: string,
     error: any,
     response: any,
-    hasResponseInCache: boolean,
-    cacheTimestamp?: Number,
     isError: boolean,
     isIdle: boolean,
     isLoading: boolean,
     isSuccess: boolean,
     isTimeout: boolean,
     load: (...args: any) => ?Promise<any>,
-    resetState: () => void,
-    response: any
+    resetState: () => void
   }) => any,
   delay?: number,
   isErrorSilent?: boolean,
@@ -46,9 +43,7 @@ export default class Loads extends Component<Props, State> {
     error: null,
     isErrorSilent: true,
     loadOnMount: false,
-    response: null,
-    hasResponseInCache: false,
-    cacheTimestamp: undefined
+    response: null
   };
   _delayTimeout: any;
   _timeoutTimeout: any;
@@ -83,7 +78,6 @@ export default class Loads extends Component<Props, State> {
   componentDidMount = () => {
     const { loadOnMount } = this.props;
     this._mounted = true;
-
     loadOnMount && this.handleLoad();
   };
 
