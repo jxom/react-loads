@@ -77,6 +77,7 @@ export default () => (
 <thead><tr><th>Prop</th><th>Type</th><th>Default value</th><th>Description</th></tr></thead>
 <tbody>
   <tr><td>  fn </td><td><code>function()</code></td><td></td> <td>The function to invoke - <strong>it must return a promise</strong>.</td></tr>
+  <tr><td colspan="100">OPTIONAL PROPS</td></tr>
   <tr><td>  cacheKey </td><td><code>string</code></td><td></td> <td>Unique identifier to store the response/error data. Your application must be wrapped in a <code>&lt;LoadsProvider&gt;</code> to enable caching (see 'Caching response/error data' below).</td></tr>
   <tr><td>  delay </td><td><code>number</code></td><td><code>300</code></td> <td>Number of milliseconds before component transitions to <code>loading</code> state upon invoking <code>fn</code>/<code>load</code>.</td></tr>
   <tr><td>  loadOnMount </td><td><code>boolean</code></td><td><code>false</code></td> <td>Whether or not to invoke the <code>fn</code> on mount.</td></tr>
