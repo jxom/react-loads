@@ -1,5 +1,6 @@
 // @flow
 import React, { type Node } from 'react';
+import { STATES } from './statechart';
 
 // $FlowFixMe
 const { Provider, Consumer } = React.createContext({ data: {}, setResponse: () => {} });
@@ -14,8 +15,16 @@ type ProviderState = {
 class LoadsProvider extends React.Component<ProviderProps, ProviderState> {
   state = { data: {} };
 
-  setResponse = (key: string, { response = null, error = null }: { response?: any, error?: any }) => {
-    this.setState({ data: { ...this.state.data, [key]: { response, error } } });
+  setResponse = (
+    key: string,
+    { response, error, state }: { response?: any, error?: any, state: STATES.SUCCESS | STATES.ERROR }
+  ) => {
+    const value = {
+      ...(state === STATES.SUCCESS ? { response } : {}),
+      ...(state === STATES.ERROR ? { error } : {}),
+      state
+    };
+    this.setState({ data: { ...this.state.data, [key]: value } });
   };
 
   render = () => {
@@ -34,13 +43,12 @@ class LoadsConsumer extends React.Component<ConsumerProps> {
     const { cacheKey, children } = this.props;
     return (
       <Consumer>
-        {context => {
-          return children({
-            ...context.data[cacheKey],
-            hasResponseInCache: typeof context.data[cacheKey] !== 'undefined',
+        {context =>
+          children({
+            cache: context.data[cacheKey],
             setResponse: data => context.setResponse(cacheKey, data)
-          });
-        }}
+          })
+        }
       </Consumer>
     );
   };

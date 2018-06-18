@@ -77,10 +77,13 @@ export default () => (
 <thead><tr><th>Prop</th><th>Type</th><th>Default value</th><th>Description</th></tr></thead>
 <tbody>
   <tr><td>  fn </td><td><code>function()</code></td><td></td> <td>The function to invoke - <strong>it must return a promise</strong>.</td></tr>
-  <tr><td>  cacheKey </td><td><code>string</code></td><td></td> <td>Unique identifier to store the response/error data. Your application must be wrapped in a <code>&lt;LoadsProvider&gt;</code> to enable caching (see 'Caching response/error data' below).</td></tr>
+  <tr><td colspan="100" style="height: 10px"></td></tr>
   <tr><td>  delay </td><td><code>number</code></td><td><code>300</code></td> <td>Number of milliseconds before component transitions to <code>loading</code> state upon invoking <code>fn</code>/<code>load</code>.</td></tr>
   <tr><td>  loadOnMount </td><td><code>boolean</code></td><td><code>false</code></td> <td>Whether or not to invoke the <code>fn</code> on mount.</td></tr>
   <tr><td>  timeout </td><td><code>number</code></td><td><code>0</code></td> <td>Number of milliseconds before component transitions to <code>timeout</code> state. Set to <code>0</code> to disable.</td></tr>
+  <tr><td colspan="100" style="height: 10px"></tr>
+  <tr><td>  cacheKey </td><td><code>string</code></td><td></td> <td>Unique identifier to store the response/error data in cache. Your application must be wrapped in a <code>&lt;LoadsProvider&gt;</code> to enable caching (see 'Caching response/error data' below).</td></tr>
+  <tr><td>enableBackgroundStates</td><td><code>boolean</code></td><td><code>false</code></td><td>If true and the data is in cache, <code>isIdle</code>, <code>isLoading</code> and <code>isTimeout</code> will be evaluated on subsequent loads. When <code>false</code> (default), these states are only evaluated on initial load and are falsy on subsequent loads - this is helpful if you want to show the cached response and not have a idle/loading/timeout indicator when <code>fn</code> is invoked again. You must have a  <code>cacheKey</code> set to enable background states.</td></tr>
 </tbody>
 </table>
 
@@ -95,7 +98,7 @@ export default () => (
   <tr><td>  hasResponseInCache </td><td><code>boolean</code></td><td>Returns <code>true</code> if data already exists in the context cache.</td></tr>
   <tr><td>  isIdle </td><td><code>boolean</code></td><td>Returns <code>true</code> if the state is idle (<code>fn</code> has not been triggered).</td></tr>
   <tr><td>  isLoading </td><td><code>boolean</code></td><td>Returns <code>true</code> if the state is loading (<code>fn</code> is in a pending state).</td></tr>
-  <tr><td>  isTimeout </td><td><code>boolean</code></td><td>Returns <code>true</code> if the state is timeout (<code>fn</code> is in a pending state for longer than `delay` milliseconds).</td></tr>
+  <tr><td>  isTimeout </td><td><code>boolean</code></td><td>Returns <code>true</code> if the state is timeout (<code>fn</code> is in a pending state for longer than <code>delay</code> milliseconds).</td></tr>
   <tr><td>  isSuccess </td><td><code>boolean</code></td><td>Returns <code>true</code> if the state is success (<code>fn</code> has been resolved).</td></tr>
   <tr><td>  isError </td><td><code>boolean</code></td><td>Returns <code>true</code> if the state is error (<code>fn</code> has been rejected).</td></tr>
   <tr><td>  resetState </td><td><code>function()</code></td><td>Reset state back to <code>idle</code>.</td></tr>
@@ -114,10 +117,10 @@ const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
 
 const RandomDog = () => (
   <Loads cacheKey="randomDog" loadOnMount fn={getRandomDog}>
-    {({ hasResponseInCache, isLoading, isSuccess, load, response }) => (
+    {({ isLoading, isSuccess, load, response }) => (
       <div>
         {isLoading && <div>loading...</div>}
-        {(isSuccess || hasResponseInCache) && (
+        {isSuccess && (
           <div>
             {response && <img src={response.data.message} alt="Dog" />}
             <div>
