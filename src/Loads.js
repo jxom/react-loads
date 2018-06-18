@@ -7,7 +7,7 @@ type Props = {
   cache?: {
     error?: any,
     response?: any,
-    state?: ?string
+    state?: ?(STATES.SUCCESS | STATES.ERROR)
   },
   children: ({
     error: any,

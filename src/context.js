@@ -15,7 +15,10 @@ type ProviderState = {
 class LoadsProvider extends React.Component<ProviderProps, ProviderState> {
   state = { data: {} };
 
-  setResponse = (key: string, { response, error, state }: { response?: any, error?: any, state: string }) => {
+  setResponse = (
+    key: string,
+    { response, error, state }: { response?: any, error?: any, state: STATES.SUCCESS | STATES.ERROR }
+  ) => {
     const value = {
       ...(state === STATES.SUCCESS ? { response } : {}),
       ...(state === STATES.ERROR ? { error } : {}),
