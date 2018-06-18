@@ -1,17 +1,17 @@
 // @flow
-import Global from '../utils/_global';
-import Serializer from '../utils/serializer';
+import { serialize, deserialize } from '../utils/serializer';
+const _global = typeof window !== 'undefined' ? window : global;
 
 const get = (key: string) => {
-  const data = Global.localStorage.getItem(key);
-  return Serializer.deserialize(data);
+  const data = _global.localStorage.getItem(key);
+  return deserialize(data);
 };
 
 const set = (key: string, data: ?any) => {
   if (!data && data === undefined) {
-    Global.localStorage.removeItem(key);
+    _global.localStorage.removeItem(key);
   } else {
-    Global.localStorage.setItem(key, Serializer.serialize(data));
+    _global.localStorage.setItem(key, serialize(data));
   }
   return data;
 };

@@ -1,7 +1,7 @@
 // @flow
-const serialize = (data: any): ?string => JSON.stringify(data);
+export const serialize = (data: any): ?string => JSON.stringify(data);
 
-const deserialize = (stringValue: ?string): any => {
+export const deserialize = (stringValue: ?string): any => {
   if (!stringValue) return;
 
   let value = '';
@@ -11,9 +11,4 @@ const deserialize = (stringValue: ?string): any => {
     value = stringValue;
   }
   return value;
-};
-
-export default {
-  serialize,
-  deserialize
 };
