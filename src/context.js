@@ -1,6 +1,6 @@
 // @flow
 import React, { type Node } from 'react';
-import localStorage from './storages/local-storage';
+import { type SetResponseParams, type CacheProvider } from './_types';
 import { STATES } from './statechart';
 
 // $FlowFixMe
@@ -8,55 +8,43 @@ const { Provider, Consumer } = React.createContext({ data: {}, setResponse: () =
 
 type ProviderProps = {
   children: Node,
-  storagePrefix: string
+  cacheProvider?: Object
 };
 type ProviderState = {
   data: Object
 };
-type ResponsePair = {
-  response?: any,
-  error?: any,
-  state: STATES.SUCCESS | STATES.ERROR
-};
-type SetResponseParams = {
-  key: string,
-  data: ResponsePair,
-  enableLocalStorageCache?: boolean
-};
-
-const DEFAULT_STORAGE_PREFIX = 'react-loads.';
 
 class LoadsProvider extends React.Component<ProviderProps, ProviderState> {
-  static defaultProps = { storagePrefix: DEFAULT_STORAGE_PREFIX };
-
   state = { data: {} };
 
   setResponse = (params: SetResponseParams) => {
+    const { cacheProvider: globalCacheProvider } = this.props;
     const {
-      key,
-      data: { error, response, state },
-      enableLocalStorageCache
+      cacheKey,
+      cacheProvider: localCacheProvider,
+      data: { error, response, state }
     } = params;
+    const cacheProvider = localCacheProvider || globalCacheProvider;
     const value = {
       ...(state === STATES.SUCCESS ? { response } : {}),
       ...(state === STATES.ERROR ? { error } : {}),
       state
     };
-    if (enableLocalStorageCache) {
-      localStorage.set(`${this.props.storagePrefix}${key}`, value);
+    if (cacheProvider && cacheProvider.set) {
+      cacheProvider.set(cacheKey, value);
     }
     this.setState({
-      data: { ...this.state.data, [key]: value }
+      data: { ...this.state.data, [cacheKey]: value }
     });
   };
 
   render = () => {
-    const { storagePrefix, children } = this.props;
+    const { children, cacheProvider: globalCacheProvider } = this.props;
     return (
       <Provider
         value={{
-          storagePrefix,
           data: this.state.data,
+          globalCacheProvider,
           setResponse: this.setResponse
         }}
       >
@@ -68,22 +56,25 @@ class LoadsProvider extends React.Component<ProviderProps, ProviderState> {
 
 type ConsumerProps = {
   cacheKey: string,
-  enableLocalStorageCache?: boolean,
+  cacheProvider?: CacheProvider,
   children: Function
 };
 
 class LoadsConsumer extends React.Component<ConsumerProps> {
   render = () => {
-    const { cacheKey, enableLocalStorageCache, children } = this.props;
+    const { cacheKey, cacheProvider: localCacheProvider, children } = this.props;
 
     return (
       <Consumer>
         {context => {
-          const localStorageData = localStorage.get(`${context.storagePrefix}${cacheKey}`);
-          const cachedData = context.data[cacheKey] || localStorageData;
+          const cacheProvider = localCacheProvider || context.globalCacheProvider;
+          let cachedData = context.data[cacheKey];
+          if (cacheProvider && cacheProvider.get) {
+            cachedData = cacheProvider.get(cacheKey);
+          }
           return children({
             cache: cachedData,
-            setResponse: data => context.setResponse({ key: cacheKey, data, enableLocalStorageCache })
+            setResponse: data => context.setResponse({ cacheKey, cacheProvider, data })
           });
         }}
       </Consumer>

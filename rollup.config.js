@@ -11,10 +11,11 @@ export default {
     globals: {
       react: 'React',
       'react-dom': 'ReactDOM',
-      'react-automata': 'ReactAutomata'
+      'react-automata': 'ReactAutomata',
+      idx: 'idx'
     }
   },
-  external: ['react', 'react-dom', 'react-automata'],
+  external: ['react', 'react-dom', 'react-automata', 'idx'],
   plugins: [
     babel({
       presets: [['env', { modules: false }], 'react'],
