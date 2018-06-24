@@ -8,7 +8,7 @@ const { Provider, Consumer } = React.createContext({ data: {}, setResponse: () =
 
 type ProviderProps = {
   children: Node,
-  cacheProvider?: Object
+  cacheProvider?: CacheProvider
 };
 type ProviderState = {
   data: Object
