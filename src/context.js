@@ -18,7 +18,7 @@ type ProviderState = {
 class LoadsProvider extends React.Component<ProviderProps, ProviderState> {
   state = { data: {} };
 
-  setResponse = async (params: SetResponseParams) => {
+  setResponse = (params: SetResponseParams) => {
     const { cacheProvider: globalCacheProvider } = this.props;
     const {
       cacheKey,
