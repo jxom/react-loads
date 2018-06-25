@@ -5,7 +5,10 @@ import { type SetResponseParams, type CacheProvider } from './_types';
 import { STATES } from './statechart';
 
 // $FlowFixMe
-const { Provider, Consumer } = React.createContext({ data: {}, setResponse: () => {} });
+const { Provider, Consumer } = React.createContext({
+  data: {},
+  setResponse: () => {}
+});
 
 type ProviderProps = {
   children: Node,
@@ -77,7 +80,10 @@ class LoadsConsumer extends React.Component<ConsumerProps> {
               if (cacheProvider && cacheProvider.get) {
                 const cacheResponse = cacheProvider.get(cacheKey);
                 if (cacheResponse instanceof Promise) {
-                  return cacheResponse.then(cachedData => setState({ cachedData, hasLoaded: true }));
+                  return cacheResponse.then(cachedData => setState({ cachedData, hasLoaded: true })).catch(err => {
+                    console.error(`Error loading data from cacheProvider (cacheKey: ${cacheKey}). Error: ${err}`);
+                    setState({ hasLoaded: true });
+                  });
                 }
                 setState({ cachedData: cacheResponse });
               }
