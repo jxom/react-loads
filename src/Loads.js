@@ -10,16 +10,16 @@ type Props = {
     state?: ?(STATES.SUCCESS | STATES.ERROR)
   },
   children: ({
+    state: string,
     error: any,
+    response: any,
     isError: boolean,
     isIdle: boolean,
     isLoading: boolean,
     isSuccess: boolean,
     isTimeout: boolean,
     load: (...args: any) => ?Promise<any>,
-    resetState: () => void,
-    response: any,
-    state: string
+    resetState: () => void
   }) => any,
   delay?: number,
   isErrorSilent?: boolean,
@@ -39,11 +39,11 @@ export default class Loads extends Component<Props, State> {
   static defaultProps = {
     enableBackgroundStates: false,
     delay: 300,
+    timeout: 0,
     error: null,
     isErrorSilent: true,
     loadOnMount: false,
-    response: null,
-    timeout: 0
+    response: null
   };
   _delayTimeout: any;
   _timeoutTimeout: any;
@@ -139,7 +139,9 @@ export default class Loads extends Component<Props, State> {
     const hasResponseInCache = typeof cache !== 'undefined';
     const state = machineState.value;
     const props = {
+      state,
       error,
+      response,
       hasResponseInCache,
       isIdle: state === STATES.IDLE && (!hasResponseInCache || enableBackgroundStates),
       isLoading: state === STATES.LOADING && (!hasResponseInCache || enableBackgroundStates),
@@ -147,9 +149,7 @@ export default class Loads extends Component<Props, State> {
       isSuccess: state === STATES.SUCCESS || (hasResponseInCache && cachedState === STATES.SUCCESS),
       isError: state === STATES.ERROR || (hasResponseInCache && cachedState === STATES.ERROR),
       load: this.handleLoad,
-      resetState: () => this.transition(EVENTS.RESET),
-      response,
-      state
+      resetState: () => this.transition(EVENTS.RESET)
     };
     return children(props);
   };

@@ -28,13 +28,53 @@ There are a few motivations behind creating React Loads:
 
 React Loads makes this nicer to handle.
 
-## Install
+## Table of Contents
+
+- [Installation](#installation)
+- [Usage](#usage)
+  - [More examples](#more-examples)
+- [`<Loads>` Props](#basic-loads-props)
+  - [fn](#fn)
+  - [delay](#delay)
+  - [loadOnMount](#loadonmount)
+  - [timeout](#timeout)
+  - [cacheKey](#cacheKey)
+  - [enableBackgroundStates](#enablebackgroundstates)
+  - [cacheProvider](#cacheProvider)
+  - [`children` Render Props](#children-render-props)
+    - [response](#response)
+    - [error](#error)
+    - [load](#load)
+    - [isIdle](#isIdle)
+    - [isLoading](#isLoading)
+    - [isTimeout](#isTimeout)
+    - [isSuccess](#isSuccess)
+    - [isError](#isError)
+    - [hasResponseInCache](#hasResponseInCache)
+- [`<LoadsProvider>` Props](#loadsprovider-props)
+  - [cacheProvider](#cacheprovider)
+- [Caching response data](#caching-response-data)
+  - [Basic application context cache](#basic-application-context-cache)
+  - [Using a cache provider](#using-a-cache-provider)
+    - [Application-level cache provider](#application-level-cache-provider)
+    - [`<Loads>`-level cache provider](#loads-level-cache-provider)
+- [Special thanks](#special-thanks)
+- [License](#license)
+
+
+## Installation
 
 ```
-$ npm install react-loads
+npm install react-loads
 ```
 
-## Example
+or install with [Yarn](https://yarnpkg.com) if you prefer:
+
+```
+yarn add react-loads
+```
+
+## Usage
 
 ```js
 import React from 'react';
@@ -67,45 +107,119 @@ export default () => (
 - [Code](./src/__stories__/index.stories.js)
 - [Storybook](https://jxom.github.io/react-loads/)
 
-## API
+## `<Loads>` Props
 
-### `<Loads>`
+### fn
 
-#### Props
+> `function()` | returns `Promise` | required
 
-<table>
-<thead><tr><th>Prop</th><th>Type</th><th>Default value</th><th>Description</th></tr></thead>
-<tbody>
-  <tr><td>  fn </td><td><code>function()</code></td><td></td> <td>The function to invoke - <strong>it must return a promise</strong>.</td></tr>
-  <tr><td colspan="100" style="height: 10px"></td></tr>
-  <tr><td>  delay </td><td><code>number</code></td><td><code>300</code></td> <td>Number of milliseconds before component transitions to <code>loading</code> state upon invoking <code>fn</code>/<code>load</code>.</td></tr>
-  <tr><td>  loadOnMount </td><td><code>boolean</code></td><td><code>false</code></td> <td>Whether or not to invoke the <code>fn</code> on mount.</td></tr>
-  <tr><td>  timeout </td><td><code>number</code></td><td><code>0</code></td> <td>Number of milliseconds before component transitions to <code>timeout</code> state. Set to <code>0</code> to disable.</td></tr>
-  <tr><td colspan="100" style="height: 10px"></tr>
-  <tr><td>  cacheKey </td><td><code>string</code></td><td></td> <td>Unique identifier to store the response/error data in cache. Your application must be wrapped in a <code>&lt;LoadsProvider&gt;</code> to enable caching (see 'Caching response/error data' below).</td></tr>
-  <tr><td>enableBackgroundStates</td><td><code>boolean</code></td><td><code>false</code></td><td>If true and the data is in cache, <code>isIdle</code>, <code>isLoading</code> and <code>isTimeout</code> will be evaluated on subsequent loads. When <code>false</code> (default), these states are only evaluated on initial load and are falsy on subsequent loads - this is helpful if you want to show the cached response and not have a idle/loading/timeout indicator when <code>fn</code> is invoked again. You must have a  <code>cacheKey</code> set to enable background states.</td></tr>
-</tbody>
-</table>
+The function to invoke. **It must return a promise.**
 
-##### `children` Render Props
+### delay
 
-<table>
-<thead><tr><th>Prop</th><th>Type</th><th>Description</th></tr></thead>
-<tbody>
-  <tr><td>  response </td><td><code>any</code></td><td>Response from the resolved promise (<code>fn</code>)</td></tr>
-  <tr><td>  error </td><td><code>any</code></td><td>Error from the rejected promise (<code>fn</code>)</td></tr>
-  <tr><td>  load </td><td><code>function(...args)</code></td><td>Trigger to load <code>fn</code></td></tr>
-  <tr><td>  hasResponseInCache </td><td><code>boolean</code></td><td>Returns <code>true</code> if data already exists in the context cache.</td></tr>
-  <tr><td>  isIdle </td><td><code>boolean</code></td><td>Returns <code>true</code> if the state is idle (<code>fn</code> has not been triggered).</td></tr>
-  <tr><td>  isLoading </td><td><code>boolean</code></td><td>Returns <code>true</code> if the state is loading (<code>fn</code> is in a pending state).</td></tr>
-  <tr><td>  isTimeout </td><td><code>boolean</code></td><td>Returns <code>true</code> if the state is timeout (<code>fn</code> is in a pending state for longer than <code>delay</code> milliseconds).</td></tr>
-  <tr><td>  isSuccess </td><td><code>boolean</code></td><td>Returns <code>true</code> if the state is success (<code>fn</code> has been resolved).</td></tr>
-  <tr><td>  isError </td><td><code>boolean</code></td><td>Returns <code>true</code> if the state is error (<code>fn</code> has been rejected).</td></tr>
-  <tr><td>  resetState </td><td><code>function()</code></td><td>Reset state back to <code>idle</code>.</td></tr>
-</tbody>
-</table>
+> `number` | default: `300`
 
-## Caching response/error data
+Number of milliseconds before the component transitions to the `'loading'` state upon invoking `fn`.
+
+### loadOnMount
+
+> `boolean` | default: `false`
+
+Whether or not to invoke `fn` on mount.
+
+### timeout
+
+> `number` | default: `0`
+
+Number of milliseconds before the component transitions to the `'timeout'` state. Set to `0` to disable.
+
+*Note: `fn` will still continue to try an resolve while in the `'timeout'` state*
+
+### cacheKey
+
+> `string`
+
+Unique identifier to store the response/error data in cache. Your application must be wrapped in a `<LoadsProvider>` to enable caching (see [Caching response data](#caching-response-data) below).
+
+### enableBackgroundStates
+
+> `boolean` | default: `false`
+
+If true and the data is in cache, `isIdle`, `isLoading` and `isTimeout` will be evaluated on subsequent loads. When `false` (default), these states are only evaluated on initial load and are falsy on subsequent loads - this is helpful if you want to show the cached response and not have a idle/loading/timeout indicator when `fn` is invoked again. You must have a `cacheKey` set to enable background states as it only effects data in the cache.
+
+### cacheProvider
+
+> `Object({ get: function(key), set: function(key, val) })`
+
+Set a custom cache provider (e.g. local storage, session storate, etc). See [`<Loads>`-level cache provider](#loads-level-cache-provider) below for an example.
+
+### `children` Render Props
+
+#### response
+
+> `any`
+
+Response from the resolve promise (`fn`).
+
+#### error
+
+> `any`
+
+Error from the rejected promise (`fn`).
+
+#### load
+
+> `function(...args)`
+
+Trigger to invoke `fn`.
+
+#### isIdle
+
+> `boolean`
+
+Returns `true` if the state is idle (`fn` has not been triggered).
+
+#### isLoading
+
+> `boolean`
+
+Returns `true` if the state is loading (`fn` is in a pending state).
+
+#### isTimeout
+
+> `boolean`
+
+Returns `true` if the state is timeout (`fn` is in a pending state for longer than `delay` milliseconds).
+
+#### isSuccess
+
+> `boolean`
+
+Returns `true` if the state is success (`fn` has been resolved).
+
+#### isError
+
+> `boolean`
+
+Returns `true` if the state is error (`fn` has been rejected).
+
+#### hasResponseInCache
+
+> `boolean`
+
+Returns `true` if data already exists in the cache.****
+
+## `<LoadsProvider>` Props
+
+### cacheProvider
+
+> `Object({ get: function(key), set: function(key, val) })`
+
+Set a custom cache provider (e.g. local storage, session storate, etc). See [Application-level cache provider](#application-level-cache-provider) below for an example.
+
+## Caching response data
+
+### Basic application context cache
 
 React Loads has the ability to cache the response and error data on an application context level (meaning the cache will clear upon unmounting the application). Your application must be wrapped in a `<LoadsProvider>` to enable caching. Here is an example to enable it:
 
@@ -141,6 +255,117 @@ const App = () => (
 
 export default App;
 ```
+
+### Using a cache provider
+
+#### Application-level cache provider
+
+If you would like the ability to persist response data upon unmounting the application (e.g. page refresh or closing window), a `cacheProvider` can also be utilised to cache response data.
+
+Here is an example using [Store.js](https://github.com/marcuswestin/store.js/) and setting the cache provider on an application level using `<LoadsProvider>`. If you would like to set a `cacheProvider` on a component level within `<Loads>`, see [Local cache provider](#local-cache-provider):
+
+```jsx
+import React from 'react';
+import Loads, { LoadsProvider } from 'react-loads';
+import store from 'store';
+
+const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
+
+const RandomDog = () => (
+  <Loads
+    cacheKey="randomDog"
+    loadOnMount
+    fn={getRandomDog}
+  >
+    {({ isLoading, isSuccess, load, response }) => (
+      <div>
+        {isLoading && <div>loading...</div>}
+        {isSuccess && (
+          <div>
+            {response && <img src={response.data.message} alt="Dog" />}
+            <div>
+              <button onClick={load}>Load another dog</button>
+            </div>
+          </div>
+        )}
+      </div>
+    )}
+  </Loads>
+);
+
+const cacheProvider = {
+  // Note: `key` maps to the `cacheKey` which is provided to <Loads>.
+  get: key => {
+    return store.get(`dog-app.${key}`);
+  },
+  set: (key, val) => {
+    return store.set(`dog-app.${key}`, val);
+  }
+};
+
+const App = () => (
+  <LoadsProvider cacheProvider={cacheProvider}>
+    <RandomDog />
+  </LoadsProvider>
+);
+
+export default App;
+```
+
+#### `<Loads>`-level cache provider
+
+A cache provider can also be specified on a component level. If a `cacheProvider` is provided to `<Loads>`, it will override the application cache provider if one is already specified.
+
+```jsx
+import React from 'react';
+import Loads, { LoadsProvider } from 'react-loads';
+import store from 'store';
+
+const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
+
+const cacheProvider = {
+  // Note: `key` maps to the `cacheKey` which is provided to <Loads>.
+  // In this case, the key will be 'randomDog'.
+  get: key => {
+    return store.get(key);
+  },
+  set: (key, val) => {
+    return store.set(key, val);
+  }
+};
+
+const RandomDog = () => (
+  <Loads
+    cacheKey="randomDog"
+    cacheProvider={cacheProvider}
+    loadOnMount
+    fn={getRandomDog}
+  >
+    {({ isLoading, isSuccess, load, response }) => (
+      <div>
+        {isLoading && <div>loading...</div>}
+        {isSuccess && (
+          <div>
+            {response && <img src={response.data.message} alt="Dog" />}
+            <div>
+              <button onClick={load}>Load another dog</button>
+            </div>
+          </div>
+        )}
+      </div>
+    )}
+  </Loads>
+);
+
+const App = () => (
+  <LoadsProvider>
+    <RandomDog />
+  </LoadsProvider>
+);
+
+export default App;
+```
+
 
 ## Special thanks
 

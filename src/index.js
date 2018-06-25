@@ -4,11 +4,12 @@ import { withStatechart } from 'react-automata';
 import Loads from './Loads';
 import LoadsContext from './context';
 import statechart from './statechart';
+import { type CacheProvider } from './_types';
 
-const LoadsContainer = (props: { cacheKey?: ?string }) => {
+const LoadsContainer = (props: { cacheKey?: ?string, cacheProvider?: CacheProvider }) => {
   if (props.cacheKey) {
     return (
-      <LoadsContext.Consumer cacheKey={props.cacheKey}>
+      <LoadsContext.Consumer cacheKey={props.cacheKey} cacheProvider={props.cacheProvider}>
         {({ cache, setResponse }) => <Loads {...props} cache={cache} setResponse={setResponse} />}
       </LoadsContext.Consumer>
     );
@@ -17,7 +18,8 @@ const LoadsContainer = (props: { cacheKey?: ?string }) => {
 };
 
 LoadsContainer.defaultProps = {
-  cacheKey: null
+  cacheKey: null,
+  cacheProvider: null
 };
 
 export default withStatechart(statechart)(LoadsContainer);
