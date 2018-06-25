@@ -33,7 +33,7 @@ React Loads makes this nicer to handle.
 - [Installation](#installation)
 - [Usage](#usage)
   - [More examples](#more-examples)
-- [`<Loads>` Props](#basic-loads-props)
+- [`<Loads>` Props](#loads-props)
   - [fn](#fn)
   - [delay](#delay)
   - [loadOnMount](#loadonmount)
