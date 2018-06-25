@@ -33,7 +33,7 @@ React Loads makes this nicer to handle.
 - [Installation](#installation)
 - [Usage](#usage)
   - [More examples](#more-examples)
-- [`<Loads>` Props](#basic-loads-props)
+- [`<Loads>` Props](#loads-props)
   - [fn](#fn)
   - [delay](#delay)
   - [loadOnMount](#loadonmount)
@@ -159,7 +159,7 @@ Set a custom cache provider (e.g. local storage, session storate, etc). See [`<L
 
 > `any`
 
-Response from the resolve promise (`fn`).
+Response from the resolved promise (`fn`).
 
 #### error
 
@@ -207,7 +207,7 @@ Returns `true` if the state is error (`fn` has been rejected).
 
 > `boolean`
 
-Returns `true` if data already exists in the cache.****
+Returns `true` if data already exists in the cache.
 
 ## `<LoadsProvider>` Props
 
