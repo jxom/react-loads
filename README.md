@@ -65,7 +65,7 @@ React Loads makes this nicer to handle.
 ## Installation
 
 ```
-npm install react-loads
+npm install react-loads --save
 ```
 
 or install with [Yarn](https://yarnpkg.com) if you prefer:
