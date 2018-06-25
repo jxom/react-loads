@@ -1,10 +1,14 @@
 // @flow
 import React, { type Node } from 'react';
+import Component from '@reactions/component';
 import { type SetResponseParams, type CacheProvider } from './_types';
 import { STATES } from './statechart';
 
 // $FlowFixMe
-const { Provider, Consumer } = React.createContext({ data: {}, setResponse: () => {} });
+const { Provider, Consumer } = React.createContext({
+  data: {},
+  setResponse: () => {}
+});
 
 type ProviderProps = {
   children: Node,
@@ -63,20 +67,39 @@ type ConsumerProps = {
 class LoadsConsumer extends React.Component<ConsumerProps> {
   render = () => {
     const { cacheKey, cacheProvider: localCacheProvider, children } = this.props;
-
     return (
       <Consumer>
-        {context => {
-          const cacheProvider = localCacheProvider || context.globalCacheProvider;
-          let cachedData = context.data[cacheKey];
-          if (cacheProvider && cacheProvider.get) {
-            cachedData = cacheProvider.get(cacheKey);
-          }
-          return children({
-            cache: cachedData,
-            setResponse: data => context.setResponse({ cacheKey, cacheProvider, data })
-          });
-        }}
+        {context => (
+          <Component
+            initialState={{
+              cachedData: context.data[cacheKey],
+              cacheProvider: localCacheProvider || context.globalCacheProvider,
+              hasLoaded: false
+            }}
+            didMount={({ state: { cacheProvider }, setState }) => {
+              if (cacheProvider && cacheProvider.get) {
+                const cacheResponse = cacheProvider.get(cacheKey);
+                if (cacheResponse.then && typeof cacheResponse.then === 'function') {
+                  return cacheResponse.then(cachedData => setState({ cachedData, hasLoaded: true })).catch(err => {
+                    console.error(`Error loading data from cacheProvider (cacheKey: ${cacheKey}). Error: ${err}`);
+                    setState({ hasLoaded: true });
+                  });
+                }
+                setState({ cachedData: cacheResponse });
+              }
+              setState({ hasLoaded: true });
+            }}
+          >
+            {({ state: { cachedData, cacheProvider, hasLoaded } }) => {
+              return hasLoaded
+                ? children({
+                    cache: cachedData,
+                    setResponse: data => context.setResponse({ cacheKey, cacheProvider, data })
+                  })
+                : null;
+            }}
+          </Component>
+        )}
       </Consumer>
     );
   };
