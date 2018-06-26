@@ -79,7 +79,7 @@ class LoadsConsumer extends React.Component<ConsumerProps> {
             didMount={({ state: { cacheProvider }, setState }) => {
               if (cacheProvider && cacheProvider.get) {
                 const cacheResponse = cacheProvider.get(cacheKey);
-                if (cacheResponse.then && typeof cacheResponse.then === 'function') {
+                if (cacheResponse && cacheResponse.then && typeof cacheResponse.then === 'function') {
                   return cacheResponse.then(cachedData => setState({ cachedData, hasLoaded: true })).catch(err => {
                     console.error(`Error loading data from cacheProvider (cacheKey: ${cacheKey}). Error: ${err}`);
                     setState({ hasLoaded: true });
