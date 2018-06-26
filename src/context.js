@@ -7,7 +7,7 @@ import { STATES } from './statechart';
 // $FlowFixMe
 const { Provider, Consumer } = React.createContext({
   data: {},
-  setResponse: () => {}
+  setResponse: (params: SetResponseParams) => {}
 });
 
 type ProviderProps = {
