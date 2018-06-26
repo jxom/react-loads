@@ -19,7 +19,7 @@
   "scripts": {
     "build": "nwb build-react-component",
     "clean": "nwb clean-module",
-    "develop": "rollup -c rollup.config.js -w",
+    "develop": "nodemon -w src -x 'nwb build-react-component'",
     "flow": "flow",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
@@ -55,6 +55,7 @@
     "eslint-plugin-prettier": "2.5.0",
     "eslint-plugin-react": "7.5.1",
     "flow-bin": "0.72.0",
+    "nodemon": "1.17.5",
     "nwb": "0.21.5",
     "prettier": "1.12.1",
     "react": "16.4.1",
