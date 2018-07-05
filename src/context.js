@@ -72,7 +72,7 @@ class LoadsConsumer extends React.Component<ConsumerProps> {
         {context => (
           <Component
             initialState={{
-              cachedData: context.data[cacheKey],
+              cacheProviderData: null,
               cacheProvider: localCacheProvider || context.globalCacheProvider,
               hasLoaded: false
             }}
@@ -80,20 +80,22 @@ class LoadsConsumer extends React.Component<ConsumerProps> {
               if (cacheProvider && cacheProvider.get) {
                 const cacheResponse = cacheProvider.get(cacheKey);
                 if (cacheResponse && cacheResponse.then && typeof cacheResponse.then === 'function') {
-                  return cacheResponse.then(cachedData => setState({ cachedData, hasLoaded: true })).catch(err => {
-                    console.error(`Error loading data from cacheProvider (cacheKey: ${cacheKey}). Error: ${err}`);
-                    setState({ hasLoaded: true });
-                  });
+                  return cacheResponse
+                    .then(cacheProviderData => setState({ cacheProviderData, hasLoaded: true }))
+                    .catch(err => {
+                      console.error(`Error loading data from cacheProvider (cacheKey: ${cacheKey}). Error: ${err}`);
+                      setState({ hasLoaded: true });
+                    });
                 }
-                setState({ cachedData: cacheResponse });
+                setState({ cacheProviderData: cacheResponse });
               }
               setState({ hasLoaded: true });
             }}
           >
-            {({ state: { cachedData, cacheProvider, hasLoaded } }) => {
+            {({ state: { cacheProviderData, cacheProvider, hasLoaded } }) => {
               return hasLoaded
                 ? children({
-                    cache: cachedData,
+                    cache: cacheProviderData || context.data[cacheKey],
                     setResponse: data => context.setResponse({ cacheKey, cacheProvider, data })
                   })
                 : null;
