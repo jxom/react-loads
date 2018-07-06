@@ -2,8 +2,6 @@
 
 > A declarative and lightweight React component to handle loading state.
 
-[Read the Medium article](https://medium.com/@jxom/introducing-react-loads-a-simple-react-component-to-handle-loading-response-state-fca9ec460faa)
-
 ## Motivation
 
 There are a few motivations behind creating React Loads:
@@ -365,6 +363,10 @@ const App = () => (
 
 export default App;
 ```
+
+## Articles
+
+- [Using React Loads and caching for a simple, snappy loading UX](https://medium.com/localz-engineering/using-react-loads-and-caching-for-a-simple-snappy-loading-ux-a91506cce5d1)
 
 
 ## Special thanks
