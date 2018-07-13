@@ -1,6 +1,6 @@
 # React Loads
 
-> A declarative and lightweight React component to handle loading state.
+> A headless React component to handle promise states and response data.
 
 ## Motivation
 
