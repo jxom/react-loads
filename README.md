@@ -88,7 +88,7 @@ export default () => (
         {isLoading && <div>loading...</div>}
         {isSuccess && (
           <div>
-            {response && <img src={response.data.message} alt="Dog" />}
+            <img src={response.data.message} alt="Dog" />
             <div>
               <button onClick={load}>Load another dog</button>
             </div>
