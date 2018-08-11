@@ -66,7 +66,15 @@ type ConsumerProps = {
 };
 
 class LoadsConsumer extends React.Component<ConsumerProps> {
-  getCacheResponse = ({ cacheKey, cacheProvider, setState }: { cacheKey: string, cacheProvider?: Function, setState: Function }) => {
+  getCacheResponse = ({
+    cacheKey,
+    cacheProvider,
+    setState
+  }: {
+    cacheKey: string,
+    cacheProvider?: Function,
+    setState: Function // eslint-disable-line
+  }) => {
     if (cacheProvider && cacheProvider.get) {
       const cacheResponse = cacheProvider.get(cacheKey);
       if (cacheResponse && cacheResponse.then && typeof cacheResponse.then === 'function') {

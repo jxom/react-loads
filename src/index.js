@@ -9,10 +9,7 @@ import { type CacheProvider } from './_types';
 const LoadsContainer = (props: { cacheKey?: ?string, cacheProvider?: CacheProvider }) => {
   if (props.cacheKey) {
     return (
-      <LoadsContext.Consumer
-        cacheKey={props.cacheKey}
-        cacheProvider={props.cacheProvider}
-      >
+      <LoadsContext.Consumer cacheKey={props.cacheKey} cacheProvider={props.cacheProvider}>
         {({ cache, setResponse }) => <Loads {...props} cache={cache} setResponse={setResponse} />}
       </LoadsContext.Consumer>
     );
