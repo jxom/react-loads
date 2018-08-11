@@ -1,8 +1,6 @@
 # React Loads
 
-> A declarative and lightweight React component to handle loading state.
-
-[Read the Medium article](https://medium.com/@jxom/introducing-react-loads-a-simple-react-component-to-handle-loading-response-state-fca9ec460faa)
+> A headless React component to handle promise states and response data.
 
 ## Motivation
 
@@ -90,7 +88,7 @@ export default () => (
         {isLoading && <div>loading...</div>}
         {isSuccess && (
           <div>
-            {response && <img src={response.data.message} alt="Dog" />}
+            <img src={response.data.message} alt="Dog" />
             <div>
               <button onClick={load}>Load another dog</button>
             </div>
@@ -365,6 +363,11 @@ const App = () => (
 
 export default App;
 ```
+
+## Articles
+
+- [Introducing React Loads — A headless React component to handle promise states and response data](https://medium.freecodecamp.org/introducing-react-loads-a-headless-react-component-to-handle-promise-states-and-response-data-f45cb3621335)
+- [Using React Loads and caching for a simple, snappy loading UX](https://medium.com/localz-engineering/using-react-loads-and-caching-for-a-simple-snappy-loading-ux-a91506cce5d1)
 
 
 ## Special thanks
