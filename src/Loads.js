@@ -4,6 +4,7 @@ import { EVENTS, STATES } from './statechart';
 
 type Props = {
   enableBackgroundStates?: boolean,
+  cacheKey?: string,
   cache?: {
     error?: any,
     response?: any,
@@ -79,6 +80,15 @@ export default class Loads extends Component<Props, State> {
     const { loadOnMount } = this.props;
     this._mounted = true;
     loadOnMount && this.handleLoad();
+  };
+
+  componentDidUpdate = prevProps => {
+    const { cacheKey: prevCacheKey } = prevProps;
+    const { cacheKey, loadOnMount } = this.props;
+
+    if (loadOnMount && cacheKey && cacheKey !== prevCacheKey) {
+      this.handleLoad();
+    }
   };
 
   componentWillUnmount = () => {
