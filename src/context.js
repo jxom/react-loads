@@ -61,35 +61,50 @@ class LoadsProvider extends React.Component<ProviderProps, ProviderState> {
 type ConsumerProps = {
   cacheKey: string,
   cacheProvider?: CacheProvider,
-  children: Function
+  children: Function,
+  loadOnMount: boolean
 };
 
 class LoadsConsumer extends React.Component<ConsumerProps> {
+  getCacheResponse = ({ cacheKey, cacheProvider, setState }: { cacheKey: string, cacheProvider?: Function, setState: Function }) => {
+    if (cacheProvider && cacheProvider.get) {
+      const cacheResponse = cacheProvider.get(cacheKey);
+      if (cacheResponse && cacheResponse.then && typeof cacheResponse.then === 'function') {
+        return cacheResponse.then(cacheProviderData => setState({ cacheProviderData, hasLoaded: true })).catch(err => {
+          console.error(`Error loading data from cacheProvider (cacheKey: ${cacheKey}). Error: ${err}`);
+          setState({ hasLoaded: true });
+        });
+      }
+      setState({ cacheProviderData: cacheResponse });
+    }
+    setState({ hasLoaded: true });
+  };
+
   render = () => {
-    const { cacheKey, cacheProvider: localCacheProvider, children } = this.props;
+    const { cacheKey, cacheProvider: localCacheProvider, loadOnMount, children } = this.props;
     return (
       <Consumer>
         {context => (
           <Component
+            cacheKey={cacheKey}
+            loadOnMount={loadOnMount}
             initialState={{
               cacheProviderData: null,
               cacheProvider: localCacheProvider || context.globalCacheProvider,
               hasLoaded: false
             }}
             didMount={({ state: { cacheProvider }, setState }) => {
-              if (cacheProvider && cacheProvider.get) {
-                const cacheResponse = cacheProvider.get(cacheKey);
-                if (cacheResponse && cacheResponse.then && typeof cacheResponse.then === 'function') {
-                  return cacheResponse
-                    .then(cacheProviderData => setState({ cacheProviderData, hasLoaded: true }))
-                    .catch(err => {
-                      console.error(`Error loading data from cacheProvider (cacheKey: ${cacheKey}). Error: ${err}`);
-                      setState({ hasLoaded: true });
-                    });
-                }
-                setState({ cacheProviderData: cacheResponse });
+              this.getCacheResponse({ cacheKey, cacheProvider, setState });
+            }}
+            didUpdate={({
+              prevProps: { cacheKey: prevCacheKey },
+              props: { cacheKey, loadOnMount },
+              state: { cacheProvider },
+              setState
+            }) => {
+              if (loadOnMount && cacheKey && cacheKey !== prevCacheKey) {
+                this.getCacheResponse({ cacheKey, cacheProvider, setState });
               }
-              setState({ hasLoaded: true });
             }}
           >
             {({ state: { cacheProviderData, cacheProvider, hasLoaded } }) => {
