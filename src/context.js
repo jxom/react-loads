@@ -81,13 +81,12 @@ class LoadsConsumer extends React.Component<ConsumerProps> {
   };
 
   render = () => {
-    const { cacheKey, cacheProvider: localCacheProvider, loadOnMount, children } = this.props;
+    const { cacheKey, cacheProvider: localCacheProvider, children } = this.props;
     return (
       <Consumer>
         {context => (
           <Component
             cacheKey={cacheKey}
-            loadOnMount={loadOnMount}
             initialState={{
               cacheProviderData: null,
               cacheProvider: localCacheProvider || context.globalCacheProvider,
@@ -102,7 +101,7 @@ class LoadsConsumer extends React.Component<ConsumerProps> {
               state: { cacheProvider },
               setState
             }) => {
-              if (loadOnMount && cacheKey && cacheKey !== prevCacheKey) {
+              if (cacheKey && cacheKey !== prevCacheKey) {
                 this.getCacheResponse({ cacheKey, cacheProvider, setState });
               }
             }}
