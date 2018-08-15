@@ -15,12 +15,12 @@ type ProviderProps = {
   cacheProvider?: CacheProvider
 };
 type ProviderState = {
-  data: Object
+  data: Object,
+  globalCacheProvider?: CacheProvider,
+  setResponse: Function
 };
 
 class LoadsProvider extends React.Component<ProviderProps, ProviderState> {
-  state = { data: {} };
-
   setResponse = (params: SetResponseParams) => {
     const { cacheProvider: globalCacheProvider } = this.props;
     const {
@@ -42,19 +42,15 @@ class LoadsProvider extends React.Component<ProviderProps, ProviderState> {
     });
   };
 
+  state = {
+    data: {},
+    globalCacheProvider: this.props.cacheProvider,
+    setResponse: this.setResponse
+  };
+
   render = () => {
-    const { children, cacheProvider: globalCacheProvider } = this.props;
-    return (
-      <Provider
-        value={{
-          data: this.state.data,
-          globalCacheProvider,
-          setResponse: this.setResponse
-        }}
-      >
-        {children}
-      </Provider>
-    );
+    const { children } = this.props;
+    return <Provider value={this.state}>{children}</Provider>;
   };
 }
 
