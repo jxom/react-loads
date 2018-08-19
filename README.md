@@ -28,36 +28,41 @@ React Loads makes this nicer to handle.
 
 ## Table of Contents
 
-- [Installation](#installation)
-- [Usage](#usage)
-  - [More examples](#more-examples)
-- [`<Loads>` Props](#loads-props)
-  - [fn](#fn)
-  - [delay](#delay)
-  - [loadOnMount](#loadonmount)
-  - [timeout](#timeout)
-  - [cacheKey](#cacheKey)
-  - [enableBackgroundStates](#enablebackgroundstates)
-  - [cacheProvider](#cacheProvider)
-  - [`children` Render Props](#children-render-props)
-    - [response](#response)
-    - [error](#error)
-    - [load](#load)
-    - [isIdle](#isIdle)
-    - [isLoading](#isLoading)
-    - [isTimeout](#isTimeout)
-    - [isSuccess](#isSuccess)
-    - [isError](#isError)
-    - [hasResponseInCache](#hasResponseInCache)
-- [`<LoadsProvider>` Props](#loadsprovider-props)
-  - [cacheProvider](#cacheprovider)
-- [Caching response data](#caching-response-data)
-  - [Basic application context cache](#basic-application-context-cache)
-  - [Using a cache provider](#using-a-cache-provider)
-    - [Application-level cache provider](#application-level-cache-provider)
-    - [`<Loads>`-level cache provider](#loads-level-cache-provider)
-- [Special thanks](#special-thanks)
-- [License](#license)
+- [React Loads](#react-loads)
+  - [Motivation](#motivation)
+  - [Table of Contents](#table-of-contents)
+  - [Installation](#installation)
+  - [Usage](#usage)
+    - [More examples](#more-examples)
+  - [`<Loads>` Props](#loads-props)
+    - [fn](#fn)
+    - [delay](#delay)
+    - [loadOnMount](#loadonmount)
+    - [timeout](#timeout)
+    - [cacheKey](#cachekey)
+    - [loadPolicy](#loadpolicy)
+    - [enableBackgroundStates](#enablebackgroundstates)
+    - [cacheProvider](#cacheprovider)
+    - [`children` Render Props](#children-render-props)
+      - [response](#response)
+      - [error](#error)
+      - [load](#load)
+      - [isIdle](#isidle)
+      - [isLoading](#isloading)
+      - [isTimeout](#istimeout)
+      - [isSuccess](#issuccess)
+      - [isError](#iserror)
+      - [hasResponseInCache](#hasresponseincache)
+  - [`<LoadsProvider>` Props](#loadsprovider-props)
+    - [cacheProvider](#cacheprovider)
+  - [Caching response data](#caching-response-data)
+    - [Basic application context cache](#basic-application-context-cache)
+    - [Using a cache provider](#using-a-cache-provider)
+      - [Application-level cache provider](#application-level-cache-provider)
+      - [`<Loads>`-level cache provider](#loads-level-cache-provider)
+  - [Articles](#articles)
+  - [Special thanks](#special-thanks)
+  - [License](#license)
 
 
 ## Installation
@@ -137,7 +142,19 @@ Number of milliseconds before the component transitions to the `'timeout'` state
 
 > `string`
 
-Unique identifier to store the response/error data in cache. Your application must be wrapped in a `<LoadsProvider>` to enable caching (see [Caching response data](#caching-response-data) below).
+Unique identifier to store the response/error data in cache. Your application must be wrapped in a `<LoadsProvider>` to enable cachin
+
+### loadPolicy
+
+> `"cache-first" | "cache-and-load" | "load-only"` | default: `"cache-and-load"`
+
+A load policy allows you to specify whether or not you want your data to be resolved from the Loads cache and how it should load the data.
+
+- `"cache-first"`: If a value for the promise already exists in the Loads cache, then Loads will return the value that is in the cache, otherwise it will invoke the promise.
+
+- `"cache-and-load"`: This is the default value and means that Loads will return with the cached value if found, but regardless of whether or not a value exists in the cache, it will always invoke the promise.
+
+- `"load-only"`: This means that Loads will not return the cached data altogether, and will only return the data resolved from the promise.
 
 ### enableBackgroundStates
 

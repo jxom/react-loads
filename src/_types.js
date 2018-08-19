@@ -5,6 +5,7 @@ export type CacheProvider = {
   set: (key: string, value: any) => any,
   get: (key: string) => any
 };
+export type LoadPolicy = 'cache-first' | 'cache-and-load' | 'load-only';
 export type ResponsePair = {
   response?: any,
   error?: any,

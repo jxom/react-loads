@@ -1,6 +1,7 @@
 import { Component } from 'react';
-import idx from 'idx';
+import { type LoadPolicy } from './_types';
 import { EVENTS, STATES } from './statechart';
+import { LOAD_POLICIES, getCachedResponseFromProps } from './utils';
 
 type Props = {
   enableBackgroundStates?: boolean,
@@ -25,6 +26,7 @@ type Props = {
   delay?: number,
   isErrorSilent?: boolean,
   loadOnMount?: boolean,
+  loadPolicy?: LoadPolicy,
   fn: (...args: any) => Promise<any>,
   machineState: { value: string },
   setResponse?: (data: { error?: any, response?: any }) => void,
@@ -32,7 +34,9 @@ type Props = {
   transition: (state: string) => void
 };
 type State = {
+  cacheKey?: string,
   error: any,
+  hasResponseInCache: boolean,
   response: any
 };
 
@@ -44,6 +48,7 @@ export default class Loads extends Component<Props, State> {
     error: null,
     isErrorSilent: true,
     loadOnMount: false,
+    loadPolicy: LOAD_POLICIES.CACHE_AND_LOAD,
     response: null
   };
   _delayTimeout: any;
@@ -52,8 +57,42 @@ export default class Loads extends Component<Props, State> {
   _paused: boolean;
 
   state = {
-    error: idx(this.props, _ => _.cache.error),
-    response: idx(this.props, _ => _.cache.response)
+    cacheKey: this.props.cacheKey,
+    ...getCachedResponseFromProps(this.props)
+  };
+
+  static getDerivedStateFromProps = (nextProps: Props, state: State) => {
+    if (nextProps.cacheKey !== state.cacheKey) {
+      return {
+        cacheKey: nextProps.cacheKey,
+        ...getCachedResponseFromProps(nextProps)
+      };
+    }
+    return {};
+  };
+
+  componentDidMount = () => {
+    const { loadOnMount } = this.props;
+    this._mounted = true;
+    if (loadOnMount) {
+      this.handleLoad();
+    }
+  };
+
+  componentDidUpdate = prevProps => {
+    const { cacheKey: prevCacheKey } = prevProps;
+    const { cacheKey, loadOnMount } = this.props;
+
+    if (cacheKey && cacheKey !== prevCacheKey) {
+      if (loadOnMount) {
+        this.handleLoad();
+      }
+    }
+  };
+
+  componentWillUnmount = () => {
+    this._clearTimeouts();
+    this._mounted = false;
   };
 
   _clearTimeouts = () => {
@@ -76,28 +115,10 @@ export default class Loads extends Component<Props, State> {
     }
   };
 
-  componentDidMount = () => {
-    const { loadOnMount } = this.props;
-    this._mounted = true;
-    loadOnMount && this.handleLoad();
-  };
-
-  componentDidUpdate = prevProps => {
-    const { cacheKey: prevCacheKey } = prevProps;
-    const { cacheKey, loadOnMount } = this.props;
-
-    if (loadOnMount && cacheKey && cacheKey !== prevCacheKey) {
-      this.handleLoad();
-    }
-  };
-
-  componentWillUnmount = () => {
-    this._clearTimeouts();
-    this._mounted = false;
-  };
-
   handleLoad = (...args: any) => {
-    const { isErrorSilent, fn } = this.props;
+    const { isErrorSilent, fn, loadPolicy } = this.props;
+    const { hasResponseInCache } = this.state;
+    if (loadPolicy === LOAD_POLICIES.CACHE_FIRST && hasResponseInCache) return null;
     if (this._paused) return null;
     this._setTimeouts();
     return fn(...args)
@@ -144,9 +165,8 @@ export default class Loads extends Component<Props, State> {
 
   render = () => {
     const { enableBackgroundStates, cache, children, machineState } = this.props;
-    const { error, response } = this.state;
+    const { error, hasResponseInCache, response } = this.state;
     const cachedState = cache ? cache.state : null;
-    const hasResponseInCache = typeof cache !== 'undefined';
     const state = machineState.value;
     const props = {
       state,
