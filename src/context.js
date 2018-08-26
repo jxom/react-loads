@@ -77,7 +77,8 @@ class LoadsConsumer extends React.Component<ConsumerProps, ConsumerState> {
   state = {
     cacheKey: null,
     cacheProviderData: {},
-    cacheProvider: this.props.cacheProvider || idx(this.props, _ => _.context.globalCacheProvider)
+    cacheProvider: this.props.cacheProvider || idx(this.props, _ => _.context.globalCacheProvider),
+    hasLoaded: false
   };
 
   static getDerivedStateFromProps = (nextProps: ConsumerProps, prevState: ConsumerState) => {
