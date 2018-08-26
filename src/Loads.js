@@ -41,6 +41,12 @@ type State = {
 };
 
 export default class Loads extends Component<Props, State> {
+  _count: number;
+  _delayTimeout: any;
+  _timeoutTimeout: any;
+  _mounted: boolean;
+  _paused: boolean;
+
   static defaultProps = {
     enableBackgroundStates: false,
     delay: 300,
@@ -51,10 +57,8 @@ export default class Loads extends Component<Props, State> {
     loadPolicy: LOAD_POLICIES.CACHE_AND_LOAD,
     response: null
   };
-  _delayTimeout: any;
-  _timeoutTimeout: any;
-  _mounted: boolean;
-  _paused: boolean;
+
+  _count = 0;
 
   state = {
     cacheKey: this.props.cacheKey,
@@ -75,7 +79,8 @@ export default class Loads extends Component<Props, State> {
     const { loadOnMount } = this.props;
     this._mounted = true;
     if (loadOnMount) {
-      this.handleLoad();
+      this._count = this._count + 1;
+      this.handleLoad(this._count)();
     }
   };
 
@@ -85,7 +90,8 @@ export default class Loads extends Component<Props, State> {
 
     if (cacheKey && cacheKey !== prevCacheKey) {
       if (loadOnMount) {
-        this.handleLoad();
+        this._count = this._count + 1;
+        this.handleLoad(this._count)();
       }
     }
   };
@@ -115,7 +121,7 @@ export default class Loads extends Component<Props, State> {
     }
   };
 
-  handleLoad = (...args: any) => {
+  handleLoad = (count: ?number) => (...args: any) => {
     const { isErrorSilent, fn, loadPolicy } = this.props;
     const { hasResponseInCache } = this.state;
     if (loadPolicy === LOAD_POLICIES.CACHE_FIRST && hasResponseInCache) return null;
@@ -123,22 +129,21 @@ export default class Loads extends Component<Props, State> {
     this._setTimeouts();
     return fn(...args)
       .then(response => {
-        this.handleResponse({ response, event: EVENTS.SUCCESS });
+        this.handleResponse({ count, response, event: EVENTS.SUCCESS });
         return response;
       })
       .catch(err => {
-        this.handleResponse({ error: err, event: EVENTS.ERROR });
+        this.handleResponse({ count, error: err, event: EVENTS.ERROR });
         if (!isErrorSilent) {
           throw err;
         }
       });
   };
 
-  handleResponse = ({ error, event, response }: { error?: any, event: EVENTS.SUCCESS | EVENTS.ERROR, response?: any }) => { // eslint-disable-line
+  handleResponse = ({ count, error, event, response }: { count: ?number, error?: any, event: EVENTS.SUCCESS | EVENTS.ERROR, response?: any }) => { // eslint-disable-line
     const { setResponse } = this.props;
-    if (!this._mounted) {
-      return;
-    }
+    if (!this._mounted) return;
+    if (this._count !== count) return;
     const value = {
       ...(event === EVENTS.SUCCESS ? { response } : {}),
       ...(event === EVENTS.ERROR ? { error } : {})
@@ -178,7 +183,7 @@ export default class Loads extends Component<Props, State> {
       isTimeout: state === STATES.TIMEOUT && (!hasResponseInCache || enableBackgroundStates),
       isSuccess: state === STATES.SUCCESS || (hasResponseInCache && cachedState === STATES.SUCCESS),
       isError: state === STATES.ERROR || (hasResponseInCache && cachedState === STATES.ERROR),
-      load: this.handleLoad,
+      load: this.handleLoad(this._count),
       resetState: () => this.transition(EVENTS.RESET)
     };
     return children(props);
