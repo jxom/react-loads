@@ -67,6 +67,7 @@ type ConsumerProps = {
   children: Function
 };
 type ConsumerState = {
+  cacheKey: string,
   cacheProviderData: Object,
   cacheProvider: ?CacheProvider,
   hasLoaded: boolean
@@ -74,9 +75,16 @@ type ConsumerState = {
 
 class LoadsConsumer extends React.Component<ConsumerProps, ConsumerState> {
   state = {
+    cacheKey: null,
     cacheProviderData: {},
-    cacheProvider: this.props.cacheProvider || idx(this.props, _ => _.context.globalCacheProvider),
-    hasLoaded: false
+    cacheProvider: this.props.cacheProvider || idx(this.props, _ => _.context.globalCacheProvider)
+  };
+
+  static getDerivedStateFromProps = (nextProps: ConsumerProps, prevState: ConsumerState) => {
+    if (nextProps.cacheKey !== prevState.cacheKey) {
+      return { cacheKey: nextProps.cacheKey, cacheProviderData: {}, hasLoaded: false };
+    }
+    return {};
   };
 
   componentDidMount = () => {
@@ -96,19 +104,21 @@ class LoadsConsumer extends React.Component<ConsumerProps, ConsumerState> {
     const { cacheProvider } = this.state;
     if (cacheProvider && cacheProvider.get) {
       const cacheResponse = cacheProvider.get(cacheKey);
-      if (cacheResponse && cacheResponse.then && typeof cacheResponse.then === 'function') {
-        return cacheResponse
-          .then(cacheProviderData => {
-            this.setState({ cacheProviderData: { [cacheKey]: cacheResponse }, hasLoaded: true });
-            context.setContextCache(cacheKey, cacheResponse);
-          })
-          .catch(err => {
-            console.error(`Error loading data from cacheProvider (cacheKey: ${cacheKey}). Error: ${err}`);
-            this.setState({ hasLoaded: true });
-          });
+      if (cacheResponse) {
+        if (cacheResponse.then && typeof cacheResponse.then === 'function') {
+          return cacheResponse
+            .then(cacheProviderData => {
+              this.setState({ cacheProviderData: { [cacheKey]: cacheResponse }, hasLoaded: true });
+              context.setContextCache(cacheKey, cacheResponse);
+            })
+            .catch(err => {
+              console.error(`Error loading data from cacheProvider (cacheKey: ${cacheKey}). Error: ${err}`);
+              this.setState({ hasLoaded: true });
+            });
+        }
+        this.setState({ cacheProviderData: { [cacheKey]: cacheResponse } });
+        context.setContextCache(cacheKey, cacheResponse);
       }
-      this.setState({ cacheProviderData: { [cacheKey]: cacheResponse } });
-      context.setContextCache(cacheKey, cacheResponse);
     }
     this.setState({ hasLoaded: true });
   };

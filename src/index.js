@@ -1,9 +1,7 @@
 // @flow
 import React from 'react';
-import { withStatechart } from 'react-automata';
 import Loads from './Loads';
 import LoadsContext from './context';
-import statechart from './statechart';
 import { type CacheProvider } from './_types';
 
 const LoadsContainer = (props: { cacheKey?: ?string, cacheProvider?: CacheProvider }) => {
@@ -22,6 +20,6 @@ LoadsContainer.defaultProps = {
   cacheProvider: null
 };
 
-export default withStatechart(statechart)(LoadsContainer);
+export default LoadsContainer;
 
 export const LoadsProvider = LoadsContext.Provider;
