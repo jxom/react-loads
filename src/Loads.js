@@ -74,6 +74,9 @@ export default withStatechart(statechart)(
           ...getCachedResponseFromProps(nextProps)
         };
       }
+      if (nextProps.cache && !state.hasResponseInCache) {
+        return getCachedResponseFromProps(nextProps);
+      }
       return {};
     };
 
