@@ -38,8 +38,8 @@ React Loads makes this nicer to handle.
     - [fn](#fn)
     - [delay](#delay)
     - [loadOnMount](#loadonmount)
+    - [contextKey](#contextkey)
     - [timeout](#timeout)
-    - [cacheKey](#cachekey)
     - [loadPolicy](#loadpolicy)
     - [enableBackgroundStates](#enablebackgroundstates)
     - [cacheProvider](#cacheprovider)
@@ -130,6 +130,14 @@ Number of milliseconds before the component transitions to the `'loading'` state
 
 Whether or not to invoke `fn` on mount.
 
+### contextKey
+
+> `string`
+
+Unique identifier for the promise (`fn`). If `contextKey` changes, then `fn` will be invoked again.
+
+*Note: If your application is wrapped in a `<LoadsProvider>`, then `contextKey` is required.*
+
 ### timeout
 
 > `number` | default: `0`
@@ -138,11 +146,6 @@ Number of milliseconds before the component transitions to the `'timeout'` state
 
 *Note: `fn` will still continue to try an resolve while in the `'timeout'` state*
 
-### cacheKey
-
-> `string`
-
-Unique identifier to store the response/error data in cache. Your application must be wrapped in a `<LoadsProvider>` to enable cachin
 
 ### loadPolicy
 
@@ -160,7 +163,7 @@ A load policy allows you to specify whether or not you want your data to be reso
 
 > `boolean` | default: `false`
 
-If true and the data is in cache, `isIdle`, `isLoading` and `isTimeout` will be evaluated on subsequent loads. When `false` (default), these states are only evaluated on initial load and are falsy on subsequent loads - this is helpful if you want to show the cached response and not have a idle/loading/timeout indicator when `fn` is invoked again. You must have a `cacheKey` set to enable background states as it only effects data in the cache.
+If true and the data is in cache, `isIdle`, `isLoading` and `isTimeout` will be evaluated on subsequent loads. When `false` (default), these states are only evaluated on initial load and are falsy on subsequent loads - this is helpful if you want to show the cached response and not have a idle/loading/timeout indicator when `fn` is invoked again. You must have a `contextKey` set and your application to be wrapped in a `<LoadsProvider>` to enable background states as it only effects data in the cache.
 
 ### cacheProvider
 
@@ -245,7 +248,7 @@ import Loads, { LoadsProvider } from 'react-loads';
 const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
 
 const RandomDog = () => (
-  <Loads cacheKey="randomDog" loadOnMount fn={getRandomDog}>
+  <Loads contextKey="randomDog" loadOnMount fn={getRandomDog}>
     {({ isLoading, isSuccess, load, response }) => (
       <div>
         {isLoading && <div>loading...</div>}
@@ -288,7 +291,7 @@ const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
 
 const RandomDog = () => (
   <Loads
-    cacheKey="randomDog"
+    contextKey="randomDog"
     loadOnMount
     fn={getRandomDog}
   >
@@ -309,7 +312,7 @@ const RandomDog = () => (
 );
 
 const cacheProvider = {
-  // Note: `key` maps to the `cacheKey` which is provided to <Loads>.
+  // Note: `key` maps to the `contextKey` which is provided to <Loads>.
   get: key => {
     return store.get(`dog-app.${key}`);
   },
@@ -339,7 +342,7 @@ import store from 'store';
 const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
 
 const cacheProvider = {
-  // Note: `key` maps to the `cacheKey` which is provided to <Loads>.
+  // Note: `key` maps to the `contextKey` which is provided to <Loads>.
   // In this case, the key will be 'randomDog'.
   get: key => {
     return store.get(key);
@@ -351,7 +354,7 @@ const cacheProvider = {
 
 const RandomDog = () => (
   <Loads
-    cacheKey="randomDog"
+    contextKey="randomDog"
     cacheProvider={cacheProvider}
     loadOnMount
     fn={getRandomDog}

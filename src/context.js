@@ -31,7 +31,7 @@ class LoadsProvider extends React.Component<ProviderProps, ProviderState> {
   setResponse = (params: SetResponseParams) => {
     const { cacheProvider: globalCacheProvider } = this.props;
     const {
-      cacheKey,
+      contextKey,
       cacheProvider: localCacheProvider,
       data: { error, response, state }
     } = params;
@@ -42,9 +42,9 @@ class LoadsProvider extends React.Component<ProviderProps, ProviderState> {
       state
     };
     if (cacheProvider && cacheProvider.set) {
-      cacheProvider.set(cacheKey, value);
+      cacheProvider.set(contextKey, value);
     }
-    this.setContextCache(cacheKey, value);
+    this.setContextCache(contextKey, value);
   };
 
   state = {
@@ -61,13 +61,13 @@ class LoadsProvider extends React.Component<ProviderProps, ProviderState> {
 }
 
 type ConsumerProps = {
-  cacheKey: string,
+  contextKey: string,
   cacheProvider?: CacheProvider,
   context: Object,
   children: Function
 };
 type ConsumerState = {
-  cacheKey: string,
+  contextKey: string,
   cacheProviderData: Object,
   cacheProvider: ?CacheProvider,
   hasLoaded: boolean
@@ -75,15 +75,15 @@ type ConsumerState = {
 
 class LoadsConsumer extends React.Component<ConsumerProps, ConsumerState> {
   state = {
-    cacheKey: null,
+    contextKey: null,
     cacheProviderData: {},
     cacheProvider: this.props.cacheProvider || idx(this.props, _ => _.context.globalCacheProvider),
     hasLoaded: false
   };
 
   static getDerivedStateFromProps = (nextProps: ConsumerProps, prevState: ConsumerState) => {
-    if (nextProps.cacheKey !== prevState.cacheKey) {
-      return { cacheKey: nextProps.cacheKey, cacheProviderData: {}, hasLoaded: false };
+    if (nextProps.contextKey !== prevState.contextKey) {
+      return { contextKey: nextProps.contextKey, cacheProviderData: {}, hasLoaded: false };
     }
     return {};
   };
@@ -93,44 +93,44 @@ class LoadsConsumer extends React.Component<ConsumerProps, ConsumerState> {
   };
 
   componentDidUpdate = prevProps => {
-    const { cacheKey: prevCacheKey } = prevProps;
-    const { cacheKey } = this.props;
-    if (cacheKey && cacheKey !== prevCacheKey) {
+    const { contextKey: prevContextKey } = prevProps;
+    const { contextKey } = this.props;
+    if (contextKey && contextKey !== prevContextKey) {
       this.getCacheResponse();
     }
   };
 
   getCacheResponse = () => {
-    const { cacheKey, context } = this.props;
+    const { contextKey, context } = this.props;
     const { cacheProvider } = this.state;
     if (cacheProvider && cacheProvider.get) {
-      const cacheResponse = cacheProvider.get(cacheKey);
+      const cacheResponse = cacheProvider.get(contextKey);
       if (cacheResponse) {
         if (cacheResponse.then && typeof cacheResponse.then === 'function') {
           return cacheResponse
             .then(cacheProviderData => {
-              this.setState({ cacheProviderData: { [cacheKey]: cacheResponse }, hasLoaded: true });
-              context.setContextCache(cacheKey, cacheResponse);
+              this.setState({ cacheProviderData: { [contextKey]: cacheResponse }, hasLoaded: true });
+              context.setContextCache(contextKey, cacheResponse);
             })
             .catch(err => {
-              console.error(`Error loading data from cacheProvider (cacheKey: ${cacheKey}). Error: ${err}`);
+              console.error(`Error loading data from cacheProvider (contextKey: ${contextKey}). Error: ${err}`);
               this.setState({ hasLoaded: true });
             });
         }
-        this.setState({ cacheProviderData: { [cacheKey]: cacheResponse } });
-        context.setContextCache(cacheKey, cacheResponse);
+        this.setState({ cacheProviderData: { [contextKey]: cacheResponse } });
+        context.setContextCache(contextKey, cacheResponse);
       }
     }
     this.setState({ hasLoaded: true });
   };
 
   render = () => {
-    const { cacheKey, context, children } = this.props;
+    const { contextKey, context, children } = this.props;
     const { cacheProviderData, cacheProvider, hasLoaded } = this.state;
     return hasLoaded
       ? children({
-          cache: cacheProviderData[cacheKey] || context.data[cacheKey],
-          setResponse: data => context.setResponse({ cacheKey, cacheProvider, data })
+          cache: cacheProviderData[contextKey] || context.data[contextKey],
+          setResponse: data => context.setResponse({ contextKey, cacheProvider, data })
         })
       : null;
   };

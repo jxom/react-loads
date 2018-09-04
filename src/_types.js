@@ -12,7 +12,7 @@ export type ResponsePair = {
   state: STATES.SUCCESS | STATES.ERROR
 };
 export type SetResponseParams = {
-  cacheKey: string,
+  contextKey: string,
   cacheProvider?: CacheProvider,
   data: ResponsePair
 };

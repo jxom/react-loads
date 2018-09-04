@@ -6,7 +6,6 @@ import { LOAD_POLICIES, getCachedResponseFromProps } from './utils';
 
 type Props = {
   enableBackgroundStates?: boolean,
-  cacheKey?: string,
   cache?: {
     error?: any,
     response?: any,
@@ -24,6 +23,7 @@ type Props = {
     load: (...args: any) => ?Promise<any>,
     resetState: () => void
   }) => any,
+  contextKey?: string,
   delay?: number,
   isErrorSilent?: boolean,
   loadOnMount?: boolean,
@@ -35,7 +35,7 @@ type Props = {
   transition: (state: string) => void
 };
 type State = {
-  cacheKey?: string,
+  contextKey?: string,
   error: any,
   hasResponseInCache: boolean,
   response: any
@@ -63,14 +63,14 @@ export default withStatechart(statechart)(
     _count = 0;
 
     state = {
-      cacheKey: this.props.cacheKey,
+      contextKey: this.props.contextKey,
       ...getCachedResponseFromProps(this.props)
     };
 
     static getDerivedStateFromProps = (nextProps: Props, state: State) => {
-      if (nextProps.cacheKey !== state.cacheKey) {
+      if (nextProps.contextKey !== state.contextKey) {
         return {
-          cacheKey: nextProps.cacheKey,
+          contextKey: nextProps.contextKey,
           ...getCachedResponseFromProps(nextProps)
         };
       }
@@ -90,10 +90,10 @@ export default withStatechart(statechart)(
     };
 
     componentDidUpdate = prevProps => {
-      const { cacheKey: prevCacheKey } = prevProps;
-      const { cacheKey, loadOnMount } = this.props;
+      const { contextKey: prevContextKey } = prevProps;
+      const { contextKey, loadOnMount } = this.props;
 
-      if (cacheKey && cacheKey !== prevCacheKey) {
+      if (contextKey && contextKey !== prevContextKey) {
         if (loadOnMount) {
           this._count = this._count + 1;
           this.handleLoad(this._count)();
