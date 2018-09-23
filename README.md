@@ -487,9 +487,14 @@ import Loads from 'react-loads';
 
 class Dog extends Component {
   updateDog = (id, dog, { setResponse }) => {
-    setResponse({ contextKey: `dog.${id}`, data: currentDog => ({ ...currentDog, dog }) }, updatedDog => {
-      setResponse({ contextKey: 'dogs', data: dogs => ([...dogs, updatedDog]) })
-    });
+    setResponse({ 
+      contextKey: `dog.${id}`, 
+      data: currentDog => ({ ...currentDog, dog }) }, updatedDog => {
+        setResponse({ 
+          contextKey: 'dogs', 
+          data: dogs => ([...dogs, updatedDog]) 
+        })
+      });
     // ... - update the dog
   }
 
