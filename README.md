@@ -60,6 +60,16 @@ React Loads makes this nicer to handle.
     - [Using a cache provider](#using-a-cache-provider)
       - [Application-level cache provider](#application-level-cache-provider)
       - [`<Loads>`-level cache provider](#loads-level-cache-provider)
+  - [Optimistic responses](#optimistic-responses)
+    - [setResponse({ contextKey, data }[, callback])](#setresponse-contextkey-data--callback)
+      - [contextKey](#contextkey)
+      - [data](#data)
+      - [callback](#callback)
+    - [setError({ contextKey, error })](#seterror-contextkey-error)
+      - [contextKey](#contextkey)
+      - [error](#error)
+    - [Basic example](#basic-example)
+    - [Less basic example](#less-basic-example)
   - [Articles](#articles)
   - [Special thanks](#special-thanks)
   - [License](#license)
@@ -114,9 +124,11 @@ export default () => (
 
 ### fn
 
-> `function()` | returns `Promise` | required
+> `function(...args, { setResponse, setError })` | returns `Promise` | required
 
 The function to invoke. **It must return a promise.**
+
+The arguments `setResponse` and `setError` are optional, and can be used for [optimistic responses](#optimistic-responses).
 
 ### delay
 
@@ -187,9 +199,11 @@ Error from the rejected promise (`fn`).
 
 #### load
 
-> `function(...args)`
+> `function(...args, { setResponse, setError })`
 
 Trigger to invoke `fn`.
+
+The arguments `setResponse` and `setError` are optional, and can be used for [optimistic responses](#optimistic-responses).
 
 #### isIdle
 
@@ -383,6 +397,139 @@ const App = () => (
 
 export default App;
 ```
+
+## Optimistic responses
+
+React Loads has the ability to optimistically update your data while it is still waiting for a response (if you know what the response will potentially look like). Once a response is received, then the optimistically updated data will be replaced by the response.
+
+To use optimistic responses, the `setResponse` and `setError` functions are provided as the last argument of your loading function (`fn`/`load`). The interface for these functions, along with an example implementation are seen below.
+
+### setResponse({ contextKey, data }[, callback])
+
+Optimistically sets a successful response.
+
+#### contextKey
+
+> `string` | optional
+
+The context where the data will be updated. If not provided, then it will use the `contextKey` prop specified in `<Loads>`.
+
+#### data
+
+> `Object` or `function(cachedData) {}`
+
+The updated data. If a function is provided, then the first argument will be the currently cached data in the context cache.
+
+#### callback
+
+> `function(cachedData) {}`
+
+A callback can be also provided as a second parameter to `setResponse`, where the first and only parameter is the updated cached response (`data`).
+
+
+### setError({ contextKey, error })
+
+Optimistically (ironically) sets an errored response.
+
+#### contextKey
+
+> `string` | optional
+
+The context where the error will be updated. If not provided, then it will use the `contextKey` prop specified in `<Loads>`.
+
+#### error
+
+> `Object`
+
+The updated error.
+
+### Basic example
+
+```jsx
+import React, { Component, Fragment } from 'react';
+import Loads from 'react-loads';
+
+class Dog extends Component {
+  createDog = async (dog, { setResponse }) => {
+    setResponse({ contextKey: 'dog', data: dog });
+    // ... - create the dog
+  }
+
+  getDog = async () => {
+    // ... - fetch and return the dog
+  }
+
+  render = () => {
+    return (
+      <Fragment>
+        <Loads contextKey="create-dog" fn={this.createDog}>
+          {({ load }) => (
+            <button onClick={() => load({ name: 'Teddy', breed: 'Groodle' })}>Create</button>
+          )}
+        </Loads>
+
+        <Loads contextKey="dog" loadOnMount fn={this.getDog}>
+          {({ response: dog }) => (
+            <div>{dog.name}</div>
+          )}
+        </Loads>
+      </Fragment>
+    );
+  }
+}
+```
+
+### Less basic example
+
+```jsx
+import React, { Component, Fragment } from 'react';
+import Loads from 'react-loads';
+
+class Dog extends Component {
+  updateDog = (id, dog, { setResponse }) => {
+    setResponse({ contextKey: `dog.${id}`, data: currentDog => ({ ...currentDog, dog }) }, updatedDog => {
+      setResponse({ contextKey: 'dogs', data: dogs => ([...dogs, updatedDog]) })
+    });
+    // ... - update the dog
+  }
+
+  getDog = async () => {
+    // ... - fetch and return the dog
+  }
+
+  getDogs = async () => {
+    // ... - fetch and return the dogs
+  }
+
+  render = () => {
+    return (
+      <Fragment>
+        <Loads contextKey="update-dog" fn={this.updateDog}>
+          {({ load }) => (
+            <button onClick={() => load(1, { name: 'Brian' })}>Update</button>
+          )}
+        </Loads>
+
+        <Loads contextKey={`dog.${id}`} loadOnMount fn={this.getDog}>
+          {({ response: dog }) => (
+            <div>{dog.name}</div>
+          )}
+        </Loads>
+
+        <Loads contextKey="dogs" loadOnMount fn={this.getDogs}>
+          {({ response: dogs }) => (
+            <Fragment>
+              {dogs.map(dog => <div key={dog.id}>{dog.name}</div>)}
+            </Fragment>
+          )}
+        </Loads>
+      </Fragment>
+    );
+  }
+}
+```
+
+
 
 ## Articles
 

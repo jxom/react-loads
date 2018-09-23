@@ -89,18 +89,18 @@ class LoadsConsumer extends React.Component<ConsumerProps, ConsumerState> {
   };
 
   componentDidMount = () => {
-    this.getCacheResponse();
+    this.getCachedResponseFromCacheProvider();
   };
 
   componentDidUpdate = prevProps => {
     const { contextKey: prevContextKey } = prevProps;
     const { contextKey } = this.props;
     if (contextKey && contextKey !== prevContextKey) {
-      this.getCacheResponse();
+      this.getCachedResponseFromCacheProvider();
     }
   };
 
-  getCacheResponse = () => {
+  getCachedResponseFromCacheProvider = () => {
     const { contextKey, context } = this.props;
     const { cacheProvider } = this.state;
     if (cacheProvider && cacheProvider.get) {
@@ -124,13 +124,20 @@ class LoadsConsumer extends React.Component<ConsumerProps, ConsumerState> {
     this.setState({ hasLoaded: true });
   };
 
+  getCachedResponse = ({ contextKey }) => {
+    const { context } = this.props;
+    const { cacheProviderData } = this.state;
+    return cacheProviderData[contextKey] || context.data[contextKey];
+  };
+
   render = () => {
     const { contextKey, context, children } = this.props;
-    const { cacheProviderData, cacheProvider, hasLoaded } = this.state;
+    const { cacheProvider, hasLoaded } = this.state;
     return hasLoaded
       ? children({
-          cache: cacheProviderData[contextKey] || context.data[contextKey],
-          setResponse: data => context.setResponse({ contextKey, cacheProvider, data })
+          cachedResponse: this.getCachedResponse({ contextKey }),
+          getCachedResponse: this.getCachedResponse,
+          setResponse: data => context.setResponse({ contextKey: data.contextKey || contextKey, cacheProvider, data })
         })
       : null;
   };

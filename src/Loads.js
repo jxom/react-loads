@@ -6,7 +6,7 @@ import { LOAD_POLICIES, getCachedResponseFromProps } from './utils';
 
 type Props = {
   enableBackgroundStates?: boolean,
-  cache?: {
+  cachedResponse?: {
     error?: any,
     response?: any,
     state?: ?(STATES.SUCCESS | STATES.ERROR)
@@ -25,6 +25,7 @@ type Props = {
   }) => any,
   contextKey?: string,
   delay?: number,
+  getCachedResponse?: Function,
   isErrorSilent?: boolean,
   loadOnMount?: boolean,
   loadPolicy?: LoadPolicy,
@@ -74,7 +75,7 @@ export default withStatechart(statechart)(
           ...getCachedResponseFromProps(nextProps)
         };
       }
-      if (nextProps.cache && !state.hasResponseInCache) {
+      if (nextProps.cachedResponse && !state.hasResponseInCache) {
         return getCachedResponseFromProps(nextProps);
       }
       return {};
@@ -132,7 +133,11 @@ export default withStatechart(statechart)(
       if (loadPolicy === LOAD_POLICIES.CACHE_FIRST && hasResponseInCache) return null;
       if (this._paused) return null;
       this._setTimeouts();
-      return fn(...args)
+      return fn(...args, {
+        setError: (opts, cb) =>
+          this.handleOptimisticResponse({ ...opts, count, data: opts.error, event: EVENTS.ERROR }, cb),
+        setResponse: (opts, cb) => this.handleOptimisticResponse({ ...opts, count, event: EVENTS.SUCCESS }, cb)
+      })
         .then(response => {
           this.handleResponse({ count, response, event: EVENTS.SUCCESS });
           return response;
@@ -145,7 +150,19 @@ export default withStatechart(statechart)(
         });
     };
 
-  handleResponse = ({ count, error, event, response }: { count: ?number, error?: any, event: EVENTS.SUCCESS | EVENTS.ERROR, response?: any }) => { // eslint-disable-line
+    handleResponse = ({
+      contextKey,
+      count,
+      error,
+      event,
+      response
+    }: {
+      contextKey?: string,
+      count: ?number, // eslint-disable-line
+      error?: any, // eslint-disable-line
+      event?: EVENTS.SUCCESS | EVENTS.ERROR, // eslint-disable-line
+      response?: any // eslint-disable-line
+    }) => {
       const { setResponse } = this.props;
       if (!this._mounted) return;
       if (this._count !== count) return;
@@ -158,11 +175,42 @@ export default withStatechart(statechart)(
       this.setState(value);
       setResponse &&
         setResponse({
+          contextKey,
           ...value,
           ...(event === EVENTS.SUCCESS ? { state: STATES.SUCCESS } : {}),
           ...(event === EVENTS.ERROR ? { state: STATES.ERROR } : {})
         });
       this.transition(event);
+    };
+
+    handleOptimisticResponse = ({ contextKey, count, data, event }, cb) => {
+      const { contextKey: currentContextKey, getCachedResponse, setResponse } = this.props;
+
+      let newData = data;
+      if (typeof data === 'function' && getCachedResponse) {
+        const cachedData = getCachedResponse({ contextKey }) || {};
+        if (cachedData) {
+          newData = data(cachedData.response);
+        }
+      }
+
+      const value = {
+        ...(event === EVENTS.SUCCESS ? { response: newData } : {}),
+        ...(event === EVENTS.ERROR ? { error: newData } : {})
+      };
+      if (!contextKey || contextKey === currentContextKey) {
+        this.handleResponse({ contextKey, count, event, ...value });
+      } else {
+        setResponse &&
+          setResponse({
+            contextKey,
+            ...value,
+            ...(event === EVENTS.SUCCESS ? { state: STATES.SUCCESS } : {}),
+            ...(event === EVENTS.ERROR ? { state: STATES.ERROR } : {})
+          });
+      }
+
+      cb && cb(newData);
     };
 
     transition = (event: string) => {
@@ -174,9 +222,9 @@ export default withStatechart(statechart)(
     };
 
     render = () => {
-      const { enableBackgroundStates, cache, children, machineState } = this.props;
+      const { enableBackgroundStates, cachedResponse, children, machineState } = this.props;
       const { error, hasResponseInCache, response } = this.state;
-      const cachedState = cache ? cache.state : null;
+      const cachedState = cachedResponse ? cachedResponse.state : null;
       const state = machineState.value;
       const props = {
         state,

@@ -8,7 +8,7 @@ const LoadsContainer = (props: { cacheProvider?: CacheProvider, contextKey?: ?st
   if (props.contextKey) {
     return (
       <LoadsContext.Consumer cacheProvider={props.cacheProvider} contextKey={props.contextKey}>
-        {({ cache, setResponse }) => <Loads {...props} cache={cache} setResponse={setResponse} />}
+        {context => <Loads {...props} {...context} />}
       </LoadsContext.Consumer>
     );
   }
