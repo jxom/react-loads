@@ -462,7 +462,8 @@ class Dog extends Component {
   render = () => {
     return (
       <Fragment>
-        <Loads contextKey="create-dog" fn={this.createDog}>
+        {/* Ensure you enable optimistic responses by setting the `enableOptimisticResponse` prop to true. */}
+        <Loads enableOptimisticResponse fn={this.createDog}>
           {({ load }) => (
             <button onClick={() => load({ name: 'Teddy', breed: 'Groodle' })}>Create</button>
           )}
@@ -487,12 +488,12 @@ import Loads from 'react-loads';
 
 class Dog extends Component {
   updateDog = (id, dog, { setResponse }) => {
-    setResponse({ 
-      contextKey: `dog.${id}`, 
+    setResponse({
+      contextKey: `dog.${id}`,
       data: currentDog => ({ ...currentDog, dog }) }, updatedDog => {
-        setResponse({ 
-          contextKey: 'dogs', 
-          data: dogs => ([...dogs, updatedDog]) 
+        setResponse({
+          contextKey: 'dogs',
+          data: dogs => ([...dogs, updatedDog])
         })
       });
     // ... - update the dog
@@ -509,7 +510,8 @@ class Dog extends Component {
   render = () => {
     return (
       <Fragment>
-        <Loads contextKey="update-dog" fn={this.updateDog}>
+        {/* Ensure you enable optimistic responses by setting the `enableOptimisticResponse` prop to true. */}
+        <Loads enableOptimisticResponse fn={this.updateDog}>
           {({ load }) => (
             <button onClick={() => load(1, { name: 'Brian' })}>Update</button>
           )}

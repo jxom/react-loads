@@ -4,8 +4,14 @@ import Loads from './Loads';
 import LoadsContext from './context';
 import { type CacheProvider } from './_types';
 
-const LoadsContainer = (props: { cacheProvider?: CacheProvider, contextKey?: ?string }) => {
-  if (props.contextKey) {
+type Props = {
+  cacheProvider?: CacheProvider,
+  contextKey?: ?string,
+  enableOptimisticResponse?: boolean
+};
+
+const LoadsContainer = (props: Props) => {
+  if (props.contextKey || props.enableOptimisticResponse) {
     return (
       <LoadsContext.Consumer cacheProvider={props.cacheProvider} contextKey={props.contextKey}>
         {context => <Loads {...props} {...context} />}
@@ -17,7 +23,8 @@ const LoadsContainer = (props: { cacheProvider?: CacheProvider, contextKey?: ?st
 
 LoadsContainer.defaultProps = {
   cacheProvider: null,
-  contextKey: null
+  contextKey: null,
+  enableOptimisticResponse: false
 };
 
 export default LoadsContainer;

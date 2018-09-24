@@ -8,7 +8,8 @@ import { STATES } from './statechart';
 const { Provider, Consumer } = React.createContext({
   data: {},
   globalCacheProvider: null,
-  setResponse: (params: SetResponseParams) => {}
+  setContextCache: () => {},
+  setResponse: () => {}
 });
 
 type ProviderProps = {
@@ -35,6 +36,7 @@ class LoadsProvider extends React.Component<ProviderProps, ProviderState> {
       cacheProvider: localCacheProvider,
       data: { error, response, state }
     } = params;
+    if (!contextKey) return;
     const cacheProvider = localCacheProvider || globalCacheProvider;
     const value = {
       ...(state === STATES.SUCCESS ? { response } : {}),
