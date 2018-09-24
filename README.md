@@ -402,7 +402,7 @@ export default App;
 
 React Loads has the ability to optimistically update your data while it is still waiting for a response (if you know what the response will potentially look like). Once a response is received, then the optimistically updated data will be replaced by the response. [This article](https://uxplanet.org/optimistic-1000-34d9eefe4c05) explains the gist of optimistic UIs pretty well.
 
-To use optimistic responses, the `setResponse` and `setError` functions are provided as the last argument of your loading function (`fn`/`load`). The interface for these functions, along with an example implementation are seen below.
+**To use optimistic responses, your application must be wrapped in a `<LoadsProvider>`.** The `setResponse` and `setError` functions are provided as the last argument of your loading function (`fn`/`load`). The interface for these functions, along with an example implementation are seen below.
 
 ### setResponse({ contextKey, data }[, callback])
 
