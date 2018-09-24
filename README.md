@@ -128,7 +128,7 @@ export default () => (
 
 The function to invoke. **It must return a promise.**
 
-The arguments `setResponse` and `setError` are optional, and can be used for [optimistic responses](#optimistic-responses).
+The arguments `setResponse` and `setError` are optional and can be used if [`enableOptimisticResponse`](#enableoptimisticresponse) prop is set to true. These arguments are used for [optimistic responses](#optimistic-responses).
 
 ### delay
 
@@ -170,6 +170,10 @@ A load policy allows you to specify whether or not you want your data to be reso
 - `"cache-and-load"`: This is the default value and means that Loads will return with the cached value if found, but regardless of whether or not a value exists in the cache, it will always invoke the promise.
 
 - `"load-only"`: This means that Loads will not return the cached data altogether, and will only return the data resolved from the promise.
+
+### enableOptimisticResponse
+
+Adds the `setResponse` and `setError` attributes to the loading function ([`fn`](#fn)/[`load`](#load)) to enable [optimistic responses](#optimistic-responses).
 
 ### enableBackgroundStates
 
