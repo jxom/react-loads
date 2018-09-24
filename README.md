@@ -173,6 +173,8 @@ A load policy allows you to specify whether or not you want your data to be reso
 
 ### enableOptimisticResponse
 
+> `boolean` | default: `false`
+
 Adds the `setResponse` and `setError` attributes to the loading function ([`fn`](#fn)/[`load`](#load)) to enable [optimistic responses](#optimistic-responses).
 
 ### enableBackgroundStates
