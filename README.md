@@ -41,6 +41,7 @@ React Loads makes this nicer to handle.
     - [contextKey](#contextkey)
     - [timeout](#timeout)
     - [loadPolicy](#loadpolicy)
+    - [enableOptimisticResponse](#enableoptimisticresponse)
     - [enableBackgroundStates](#enablebackgroundstates)
     - [cacheProvider](#cacheprovider)
     - [`children` Render Props](#children-render-props)
