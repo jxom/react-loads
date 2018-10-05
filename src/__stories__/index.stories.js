@@ -266,14 +266,13 @@ storiesOf('Loads', module)
       <GetRandomDog>
         <SaveDog>
           <Fragment>
-            <GetRandomDog.Idle>{({ load }) => <button onClick={load}>Load random dog</button>}</GetRandomDog.Idle>
             <GetRandomDog.Loading>Loading...</GetRandomDog.Loading>
             <GetRandomDog.Success>
               {({ response }) => (
                 <Fragment>
                   {response && <img src={response.data.message} alt="Dog" />}
                   <div>
-                    <SaveDog.Idle or={SaveDog.Success}>
+                    <SaveDog.Idle>
                       {({ load }) => <button onClick={() => load(response)}>Save dog</button>}
                     </SaveDog.Idle>
                     <SaveDog.Loading>Saving...</SaveDog.Loading>
@@ -283,6 +282,13 @@ storiesOf('Loads', module)
               )}
             </GetRandomDog.Success>
             <GetRandomDog.Error>{({ error }) => <span>Error! {error}</span>}</GetRandomDog.Error>
+            <GetRandomDog.Idle or={[GetRandomDog.Success, GetRandomDog.Error]}>
+              {({ load }) => (
+                <div>
+                  <button onClick={load}>Load random dog</button>
+                </div>
+              )}
+            </GetRandomDog.Idle>
           </Fragment>
         </SaveDog>
       </GetRandomDog>
