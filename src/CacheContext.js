@@ -1,10 +1,8 @@
-// @flow
-import React, { type Node } from 'react';
+import React from 'react';
+import PropTypes from 'prop-types';
 import idx from 'idx';
-import { type SetResponseParams, type CacheProvider } from './_types';
 import { STATES } from './statechart';
 
-// $FlowFixMe
 const { Provider, Consumer } = React.createContext({
   data: {},
   globalCacheProvider: null,
@@ -12,24 +10,26 @@ const { Provider, Consumer } = React.createContext({
   setResponse: () => {}
 });
 
-type ProviderProps = {
-  children: Node,
-  cacheProvider?: CacheProvider
-};
-type ProviderState = {
-  data: Object,
-  globalCacheProvider?: CacheProvider,
-  setResponse: Function
-};
+class LoadsProvider extends React.Component {
+  static propTypes = {
+    children: PropTypes.node.isRequired,
+    cacheProvider: PropTypes.shape({
+      get: PropTypes.func,
+      set: PropTypes.func
+    })
+  };
 
-class LoadsProvider extends React.Component<ProviderProps, ProviderState> {
-  setContextCache = (key: string, value: any) => {
+  static defaultProps = {
+    cacheProvider: null
+  };
+
+  setContextCache = (key, value) => {
     this.setState(prevState => ({
       data: { ...prevState.data, [key]: value }
     }));
   };
 
-  setResponse = (params: SetResponseParams) => {
+  setResponse = params => {
     const { cacheProvider: globalCacheProvider } = this.props;
     const {
       contextKey,
@@ -62,20 +62,21 @@ class LoadsProvider extends React.Component<ProviderProps, ProviderState> {
   };
 }
 
-type ConsumerProps = {
-  contextKey: string,
-  cacheProvider?: CacheProvider,
-  context: Object,
-  children: Function
-};
-type ConsumerState = {
-  contextKey: string,
-  cacheProviderData: Object,
-  cacheProvider: ?CacheProvider,
-  hasLoaded: boolean
-};
+class LoadsConsumer extends React.Component {
+  static propTypes = {
+    cacheProvider: PropTypes.shape({
+      get: PropTypes.func,
+      set: PropTypes.func
+    }),
+    children: PropTypes.node.isRequired,
+    contextKey: PropTypes.string.isRequired,
+    context: PropTypes.object.isRequired
+  };
 
-class LoadsConsumer extends React.Component<ConsumerProps, ConsumerState> {
+  static defaultProps = {
+    cacheProvider: null
+  };
+
   state = {
     contextKey: null,
     cacheProviderData: {},
@@ -83,7 +84,7 @@ class LoadsConsumer extends React.Component<ConsumerProps, ConsumerState> {
     hasLoaded: false
   };
 
-  static getDerivedStateFromProps = (nextProps: ConsumerProps, prevState: ConsumerState) => {
+  static getDerivedStateFromProps = (nextProps, prevState) => {
     if (nextProps.contextKey !== prevState.contextKey) {
       return { contextKey: nextProps.contextKey, cacheProviderData: {}, hasLoaded: false };
     }
@@ -147,5 +148,5 @@ class LoadsConsumer extends React.Component<ConsumerProps, ConsumerState> {
 
 export default class extends React.PureComponent<{}> {
   static Provider = LoadsProvider;
-  static Consumer = (props: Object) => <Consumer>{context => <LoadsConsumer context={context} {...props} />}</Consumer>;
+  static Consumer = props => <Consumer>{context => <LoadsConsumer context={context} {...props} />}</Consumer>;
 }

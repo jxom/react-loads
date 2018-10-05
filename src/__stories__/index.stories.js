@@ -1,9 +1,7 @@
-// @flow
-
 import React, { Fragment } from 'react';
 import { storiesOf } from '@storybook/react';
 import axios from 'axios';
-import Loads from '../index';
+import Loads, { createInstance } from '../index';
 
 storiesOf('Loads', module)
   .add('default usage', () => {
@@ -208,5 +206,85 @@ storiesOf('Loads', module)
           </Loads>
         )}
       </Loads>
+    );
+  })
+  .add('with state components (as node)', () => {
+    const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
+    return (
+      <Loads fn={getRandomDog}>
+        {({ load, response, state, error }) => (
+          <div>
+            <p>Current state: {state}</p>
+            <Loads.Idle>
+              <button onClick={load}>Load random dog</button>
+            </Loads.Idle>
+            <Loads.Loading>
+              <div>loading...</div>
+            </Loads.Loading>
+            <Loads.Success>
+              <div>
+                {response && <img src={response.data.message} alt="Dog" />}
+                <div>
+                  <button onClick={load}>Load another dog</button>
+                </div>
+              </div>
+            </Loads.Success>
+          </div>
+        )}
+      </Loads>
+    );
+  })
+  .add('with state components (as function)', () => {
+    const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
+    return (
+      <Loads fn={getRandomDog}>
+        <Fragment>
+          <Loads.Idle>{({ load }) => <button onClick={load}>Load random dog</button>}</Loads.Idle>
+          <Loads.Loading>loading...</Loads.Loading>
+          <Loads.Success>
+            {(response, { load }) => (
+              <Fragment>
+                {response && <img src={response.data.message} alt="Dog" />}
+                <div>
+                  <button onClick={load}>Load another dog</button>
+                </div>
+              </Fragment>
+            )}
+          </Loads.Success>
+        </Fragment>
+      </Loads>
+    );
+  })
+  .add('with multiple instances of <Loads> and state components', () => {
+    const GetRandomDog = createInstance({
+      fn: () => axios.get(`https://dog.ceo/api/breeds/image/random`)
+    });
+    const SaveDog = createInstance({
+      fn: randomDogResponse => new Promise(resolve => setTimeout(() => resolve(randomDogResponse), 1000))
+    });
+    return (
+      <GetRandomDog>
+        <SaveDog>
+          <Fragment>
+            <GetRandomDog.Idle>{({ load }) => <button onClick={load}>Load random dog</button>}</GetRandomDog.Idle>
+            <GetRandomDog.Loading>Loading...</GetRandomDog.Loading>
+            <GetRandomDog.Success>
+              {({ response }) => (
+                <Fragment>
+                  {response && <img src={response.data.message} alt="Dog" />}
+                  <div>
+                    <SaveDog.Idle or={SaveDog.Success}>
+                      {({ load }) => <button onClick={() => load(response)}>Save dog</button>}
+                    </SaveDog.Idle>
+                    <SaveDog.Loading>Saving...</SaveDog.Loading>
+                    <SaveDog.Success>Saved dog!</SaveDog.Success>
+                  </div>
+                </Fragment>
+              )}
+            </GetRandomDog.Success>
+            <GetRandomDog.Error>{({ error }) => <span>Error! {error}</span>}</GetRandomDog.Error>
+          </Fragment>
+        </SaveDog>
+      </GetRandomDog>
     );
   });

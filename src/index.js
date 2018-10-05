@@ -1,32 +1,48 @@
-// @flow
-import React from 'react';
+import React, { Component, createContext } from 'react';
+import PropTypes from 'prop-types';
+
 import Loads from './Loads';
-import LoadsContext from './context';
-import { type CacheProvider } from './_types';
+import { Idle, Loading, Timeout, Success, Error } from './LoadsStates';
+import CacheContext from './CacheContext';
 
-type Props = {
-  cacheProvider?: CacheProvider,
-  contextKey?: ?string,
-  enableOptimisticResponse?: boolean
+export const LoadsProvider = CacheContext.Provider;
+
+export const createInstance = (defaultProps = {}) => {
+  const { Provider, Consumer } = createContext();
+
+  return class extends Component {
+    static propTypes = {
+      cacheProvider: PropTypes.shape({
+        get: PropTypes.func,
+        set: PropTypes.func
+      }),
+      contextKey: PropTypes.string,
+      enableOptimisticResponse: PropTypes.bool
+    };
+
+    static defaultProps = {
+      cacheProvider: null,
+      contextKey: null,
+      enableOptimisticResponse: false
+    };
+
+    render = () => {
+      if (this.props.contextKey || this.props.enableOptimisticResponse) {
+        return (
+          <CacheContext.Consumer cacheProvider={this.props.cacheProvider} contextKey={this.props.contextKey}>
+            {context => <Loads {...this.props} {...defaultProps} {...context} Provider={Provider} />}
+          </CacheContext.Consumer>
+        );
+      }
+      return <Loads {...this.props} {...defaultProps} Provider={Provider} />;
+    };
+
+    static Idle = Idle(Consumer);
+    static Loading = Loading(Consumer);
+    static Timeout = Timeout(Consumer);
+    static Success = Success(Consumer);
+    static Error = Error(Consumer);
+  };
 };
 
-const LoadsContainer = (props: Props) => {
-  if (props.contextKey || props.enableOptimisticResponse) {
-    return (
-      <LoadsContext.Consumer cacheProvider={props.cacheProvider} contextKey={props.contextKey}>
-        {context => <Loads {...props} {...context} />}
-      </LoadsContext.Consumer>
-    );
-  }
-  return <Loads {...props} />;
-};
-
-LoadsContainer.defaultProps = {
-  cacheProvider: null,
-  contextKey: null,
-  enableOptimisticResponse: false
-};
-
-export default LoadsContainer;
-
-export const LoadsProvider = LoadsContext.Provider;
+export default createInstance();
