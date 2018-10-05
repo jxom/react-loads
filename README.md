@@ -144,6 +144,8 @@ export default () => (
 
 You can also declare an instance of Loads and render accordingly - this can make nested Loads more readable:
 
+> Note: The argument of `createInstance` has an [identical API](#loads-props) to `<Loads>`
+
 
 ```jsx
 import React, { Fragment } from 'react';
