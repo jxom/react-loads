@@ -135,7 +135,7 @@ export default () => (
     </Loads.Error>
     <Loads.Success or={Loads.Error}>
       {({ load }) => <button onClick={load}>Load another dog</button>}
-    </Loads>
+    </Loads.Success>
   </Loads>
 );
 ```
@@ -167,7 +167,7 @@ export default () => {
       </GetRandomDog.Error>
       <GetRandomDog.Success or={GetRandomDog.Error}>
         {({ load }) => <button onClick={load}>Load another dog</button>}
-      </GetRandomDog>
+      </GetRandomDog.Success>
     </GetRandomDog>
   );
 }
