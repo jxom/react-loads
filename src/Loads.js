@@ -1,5 +1,5 @@
 import { Component } from 'react';
-import { withStatechart } from 'react-automata';
+import { withStateMachine } from 'react-automata';
 import { type LoadPolicy } from './_types';
 import statechart, { EVENTS, STATES } from './statechart';
 import { LOAD_POLICIES, getCachedResponseFromProps } from './utils';
@@ -42,7 +42,7 @@ type State = {
   response: any
 };
 
-export default withStatechart(statechart)(
+export default withStateMachine(statechart)(
   class Loads extends Component<Props, State> {
     _count: number;
     _delayTimeout: any;

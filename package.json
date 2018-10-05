@@ -40,7 +40,7 @@
   },
   "dependencies": {
     "idx": "2.4.0",
-    "react-automata": "3.0.0"
+    "react-automata": "4.0.4"
   },
   "devDependencies": {
     "@medipass/eslint-config-react-medipass": "8.3.0",
@@ -58,7 +58,8 @@
     "nwb": "0.21.5",
     "prettier": "1.12.1",
     "react": "16.4.1",
-    "react-dom": "16.4.1"
+    "react-dom": "16.4.1",
+    "react-test-renderer": "16.5.2"
   },
   "eslintConfig": {
     "extends": [
