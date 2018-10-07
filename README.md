@@ -36,6 +36,7 @@ React Loads comes with a handy set of features to help solve these concerns:
 - Invoke your loading function [on mount](#loadonmount)
 - Pass any type of promise to your [loading function (`fn`)](#fn)
 - Add a [delay](#delay) to prevent flashes of loading state
+- Add a [timeout](#timeout) to provide feedback when your loading function is taking a while to resolve
 - [Data caching](#basic-application-context-cache) (via Context) enabled by default to maximise user experience between page transitions
 - Tell Loads [how to load](#loadpolicy) your data from the cache to prevent unnessessary invocations
 - [Optimistic responses](#enableoptimisticresponse) to update your UI optimistically
