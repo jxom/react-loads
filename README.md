@@ -1,30 +1,45 @@
 # React Loads
 
-> A headless React component to handle promise states and response data.
+> A headless React component to handle async data fetching.
 
-## Motivation
+## The problem
 
-There are a few motivations behind creating React Loads:
+There are a few concerns in managing async data fetching manually:
 
-1. Managing loading state can be annoying and is prone to errors if you aren't careful.
-2. Hate seeing a flash of loading state? A spinner that displays for half a second? Yeah, it's annoying.
-3. Nested ternaries can get messy and hard to read. Example:
+- Managing loading state can be annoying and prone to a confusing user experience if you aren't careful.
+- Managing data persistence across page transitions can be easily overlooked.
+- Flashes of loading state & no feedback on something that takes a while to load can be annoying.
+- Nested ternaries can get messy and hard to read. Example:
 
 ```jsx
-<div>
+<Fragment>
   {isLoading ? (
     <p>{hasTimedOut ? 'Taking a while...' : 'Loading...'}</p>
   ) : (
-    <div>
-      {!error && !response && <button onClick={this.handleLoad}>Click here to load!</button>}
+    <Fragment>
+      {!error && !response &&
+        <button onClick={this.handleLoad}>Click here to load!</button>
+      }
       {response && <p>{response}</p>}
       {error && <p>{error.message}</p>}
-    </div>
+    </Fragment>
   )}
-</div>
+</Fragment>
 ```
 
-React Loads makes this nicer to handle.
+## The solution
+
+React Loads comes with a handy set of features to help solve these concerns:
+
+- Manage your async data & states with a declarative syntax that includes [render props](#children-render-props)
+- Predictable outcomes with deterministic [state variables](#isidle) to avoid messy state ternaries
+- Invoke your loading function [on mount](#loadonmount)
+- Pass any type of promise to your [loading function (`fn`)](#fn)
+- Add a [delay](#delay) to prevent flashes of loading state
+- [Data caching](#basic-application-context-cache) (via Context) enabled by default to maximise user experience between page transitions
+- Tell Loads [how to load](#loadpolicy) your data from the cache to prevent unnessessary invocations
+- [Optimistic responses](#enableoptimisticresponse) to update your UI optimistically
+- External [cache provider](#cacheprovider) support to enable something like local storage caching
 
 ## Table of Contents
 
