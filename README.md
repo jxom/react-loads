@@ -49,6 +49,8 @@ React Loads comes with a handy set of features to help solve these concerns:
   - [Table of Contents](#table-of-contents)
   - [Installation](#installation)
   - [Usage](#usage)
+    - [Usage with state components](#usage-with-state-components)
+    - [Usage with instances](#usage-with-instances)
     - [More examples](#more-examples)
   - [`<Loads>` Props](#loads-props)
     - [fn](#fn)
@@ -106,30 +108,85 @@ yarn add react-loads
 
 ## Usage
 
-```js
-import React from 'react';
+```jsx
+import React, { Fragment } from 'react';
 import Loads from 'react-loads';
 
 const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
 
 export default () => (
   <Loads fn={getRandomDog}>
-    {({ isIdle, isLoading, isSuccess, load, response, state, error }) => (
-      <div>
+    {({ isIdle, isLoading, isSuccess, isError, load, response, error }) => (
+      <Fragment>
         {isIdle && <button onClick={load}>Load random dog</button>}
-        {isLoading && <div>loading...</div>}
-        {isSuccess && (
-          <div>
-            <img src={response.data.message} alt="Dog" />
-            <div>
-              <button onClick={load}>Load another dog</button>
-            </div>
-          </div>
-        )}
-      </div>
+        {isLoading && <div>Loading...</div>}
+        {isSuccess && <img src={response.data.message} alt="Dog" />}
+        {isError && <div>An error occurred! {error.message}</div>}
+        {(isSuccess || isError) && <button onClick={load}>Load another dog</button>}
+      </Fragment>
     )}
   </Loads>
 );
+```
+
+### Usage with state components
+
+You can also use state components to conditionally render children:
+
+```jsx
+import React, { Fragment } from 'react';
+import Loads from 'react-loads';
+
+const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
+
+export default () => (
+  <Loads fn={getRandomDog}>
+    <Loads.Idle>{({ load }) => <button onClick={load}>Load random dog</button>}</Loads.Idle>
+    <Loads.Loading>loading...</Loads.Loading>
+    <Loads.Success>
+      {({ response, load }) => <img src={response.data.message} alt="Dog" />}
+    </Loads.Success>
+    <Loads.Error>
+      {({ error }) => <div>An error occurred! {error.message}</div>}
+    </Loads.Error>
+    <Loads.Success or={Loads.Error}>
+      {({ load }) => <button onClick={load}>Load another dog</button>}
+    </Loads.Success>
+  </Loads>
+);
+```
+
+### Usage with instances
+
+You can also declare an instance of Loads and render accordingly - this can make nested Loads more readable:
+
+> Note: The argument of `createLoader` has an [identical API](#loads-props) to `<Loads>`
+
+
+```jsx
+import React, { Fragment } from 'react';
+import Loads, { createLoader } from 'react-loads';
+
+export default () => {
+  const GetRandomDog = createLoader({
+    fn: () => axios.get('https://dog.ceo/api/breeds/image/random')
+  });
+  return (
+    <GetRandomDog>
+      <GetRandomDog.Idle>{({ load }) => <button onClick={load}>Load random dog</button>}</GetRandomDog.Idle>
+      <GetRandomDog.Loading>loading...</GetRandomDog.Loading>
+      <GetRandomDog.Success>
+        {({ response, load }) => <img src={response.data.message} alt="Dog" />}
+      </GetRandomDog.Success>
+      <GetRandomDog.Error>
+        {({ error }) => <div>An error occurred! {error.message}</div>}
+      </GetRandomDog.Error>
+      <GetRandomDog.Success or={GetRandomDog.Error}>
+        {({ load }) => <button onClick={load}>Load another dog</button>}
+      </GetRandomDog.Success>
+    </GetRandomDog>
+  );
+}
 ```
 
 ### More examples
@@ -208,6 +265,8 @@ Set a custom cache provider (e.g. local storage, session storate, etc). See [`<L
 
 ### `children` Render Props
 
+> Note:  `<Loads.Idle>`, `<Loads.Loading>`, `<Loads.Timeout>`, `<Loads.Success>` and `<Loads.Error>` share the same render props as `<Loads>`.
+
 #### response
 
 > `any`
@@ -279,7 +338,7 @@ Set a custom cache provider (e.g. local storage, session storate, etc). See [App
 React Loads has the ability to cache the response and error data on an application context level (meaning the cache will clear upon unmounting the application). Your application must be wrapped in a `<LoadsProvider>` to enable caching. Here is an example to enable it:
 
 ```jsx
-import React from 'react';
+import React, { Fragment } from 'react';
 import Loads, { LoadsProvider } from 'react-loads';
 
 const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
@@ -287,17 +346,17 @@ const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
 const RandomDog = () => (
   <Loads contextKey="randomDog" loadOnMount fn={getRandomDog}>
     {({ isLoading, isSuccess, load, response }) => (
-      <div>
-        {isLoading && <div>loading...</div>}
+      <Fragment>
+        {isLoading && <div>Loading...</div>}
         {isSuccess && (
-          <div>
-            {response && <img src={response.data.message} alt="Dog" />}
+          <Fragment>
+            <img src={response.data.message} alt="Dog" />
             <div>
               <button onClick={load}>Load another dog</button>
             </div>
-          </div>
+          </Fragment>
         )}
-      </div>
+      </Fragment>
     )}
   </Loads>
 );
@@ -333,17 +392,17 @@ const RandomDog = () => (
     fn={getRandomDog}
   >
     {({ isLoading, isSuccess, load, response }) => (
-      <div>
-        {isLoading && <div>loading...</div>}
+      <Fragment>
+        {isLoading && <div>Loading...</div>}
         {isSuccess && (
-          <div>
-            {response && <img src={response.data.message} alt="Dog" />}
+          <Fragment>
+            <img src={response.data.message} alt="Dog" />
             <div>
               <button onClick={load}>Load another dog</button>
             </div>
-          </div>
+          </Fragment>
         )}
-      </div>
+      </Fragment>
     )}
   </Loads>
 );
@@ -397,17 +456,17 @@ const RandomDog = () => (
     fn={getRandomDog}
   >
     {({ isLoading, isSuccess, load, response }) => (
-      <div>
-        {isLoading && <div>loading...</div>}
+      <Fragment>
+        {isLoading && <div>Loading...</div>}
         {isSuccess && (
-          <div>
-            {response && <img src={response.data.message} alt="Dog" />}
+          <Fragment>
+            <img src={response.data.message} alt="Dog" />
             <div>
               <button onClick={load}>Load another dog</button>
             </div>
-          </div>
+          </Fragment>
         )}
-      </div>
+      </Fragment>
     )}
   </Loads>
 );

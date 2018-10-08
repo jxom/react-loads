@@ -20,7 +20,6 @@
     "build": "nwb build-react-component",
     "clean": "nwb clean-module",
     "develop": "nodemon -w src -x 'nwb build-react-component'",
-    "flow": "flow",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
     "test": "npm run lint",
@@ -35,6 +34,7 @@
     "state"
   ],
   "peerDependencies": {
+    "prop-types": ">=15.6.2",
     "react": ">=16.3.0",
     "react-dom": ">=16.3.0"
   },
@@ -48,15 +48,14 @@
     "axios": "0.18.0",
     "eslint": "4.16.0",
     "eslint-config-react-app": "2.1.0",
-    "eslint-plugin-flowtype": "2.41.0",
     "eslint-plugin-import": "2.12.0",
     "eslint-plugin-jsx-a11y": "6.0.3",
     "eslint-plugin-prettier": "2.5.0",
     "eslint-plugin-react": "7.5.1",
-    "flow-bin": "0.72.0",
     "nodemon": "1.17.5",
     "nwb": "0.21.5",
     "prettier": "1.12.1",
+    "prop-types": "15.6.2",
     "react": "16.4.1",
     "react-dom": "16.4.1",
     "react-test-renderer": "16.5.2"

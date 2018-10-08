@@ -1,49 +1,33 @@
-import { Component } from 'react';
+import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 import { withStateMachine } from 'react-automata';
-import { type LoadPolicy } from './_types';
 import statechart, { EVENTS, STATES } from './statechart';
 import { LOAD_POLICIES, getCachedResponseFromProps } from './utils';
 
-type Props = {
-  enableBackgroundStates?: boolean,
-  cachedResponse?: {
-    error?: any,
-    response?: any,
-    state?: ?(STATES.SUCCESS | STATES.ERROR)
-  },
-  children: ({
-    state: string,
-    error: any,
-    response: any,
-    isError: boolean,
-    isIdle: boolean,
-    isLoading: boolean,
-    isSuccess: boolean,
-    isTimeout: boolean,
-    load: (...args: any) => ?Promise<any>,
-    resetState: () => void
-  }) => any,
-  contextKey?: string,
-  delay?: number,
-  getCachedResponse?: Function,
-  isErrorSilent?: boolean,
-  loadOnMount?: boolean,
-  loadPolicy?: LoadPolicy,
-  fn: (...args: any) => Promise<any>,
-  machineState: { value: string },
-  setResponse?: (data: { error?: any, response?: any }) => void,
-  timeout?: number,
-  transition: (state: string) => void
-};
-type State = {
-  contextKey?: string,
-  error: any,
-  hasResponseInCache: boolean,
-  response: any
-};
-
 export default withStateMachine(statechart)(
-  class Loads extends Component<Props, State> {
+  class Loads extends Component {
+    static propTypes = {
+      cachedResponse: PropTypes.shape({
+        error: PropTypes.any,
+        response: PropTypes.any,
+        state: PropTypes.oneOf([STATES.SUCCESS, STATES.ERROR])
+      }),
+      children: PropTypes.oneOfType([PropTypes.func, PropTypes.node]).isRequired,
+      contextKey: PropTypes.string,
+      delay: PropTypes.number,
+      enableBackgroundStates: PropTypes.bool,
+      getCachedResponse: PropTypes.func,
+      isErrorSilent: PropTypes.bool,
+      loadOnMount: PropTypes.bool,
+      loadPolicy: PropTypes.oneOf(['cache-first', 'cache-and-load', 'load-only']),
+      fn: PropTypes.func.isRequired,
+      machineState: PropTypes.object.isRequired,
+      setResponse: PropTypes.func,
+      timeout: PropTypes.number,
+      transition: PropTypes.func.isRequired,
+      Provider: PropTypes.object.isRequired
+    };
+
     _count: number;
     _delayTimeout: any;
     _timeoutTimeout: any;
@@ -51,14 +35,16 @@ export default withStateMachine(statechart)(
     _paused: boolean;
 
     static defaultProps = {
-      enableBackgroundStates: false,
+      cachedResponse: null,
+      contextKey: null,
       delay: 300,
-      timeout: 0,
-      error: null,
+      enableBackgroundStates: false,
+      getCachedResponse: null,
       isErrorSilent: true,
       loadOnMount: false,
       loadPolicy: LOAD_POLICIES.CACHE_AND_LOAD,
-      response: null
+      setResponse: null,
+      timeout: 0
     };
 
     _count = 0;
@@ -68,7 +54,7 @@ export default withStateMachine(statechart)(
       ...getCachedResponseFromProps(this.props)
     };
 
-    static getDerivedStateFromProps = (nextProps: Props, state: State) => {
+    static getDerivedStateFromProps = (nextProps, state) => {
       if (nextProps.contextKey !== state.contextKey) {
         return {
           contextKey: nextProps.contextKey,
@@ -127,7 +113,7 @@ export default withStateMachine(statechart)(
       }
     };
 
-    handleLoad = (count: ?number) => (...args: any) => {
+    handleLoad = count => (...args: any) => {
       const { isErrorSilent, fn, loadPolicy } = this.props;
       const { hasResponseInCache } = this.state;
       if (loadPolicy === LOAD_POLICIES.CACHE_FIRST && hasResponseInCache) return null;
@@ -150,19 +136,7 @@ export default withStateMachine(statechart)(
         });
     };
 
-    handleResponse = ({
-      contextKey,
-      count,
-      error,
-      event,
-      response
-    }: {
-      contextKey?: string,
-      count: ?number, // eslint-disable-line
-      error?: any, // eslint-disable-line
-      event?: EVENTS.SUCCESS | EVENTS.ERROR, // eslint-disable-line
-      response?: any // eslint-disable-line
-    }) => {
+    handleResponse = ({ contextKey, count, error, event, response }) => {
       const { setResponse } = this.props;
       if (!this._mounted) return;
       if (this._count !== count) return;
@@ -213,7 +187,7 @@ export default withStateMachine(statechart)(
       cb && cb(newData);
     };
 
-    transition = (event: string) => {
+    transition = event => {
       const { transition } = this.props;
       if (!this._mounted) {
         return;
@@ -222,7 +196,7 @@ export default withStateMachine(statechart)(
     };
 
     render = () => {
-      const { enableBackgroundStates, cachedResponse, children, machineState } = this.props;
+      const { enableBackgroundStates, cachedResponse, children, machineState, Provider } = this.props;
       const { error, hasResponseInCache, response } = this.state;
       const cachedState = cachedResponse ? cachedResponse.state : null;
       const state = machineState.value;
@@ -239,7 +213,7 @@ export default withStateMachine(statechart)(
         load: this.handleLoad(this._count),
         resetState: () => this.transition(EVENTS.RESET)
       };
-      return children(props);
+      return <Provider value={props}>{typeof children === 'function' ? children(props) : children}</Provider>;
     };
   }
 );
