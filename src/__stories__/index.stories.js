@@ -1,7 +1,7 @@
 import React, { Fragment } from 'react';
 import { storiesOf } from '@storybook/react';
 import axios from 'axios';
-import Loads, { createInstance } from '../index';
+import Loads, { createLoader } from '../index';
 
 storiesOf('Loads', module)
   .add('default usage', () => {
@@ -237,10 +237,10 @@ storiesOf('Loads', module)
     );
   })
   .add('with multiple instances of <Loads> and state components', () => {
-    const GetRandomDog = createInstance({
+    const GetRandomDog = createLoader({
       fn: () => axios.get(`https://dog.ceo/api/breeds/image/random`)
     });
-    const SaveDog = createInstance({
+    const SaveDog = createLoader({
       fn: randomDogResponse => new Promise(resolve => setTimeout(() => resolve(randomDogResponse), 1000))
     });
     return (

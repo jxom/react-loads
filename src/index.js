@@ -7,7 +7,7 @@ import CacheContext from './CacheContext';
 
 export const LoadsProvider = CacheContext.Provider;
 
-export const createInstance = (defaultProps = {}) => {
+export const createLoader = (defaultProps = {}) => {
   const { Provider, Consumer } = createContext();
 
   return class extends Component {
@@ -45,4 +45,4 @@ export const createInstance = (defaultProps = {}) => {
   };
 };
 
-export default createInstance();
+export default createLoader();
