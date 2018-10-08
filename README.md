@@ -133,6 +133,8 @@ export default () => (
 
 You can also use state components to conditionally render children:
 
+> Note: State components also accepts render props and has [identical render props](#children-render-props) as `<Loads>`
+
 ```jsx
 import React, { Fragment } from 'react';
 import Loads from 'react-loads';
