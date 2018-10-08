@@ -68,7 +68,7 @@ class LoadsConsumer extends React.Component {
       get: PropTypes.func,
       set: PropTypes.func
     }),
-    children: PropTypes.node.isRequired,
+    children: PropTypes.func.isRequired,
     contextKey: PropTypes.string.isRequired,
     context: PropTypes.object.isRequired
   };
