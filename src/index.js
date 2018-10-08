@@ -11,6 +11,8 @@ export const createLoader = (defaultProps = {}) => {
   const { Provider, Consumer } = createContext();
 
   return class extends Component {
+    static displayName = 'Loads';
+
     static propTypes = {
       cacheProvider: PropTypes.shape({
         get: PropTypes.func,
