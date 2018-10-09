@@ -22,8 +22,8 @@
     "develop": "nodemon -w src -x 'nwb build-react-component'",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
-    "test": "npm run lint",
-    "prepublish": "npm run lint && npm run build",
+    "test": "jest src/",
+    "prepublish": "yarn lint && yarn build",
     "storybook": "start-storybook -p 6006",
     "build-storybook": "build-storybook -o docs/"
   },
@@ -46,23 +46,36 @@
     "@medipass/eslint-config-react-medipass": "8.3.0",
     "@storybook/react": "3.4.1",
     "axios": "0.18.0",
+    "babel-jest": "23.6.0",
+    "babel-plugin-transform-class-properties": "6.24.1",
+    "babel-polyfill": "6.26.0",
+    "babel-preset-env": "1.7.0",
+    "babel-preset-react": "6.24.1",
     "eslint": "4.16.0",
     "eslint-config-react-app": "2.1.0",
     "eslint-plugin-import": "2.12.0",
     "eslint-plugin-jsx-a11y": "6.0.3",
     "eslint-plugin-prettier": "2.5.0",
     "eslint-plugin-react": "7.5.1",
+    "jest": "23.6.0",
+    "jest-dom": "2.0.4",
     "nodemon": "1.17.5",
     "nwb": "0.21.5",
     "prettier": "1.12.1",
     "prop-types": "15.6.2",
     "react": "16.4.1",
     "react-dom": "16.4.1",
-    "react-test-renderer": "16.5.2"
+    "react-test-renderer": "16.5.2",
+    "react-testing-library": "5.2.0"
   },
   "eslintConfig": {
     "extends": [
       "@medipass/react-medipass"
     ]
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.js$": "<rootDir>/jest.transform.js"
+    }
   }
 }
