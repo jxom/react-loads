@@ -29,14 +29,18 @@ export const createLoader = (defaultProps = {}) => {
     };
 
     render = () => {
-      if (this.props.contextKey || this.props.enableOptimisticResponse) {
+      const props = {
+        ...defaultProps,
+        ...this.props
+      };
+      if (props.contextKey || props.enableOptimisticResponse) {
         return (
-          <CacheContext.Consumer cacheProvider={this.props.cacheProvider} contextKey={this.props.contextKey}>
-            {context => <Loads {...this.props} {...defaultProps} {...context} Provider={Provider} />}
+          <CacheContext.Consumer cacheProvider={props.cacheProvider} contextKey={props.contextKey}>
+            {context => <Loads {...props} {...context} Provider={Provider} />}
           </CacheContext.Consumer>
         );
       }
-      return <Loads {...this.props} {...defaultProps} Provider={Provider} />;
+      return <Loads {...props} Provider={Provider} />;
     };
 
     static Idle = Idle(Consumer);
