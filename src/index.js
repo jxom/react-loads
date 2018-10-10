@@ -23,9 +23,9 @@ export const createLoader = (defaultProps = {}) => {
     };
 
     static defaultProps = {
-      cacheProvider: null,
-      contextKey: null,
-      enableOptimisticResponse: false
+      cacheProvider: defaultProps.cacheProvider,
+      contextKey: defaultProps.contextKey,
+      enableOptimisticResponse: defaultProps.enableOptimisticResponse || false
     };
 
     render = () => {
