@@ -33,7 +33,7 @@ React Loads comes with a handy set of features to help solve these concerns:
 
 - Manage your async data & states with a declarative syntax that includes [render props](#children-render-props)
 - Predictable outcomes with deterministic [state variables](#isidle) or [state components](#usage-with-state-components) to avoid messy state ternaries
-- Invoke your loading function [on mount](#loadonmount)
+- Invoke your loading function [on mount](#loadonmount) or [on demand](#load).
 - Pass any type of promise to your [loading function (`fn`)](#fn)
 - Add a [delay](#delay) to prevent flashes of loading state
 - Add a [timeout](#timeout) to provide feedback when your loading function is taking a while to resolve
