@@ -200,6 +200,7 @@ export default () => {
 
 ### More examples
 
+- [A Realistic Example](https://codesandbox.io/s/4j2q7j2xw9)
 - [Code](./src/__stories__/index.stories.js)
 - [Storybook](https://jxom.github.io/react-loads/)
 
