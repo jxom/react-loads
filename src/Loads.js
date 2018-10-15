@@ -18,13 +18,14 @@ export default withStateMachine(statechart)(
       enableBackgroundStates: PropTypes.bool,
       getCachedResponse: PropTypes.func,
       isErrorSilent: PropTypes.bool,
+      load: PropTypes.func.isRequired,
       loadOnMount: PropTypes.bool,
       loadPolicy: PropTypes.oneOf(['cache-first', 'cache-and-load', 'load-only']),
-      fn: PropTypes.func.isRequired,
       machineState: PropTypes.object.isRequired,
       setResponse: PropTypes.func,
       timeout: PropTypes.number,
       transition: PropTypes.func.isRequired,
+      update: PropTypes.oneOfType([PropTypes.array, PropTypes.func]),
       Provider: PropTypes.object.isRequired
     };
 
@@ -44,7 +45,8 @@ export default withStateMachine(statechart)(
       loadOnMount: false,
       loadPolicy: LOAD_POLICIES.CACHE_AND_LOAD,
       setResponse: null,
-      timeout: 0
+      timeout: 0,
+      update: null
     };
 
     _count = 0;
@@ -72,7 +74,7 @@ export default withStateMachine(statechart)(
       this._mounted = true;
       if (loadOnMount) {
         this._count = this._count + 1;
-        this.handleLoad(this._count)();
+        this.handleLoad({ count: this._count })();
       }
     };
 
@@ -83,7 +85,7 @@ export default withStateMachine(statechart)(
       if (contextKey && contextKey !== prevContextKey) {
         if (loadOnMount) {
           this._count = this._count + 1;
-          this.handleLoad(this._count)();
+          this.handleLoad({ count: this._count })();
         }
       }
     };
@@ -113,12 +115,16 @@ export default withStateMachine(statechart)(
       }
     };
 
-    handleLoad = count => (...args: any) => {
-      const { isErrorSilent, fn, loadPolicy } = this.props;
+    handleLoad = ({ count, deferredFn }) => (...args: any) => {
+      const { isErrorSilent, load: baseFn, loadPolicy } = this.props;
       const { hasResponseInCache } = this.state;
+
       if (loadPolicy === LOAD_POLICIES.CACHE_FIRST && hasResponseInCache) return null;
       if (this._paused) return null;
+
       this._setTimeouts();
+
+      let fn = deferredFn || baseFn;
       return fn(...args, {
         setError: (opts, cb) =>
           this.handleOptimisticResponse({ ...opts, count, data: opts.error, event: EVENTS.ERROR }, cb),
@@ -134,6 +140,14 @@ export default withStateMachine(statechart)(
             throw err;
           }
         });
+    };
+
+    handleUpdate = ({ count }) => {
+      const { update } = this.props;
+      if (Array.isArray(update)) {
+        return update.map(deferredFn => this.handleLoad({ count, deferredFn }));
+      }
+      return this.handleLoad({ count, deferredFn: update });
     };
 
     handleResponse = ({ contextKey, count, error, event, response }) => {
@@ -210,7 +224,8 @@ export default withStateMachine(statechart)(
         isTimeout: state === STATES.TIMEOUT && (!hasResponseInCache || enableBackgroundStates),
         isSuccess: state === STATES.SUCCESS || (hasResponseInCache && cachedState === STATES.SUCCESS),
         isError: state === STATES.ERROR || (hasResponseInCache && cachedState === STATES.ERROR),
-        load: this.handleLoad(this._count),
+        load: this.handleLoad({ count: this._count }),
+        update: this.handleUpdate({ count: this._count }),
         resetState: () => this.transition(EVENTS.RESET)
       };
       return <Provider value={props}>{typeof children === 'function' ? children(props) : children}</Provider>;

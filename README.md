@@ -34,7 +34,7 @@ React Loads comes with a handy set of features to help solve these concerns:
 - Manage your async data & states with a declarative syntax that includes [render props](#children-render-props)
 - Predictable outcomes with deterministic [state variables](#isidle) or [state components](#usage-with-state-components) to avoid messy state ternaries
 - Invoke your loading function [on mount](#loadonmount)
-- Pass any type of promise to your [loading function (`fn`)](#fn)
+- Pass any type of promise to your [loading function (`load`)](#load)
 - Add a [delay](#delay) to prevent flashes of loading state
 - Add a [timeout](#timeout) to provide feedback when your loading function is taking a while to resolve
 - [Data caching](#basic-application-context-cache) (via Context) enabled by default to maximise user experience between page transitions
@@ -45,7 +45,8 @@ React Loads comes with a handy set of features to help solve these concerns:
 ## Table of Contents
 
 - [React Loads](#react-loads)
-  - [Motivation](#motivation)
+  - [The problem](#the-problem)
+  - [The solution](#the-solution)
   - [Table of Contents](#table-of-contents)
   - [Installation](#installation)
   - [Usage](#usage)
@@ -53,9 +54,10 @@ React Loads comes with a handy set of features to help solve these concerns:
     - [Usage with instances](#usage-with-instances)
     - [More examples](#more-examples)
   - [`<Loads>` Props](#loads-props)
-    - [fn](#fn)
+    - [load](#load)
     - [delay](#delay)
     - [loadOnMount](#loadonmount)
+    - [update](#update)
     - [contextKey](#contextkey)
     - [timeout](#timeout)
     - [loadPolicy](#loadpolicy)
@@ -66,6 +68,7 @@ React Loads comes with a handy set of features to help solve these concerns:
       - [response](#response)
       - [error](#error)
       - [load](#load)
+      - [update](#update)
       - [isIdle](#isidle)
       - [isLoading](#isloading)
       - [isTimeout](#istimeout)
@@ -79,17 +82,19 @@ React Loads comes with a handy set of features to help solve these concerns:
     - [Using a cache provider](#using-a-cache-provider)
       - [Application-level cache provider](#application-level-cache-provider)
       - [`<Loads>`-level cache provider](#loads-level-cache-provider)
+  - [Updating resources](#updating-resources)
   - [Optimistic responses](#optimistic-responses)
     - [setResponse({ contextKey, data }[, callback])](#setresponse-contextkey-data--callback)
       - [contextKey](#contextkey)
       - [data](#data)
       - [callback](#callback)
-    - [setError({ contextKey, error })](#seterror-contextkey-error)
+    - [setError({ contextKey, error })](#seterror-contextkey-error-)
       - [contextKey](#contextkey)
       - [error](#error)
     - [Basic example](#basic-example)
     - [Less basic example](#less-basic-example)
   - [Articles](#articles)
+  - [Happy customers](#happy-customers)
   - [Special thanks](#special-thanks)
   - [License](#license)
 
@@ -115,7 +120,7 @@ import Loads from 'react-loads';
 const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
 
 export default () => (
-  <Loads fn={getRandomDog}>
+  <Loads load={getRandomDog}>
     {({ isIdle, isLoading, isSuccess, isError, load, response, error }) => (
       <Fragment>
         {isIdle && <button onClick={load}>Load random dog</button>}
@@ -128,6 +133,8 @@ export default () => (
   </Loads>
 );
 ```
+
+> Note: You don't always have to provide a 'getter' function to `load`. You can provide any type of promise!
 
 ### Usage with state components
 
@@ -142,7 +149,7 @@ import Loads from 'react-loads';
 const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
 
 export default () => (
-  <Loads fn={getRandomDog}>
+  <Loads load={getRandomDog}>
     <Loads.Idle>{({ load }) => <button onClick={load}>Load random dog</button>}</Loads.Idle>
     <Loads.Loading>loading...</Loads.Loading>
     <Loads.Success>
@@ -171,7 +178,7 @@ import Loads, { createLoader } from 'react-loads';
 
 export default () => {
   const GetRandomDog = createLoader({
-    fn: () => axios.get('https://dog.ceo/api/breeds/image/random')
+    load: () => axios.get('https://dog.ceo/api/breeds/image/random')
   });
   return (
     <GetRandomDog>
@@ -198,7 +205,7 @@ export default () => {
 
 ## `<Loads>` Props
 
-### fn
+### load
 
 > `function(...args, { setResponse, setError })` | returns `Promise` | required
 
@@ -210,19 +217,29 @@ The arguments `setResponse` and `setError` are optional and can be used if [`ena
 
 > `number` | default: `300`
 
-Number of milliseconds before the component transitions to the `'loading'` state upon invoking `fn`.
+Number of milliseconds before the component transitions to the `'loading'` state upon invoking `load`.
 
 ### loadOnMount
 
 > `boolean` | default: `false`
 
-Whether or not to invoke `fn` on mount.
+Whether or not to invoke `load` on mount.
+
+### update
+
+> `function(...args, { setResponse, setError })` | returns `Promise | Array<Promise>` | required
+
+A function to update the response from `load`. **It must return a promise.**
+
+**IMPORTANT NOTE ON `update`**: It is recommended that your update function resolves with the same response schema as your loading function (`load`) to avoid erroneous & confusing behaviour in your UI.
+
+Read more on the `update` function [here](#updating-resources)
 
 ### contextKey
 
 > `string`
 
-Unique identifier for the promise (`fn`). If `contextKey` changes, then `fn` will be invoked again.
+Unique identifier for the promise (`load`). If `contextKey` changes, then `load` will be invoked again.
 
 *Note: If your application is wrapped in a `<LoadsProvider>`, then `contextKey` is required.*
 
@@ -232,7 +249,7 @@ Unique identifier for the promise (`fn`). If `contextKey` changes, then `fn` wil
 
 Number of milliseconds before the component transitions to the `'timeout'` state. Set to `0` to disable.
 
-*Note: `fn` will still continue to try an resolve while in the `'timeout'` state*
+*Note: `load` will still continue to try an resolve while in the `'timeout'` state*
 
 
 ### loadPolicy
@@ -251,13 +268,13 @@ A load policy allows you to specify whether or not you want your data to be reso
 
 > `boolean` | default: `false`
 
-Adds the `setResponse` and `setError` attributes to the loading function ([`fn`](#fn)/[`load`](#load)) to enable [optimistic responses](#optimistic-responses).
+Adds the `setResponse` and `setError` attributes to the loading function ([`load`](#load)) to enable [optimistic responses](#optimistic-responses).
 
 ### enableBackgroundStates
 
 > `boolean` | default: `false`
 
-If true and the data is in cache, `isIdle`, `isLoading` and `isTimeout` will be evaluated on subsequent loads. When `false` (default), these states are only evaluated on initial load and are falsy on subsequent loads - this is helpful if you want to show the cached response and not have a idle/loading/timeout indicator when `fn` is invoked again. You must have a `contextKey` set and your application to be wrapped in a `<LoadsProvider>` to enable background states as it only effects data in the cache.
+If true and the data is in cache, `isIdle`, `isLoading` and `isTimeout` will be evaluated on subsequent loads. When `false` (default), these states are only evaluated on initial load and are falsy on subsequent loads - this is helpful if you want to show the cached response and not have a idle/loading/timeout indicator when `load` is invoked again. You must have a `contextKey` set and your application to be wrapped in a `<LoadsProvider>` to enable background states as it only effects data in the cache.
 
 ### cacheProvider
 
@@ -273,51 +290,57 @@ Set a custom cache provider (e.g. local storage, session storate, etc). See [`<L
 
 > `any`
 
-Response from the resolved promise (`fn`).
+Response from the resolved promise (`load`).
 
 #### error
 
 > `any`
 
-Error from the rejected promise (`fn`).
+Error from the rejected promise (`load`).
 
 #### load
 
 > `function(...args, { setResponse, setError })`
 
-Trigger to invoke `fn`.
+Trigger to invoke [`load`](#load).
 
 The arguments `setResponse` and `setError` are optional, and can be used for [optimistic responses](#optimistic-responses).
+
+#### update
+
+> `function(...args, { setResponse, setError })`
+
+Trigger to invoke [`update`](#update).
 
 #### isIdle
 
 > `boolean`
 
-Returns `true` if the state is idle (`fn` has not been triggered).
+Returns `true` if the state is idle (`load` has not been triggered).
 
 #### isLoading
 
 > `boolean`
 
-Returns `true` if the state is loading (`fn` is in a pending state).
+Returns `true` if the state is loading (`load` is in a pending state).
 
 #### isTimeout
 
 > `boolean`
 
-Returns `true` if the state is timeout (`fn` is in a pending state for longer than `delay` milliseconds).
+Returns `true` if the state is timeout (`load` is in a pending state for longer than `delay` milliseconds).
 
 #### isSuccess
 
 > `boolean`
 
-Returns `true` if the state is success (`fn` has been resolved).
+Returns `true` if the state is success (`load` has been resolved).
 
 #### isError
 
 > `boolean`
 
-Returns `true` if the state is error (`fn` has been rejected).
+Returns `true` if the state is error (`load` has been rejected).
 
 #### hasResponseInCache
 
@@ -346,7 +369,7 @@ import Loads, { LoadsProvider } from 'react-loads';
 const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
 
 const RandomDog = () => (
-  <Loads contextKey="randomDog" loadOnMount fn={getRandomDog}>
+  <Loads contextKey="randomDog" loadOnMount load={getRandomDog}>
     {({ isLoading, isSuccess, load, response }) => (
       <Fragment>
         {isLoading && <div>Loading...</div>}
@@ -391,7 +414,7 @@ const RandomDog = () => (
   <Loads
     contextKey="randomDog"
     loadOnMount
-    fn={getRandomDog}
+    load={getRandomDog}
   >
     {({ isLoading, isSuccess, load, response }) => (
       <Fragment>
@@ -455,7 +478,7 @@ const RandomDog = () => (
     contextKey="randomDog"
     cacheProvider={cacheProvider}
     loadOnMount
-    fn={getRandomDog}
+    load={getRandomDog}
   >
     {({ isLoading, isSuccess, load, response }) => (
       <Fragment>
@@ -482,11 +505,40 @@ const App = () => (
 export default App;
 ```
 
+## Updating resources
+
+Instead of nesting `<Loads>` to provide a way to update/amend a resource, you are able to specify an `update` function which mimics the `load` function. In order to use the `update` function, you must have a `load` function which shares the same response schema as your update function.
+
+Here's an example of where you could use an `update` function:
+
+```jsx
+<Loads load={getRandomDog} update={updateRandomDog}>
+  {({ load, update, response, error, isIdle, isLoading, isSuccess, isError }) => (
+    <Fragment>
+      {isIdle && <button onClick={load}>Load random dog</button>}
+      {isLoading && <div>Loading...</div>}
+      {isSuccess && (
+        <div>
+          <img src={response.data.message} alt="Dog" />
+        </div>
+      )}
+      {isError && <div>An error occurred! {error.message}</div>}
+      {(isSuccess || isError) && (
+        <div>
+          <button onClick={load}>Load another dog</button>
+          <button onClick={update}>Update</button>
+        </div>
+      )}
+    </Fragment>
+  )}
+</Loads>
+```
+
 ## Optimistic responses
 
 React Loads has the ability to optimistically update your data while it is still waiting for a response (if you know what the response will potentially look like). Once a response is received, then the optimistically updated data will be replaced by the response. [This article](https://uxplanet.org/optimistic-1000-34d9eefe4c05) explains the gist of optimistic UIs pretty well.
 
-**To use optimistic responses, your application must be wrapped in a `<LoadsProvider>` and the `enableOptimisticResponse` prop on your `<Loads>` set to true.** The `setResponse` and `setError` functions are provided as the last argument of your loading function (`fn`/`load`). The interface for these functions, along with an example implementation are seen below.
+**To use optimistic responses, your application must be wrapped in a `<LoadsProvider>` and the `enableOptimisticResponse` prop on your `<Loads>` set to true.** The `setResponse` and `setError` functions are provided as the last argument of your loading function (`load`). The interface for these functions, along with an example implementation are seen below.
 
 ### setResponse({ contextKey, data }[, callback])
 
@@ -547,13 +599,13 @@ class Dog extends Component {
     return (
       <Fragment>
         {/* Ensure you enable optimistic responses by setting the `enableOptimisticResponse` prop to true. */}
-        <Loads enableOptimisticResponse fn={this.createDog}>
+        <Loads enableOptimisticResponse load={this.createDog}>
           {({ load }) => (
             <button onClick={() => load({ name: 'Teddy', breed: 'Groodle' })}>Create</button>
           )}
         </Loads>
 
-        <Loads contextKey="dog" loadOnMount fn={this.getDog}>
+        <Loads contextKey="dog" loadOnMount load={this.getDog}>
           {({ response: dog }) => (
             <div>{dog.name}</div>
           )}
@@ -595,19 +647,19 @@ class Dog extends Component {
     return (
       <Fragment>
         {/* Ensure you enable optimistic responses by setting the `enableOptimisticResponse` prop to true. */}
-        <Loads enableOptimisticResponse fn={this.updateDog}>
+        <Loads enableOptimisticResponse load={this.updateDog}>
           {({ load }) => (
             <button onClick={() => load(1, { name: 'Brian' })}>Update</button>
           )}
         </Loads>
 
-        <Loads contextKey={`dog.${id}`} loadOnMount fn={this.getDog}>
+        <Loads contextKey={`dog.${id}`} loadOnMount load={this.getDog}>
           {({ response: dog }) => (
             <div>{dog.name}</div>
           )}
         </Loads>
 
-        <Loads contextKey="dogs" loadOnMount fn={this.getDogs}>
+        <Loads contextKey="dogs" loadOnMount load={this.getDogs}>
           {({ response: dogs }) => (
             <Fragment>
               {dogs.map(dog => <div key={dog.id}>{dog.name}</div>)}

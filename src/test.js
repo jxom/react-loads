@@ -5,10 +5,10 @@ import React, { Fragment } from 'react';
 import { fireEvent, render, waitForElement } from 'react-testing-library';
 import Loads, { LoadsProvider } from './index';
 
-it('invokes fn - when load is invoked', () => {
+it('invokes load - when load is invoked', () => {
   const mockFn = jest.fn().mockResolvedValue('resolved');
   const { getByText } = render(
-    <Loads fn={mockFn}>
+    <Loads load={mockFn}>
       {({ load }) => (
         <div>
           <button onClick={load}>load</button>
@@ -22,27 +22,27 @@ it('invokes fn - when load is invoked', () => {
   expect(mockFn).toHaveBeenCalledTimes(1);
 });
 
-it('invokes fn on mount - when loadOnMount is provided as a prop', () => {
+it('invokes load on mount - when loadOnMount is provided as a prop', () => {
   const mockFn = jest.fn().mockResolvedValue('resolved');
   render(
-    <Loads fn={mockFn} loadOnMount>
+    <Loads load={mockFn} loadOnMount>
       {({ load }) => <div>Hello world</div>}
     </Loads>
   );
   expect(mockFn).toHaveBeenCalledTimes(1);
 });
 
-it('sets isIdle state to true and displays isIdle children - when fn has not yet been invoked', () => {
+it('sets isIdle state to true and displays isIdle children - when load has not yet been invoked', () => {
   const mockFn = jest.fn().mockResolvedValue('resolved');
-  const { getByText } = render(<Loads fn={mockFn}>{({ isIdle }) => (isIdle ? <p>idle</p> : null)}</Loads>);
+  const { getByText } = render(<Loads load={mockFn}>{({ isIdle }) => (isIdle ? <p>idle</p> : null)}</Loads>);
   expect(getByText('idle')).toBeTruthy();
 });
 
-it('sets isLoading state to true and displays isLoading children - when fn is in a pending state', async () => {
+it('sets isLoading state to true and displays isLoading children - when load is in a pending state', async () => {
   const mockFn = jest.fn().mockReturnValue(new Promise(res => setTimeout(() => res('resolved'), 50)));
   const { getByText } = render(
     <div>
-      <Loads fn={mockFn} delay={0} loadOnMount>
+      <Loads load={mockFn} delay={0} loadOnMount>
         {({ isLoading }) => (isLoading ? <p>loading</p> : null)}
       </Loads>
     </div>
@@ -51,11 +51,11 @@ it('sets isLoading state to true and displays isLoading children - when fn is in
   expect(getByText('loading')).toBeTruthy();
 });
 
-it('sets isTimeout state to true and displays isTimeout children - when fn is in a pending state and pass the timeout', async () => {
+it('sets isTimeout state to true and displays isTimeout children - when load is in a pending state and pass the timeout', async () => {
   const mockFn = jest.fn().mockReturnValue(new Promise(res => setTimeout(() => res('resolved'), 100)));
   const { getByText } = render(
     <div>
-      <Loads fn={mockFn} delay={0} timeout={50} loadOnMount>
+      <Loads load={mockFn} delay={0} timeout={50} loadOnMount>
         {({ isTimeout }) => (isTimeout ? <p>timeout</p> : null)}
       </Loads>
     </div>
@@ -64,10 +64,10 @@ it('sets isTimeout state to true and displays isTimeout children - when fn is in
   expect(getByText('timeout')).toBeTruthy();
 });
 
-it('sets isSuccess state to true and displays isSuccess children - when fn has been resolved', async () => {
+it('sets isSuccess state to true and displays isSuccess children - when load has been resolved', async () => {
   const mockFn = jest.fn().mockReturnValue(new Promise(res => setTimeout(() => res('resolved'), 50)));
   const { getByText } = render(
-    <Loads fn={mockFn} loadOnMount>
+    <Loads load={mockFn} loadOnMount>
       {({ isSuccess }) => (isSuccess ? <p>success</p> : null)}
     </Loads>
   );
@@ -75,10 +75,10 @@ it('sets isSuccess state to true and displays isSuccess children - when fn has b
   expect(getByText('success')).toBeTruthy();
 });
 
-it('sets isError state to true and displays isError children - when fn has been rejected', async () => {
+it('sets isError state to true and displays isError children - when load has been rejected', async () => {
   const mockFn = jest.fn().mockReturnValue(new Promise((res, rej) => setTimeout(() => rej('rejected'), 50)));
   const { getByText } = render(
-    <Loads fn={mockFn} loadOnMount>
+    <Loads load={mockFn} loadOnMount>
       {({ isError }) => (isError ? <p>error</p> : null)}
     </Loads>
   );
@@ -86,11 +86,11 @@ it('sets isError state to true and displays isError children - when fn has been 
   expect(getByText('error')).toBeTruthy();
 });
 
-it('sets response to the resolved data - when fn has been resolved', async () => {
+it('sets response to the resolved data - when load has been resolved', async () => {
   const response = 'resolved';
   const mockFn = jest.fn().mockReturnValue(new Promise(res => res(response)));
   const { getByText } = render(
-    <Loads fn={mockFn} loadOnMount>
+    <Loads load={mockFn} loadOnMount>
       {({ response, isSuccess }) => (isSuccess ? <p>{response}</p> : null)}
     </Loads>
   );
@@ -98,11 +98,11 @@ it('sets response to the resolved data - when fn has been resolved', async () =>
   expect(getByText(response)).toBeTruthy();
 });
 
-it('sets error to the rejected data - when fn has been rejected', async () => {
+it('sets error to the rejected data - when load has been rejected', async () => {
   const error = 'rejected';
   const mockFn = jest.fn().mockReturnValue(new Promise((res, rej) => rej(error)));
   const { getByText } = render(
-    <Loads fn={mockFn} loadOnMount>
+    <Loads load={mockFn} loadOnMount>
       {({ error, isError }) => (isError ? <p>{error}</p> : null)}
     </Loads>
   );
@@ -115,7 +115,7 @@ it('sets the response in cache when resolved and uses that response on a subsequ
   const mockFn = jest.fn().mockReturnValue(new Promise(res => setTimeout(() => res(response), 100)));
   const { getByText } = render(
     <LoadsProvider>
-      <Loads contextKey="test" delay={0} fn={mockFn} loadOnMount>
+      <Loads contextKey="test" delay={0} load={mockFn} loadOnMount>
         {({ load, response, hasResponseInCache, isLoading, isSuccess }) => (
           <Fragment>
             {isLoading && <p>loading</p>}
@@ -136,12 +136,12 @@ it('sets the response in cache when resolved and uses that response on a subsequ
   expect(getByText('cached')).toBeTruthy();
 });
 
-it('loads the cached data and does not invoke fn when loadPolicy is set to "cache-first"', async () => {
+it('loads the cached data and does not invoke load when loadPolicy is set to "cache-first"', async () => {
   const response = 'resolved';
   const mockFn = jest.fn().mockReturnValue(new Promise(res => setTimeout(() => res(response), 100)));
   const { getByText } = render(
     <LoadsProvider>
-      <Loads contextKey="test" delay={0} fn={mockFn} loadOnMount loadPolicy="cache-first">
+      <Loads contextKey="test" delay={0} load={mockFn} loadOnMount loadPolicy="cache-first">
         {({ load, response, hasResponseInCache, isLoading, isSuccess }) => (
           <Fragment>
             {isLoading && <p>loading</p>}

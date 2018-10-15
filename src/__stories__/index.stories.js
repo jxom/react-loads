@@ -7,7 +7,7 @@ storiesOf('Loads', module)
   .add('default usage', () => {
     const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
     return (
-      <Loads fn={getRandomDog}>
+      <Loads load={getRandomDog}>
         {({ isIdle, isLoading, isSuccess, isError, load, response, error }) => (
           <Fragment>
             {isIdle && <button onClick={load}>Load random dog</button>}
@@ -27,7 +27,7 @@ storiesOf('Loads', module)
   .add('load on mount', () => {
     const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
     return (
-      <Loads loadOnMount fn={getRandomDog}>
+      <Loads loadOnMount load={getRandomDog}>
         {({ isIdle, isLoading, isSuccess, isError, load, response, error }) => (
           <Fragment>
             {isIdle && <button onClick={load}>Load random dog</button>}
@@ -47,7 +47,7 @@ storiesOf('Loads', module)
   .add('with delay to initiate loading state', () => {
     const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
     return (
-      <Loads delay={1500} fn={getRandomDog}>
+      <Loads delay={1500} load={getRandomDog}>
         {({ isIdle, isLoading, isSuccess, isError, load, response, error }) => (
           <Fragment>
             {isIdle && <button onClick={load}>Load random dog</button>}
@@ -67,7 +67,7 @@ storiesOf('Loads', module)
   .add('with no delay to initiate loading state', () => {
     const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
     return (
-      <Loads delay={0} fn={getRandomDog}>
+      <Loads delay={0} load={getRandomDog}>
         {({ isIdle, isLoading, isSuccess, isError, load, response, error }) => (
           <Fragment>
             {isIdle && <button onClick={load}>Load random dog</button>}
@@ -89,7 +89,7 @@ storiesOf('Loads', module)
       throw new Error('Woof woof - there was an error.');
     };
     return (
-      <Loads fn={getRandomDog}>
+      <Loads load={getRandomDog}>
         {({ isIdle, isLoading, isSuccess, isError, load, response, error }) => (
           <Fragment>
             {isIdle && <button onClick={load}>Load random dog</button>}
@@ -110,7 +110,7 @@ storiesOf('Loads', module)
     const getRandomDog = () =>
       new Promise(resolve => setTimeout(() => resolve(axios.get('https://dog.ceo/api/breeds/image/random')), 3000));
     return (
-      <Loads timeout={1500} fn={getRandomDog}>
+      <Loads timeout={1500} load={getRandomDog}>
         {({ isIdle, isLoading, isTimeout, isSuccess, isError, load, response, error }) => (
           <Fragment>
             {isIdle && <button onClick={load}>Load random dog</button>}
@@ -131,7 +131,7 @@ storiesOf('Loads', module)
   .add('with function arguments', () => {
     const getRandomDogByBreed = breed => axios.get(`https://dog.ceo/api/breed/${breed}/images/random`);
     return (
-      <Loads fn={getRandomDogByBreed}>
+      <Loads load={getRandomDogByBreed}>
         {({ isIdle, isLoading, isSuccess, isError, load, response, state, error }) => (
           <Fragment>
             {isIdle && <button onClick={() => load('beagle')}>Load random dog</button>}
@@ -151,7 +151,7 @@ storiesOf('Loads', module)
     const getRandomDog = () => axios.get(`https://dog.ceo/api/breeds/image/random`);
     const saveDog = randomDogResponse => new Promise(resolve => setTimeout(() => resolve(randomDogResponse), 1000));
     return (
-      <Loads fn={getRandomDog}>
+      <Loads load={getRandomDog}>
         {({
           isIdle: isRandomDogIdle,
           isLoading: isRandomDogLoading,
@@ -161,7 +161,7 @@ storiesOf('Loads', module)
           response: randomDogResponse,
           error: randomDogError
         }) => (
-          <Loads fn={saveDog}>
+          <Loads load={saveDog}>
             {({
               isLoading: isSaveDogLoading,
               isSuccess: isSaveDogSuccess,
@@ -195,7 +195,7 @@ storiesOf('Loads', module)
   .add('with state components (as node)', () => {
     const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
     return (
-      <Loads fn={getRandomDog}>
+      <Loads load={getRandomDog}>
         {({ load, response }) => (
           <Fragment>
             <Loads.Idle>
@@ -220,7 +220,7 @@ storiesOf('Loads', module)
   .add('with state components (as function)', () => {
     const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
     return (
-      <Loads fn={getRandomDog}>
+      <Loads load={getRandomDog}>
         <Loads.Idle>{({ load }) => <button onClick={load}>Load random dog</button>}</Loads.Idle>
         <Loads.Loading>loading...</Loads.Loading>
         <Loads.Success>
@@ -238,10 +238,10 @@ storiesOf('Loads', module)
   })
   .add('with multiple instances of <Loads> and state components', () => {
     const GetRandomDog = createLoader({
-      fn: () => axios.get(`https://dog.ceo/api/breeds/image/random`)
+      load: () => axios.get(`https://dog.ceo/api/breeds/image/random`)
     });
     const SaveDog = createLoader({
-      fn: randomDogResponse => new Promise(resolve => setTimeout(() => resolve(randomDogResponse), 1000))
+      load: randomDogResponse => new Promise(resolve => setTimeout(() => resolve(randomDogResponse), 1000))
     });
     return (
       <GetRandomDog>
@@ -269,5 +269,34 @@ storiesOf('Loads', module)
           </GetRandomDog.Idle>
         </SaveDog>
       </GetRandomDog>
+    );
+  })
+  .add('with multiple loads', () => {
+    const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
+    const updateRandomDog = () => {
+      console.log('Updating...');
+      return axios.get('https://dog.ceo/api/breeds/image/random');
+    };
+    return (
+      <Loads load={getRandomDog} update={updateRandomDog}>
+        {({ isIdle, isLoading, isSuccess, isError, load, update, response, error }) => (
+          <Fragment>
+            {isIdle && <button onClick={load}>Load random dog</button>}
+            {isLoading && <div>Loading...</div>}
+            {isSuccess && (
+              <div>
+                <img src={response.data.message} alt="Dog" />
+              </div>
+            )}
+            {isError && <div>An error occurred! {error.message}</div>}
+            {(isSuccess || isError) && (
+              <div>
+                <button onClick={load}>Load another dog</button>
+                <button onClick={update}>Update</button>
+              </div>
+            )}
+          </Fragment>
+        )}
+      </Loads>
     );
   });
