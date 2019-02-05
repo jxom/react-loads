@@ -1,6 +1,9 @@
 import * as React from 'react';
 // @ts-ignore
 import { LRUMap } from 'lru_map';
+import useDetectMounted from './hooks/useDetectMounted';
+import useTimeout from './hooks/useTimeout';
+import StateComponent from './StateComponent';
 
 type Record = { error?: any; response?: any; isCached?: boolean; state: LoadingState };
 type LoadsConfig = {
@@ -143,54 +146,4 @@ export default function useLoads(
     }),
     [load, record.response, record.error, record.state, record.isCached]
   );
-}
-
-function useDetectMounted() {
-  const hasMounted = React.useRef<boolean>(true);
-  React.useEffect(() => {
-    return function cleanup() {
-      hasMounted.current = false;
-    };
-  }, []);
-
-  return hasMounted;
-}
-
-function useTimeout(fn: () => any) {
-  const timeout = React.useRef<number | undefined>(undefined);
-
-  const _setTimeout = (ms: number) => {
-    // @ts-ignore
-    timeout.current = setTimeout(fn, ms);
-  };
-  const _clearTimeout = () => clearTimeout(timeout.current);
-
-  React.useEffect(() => {
-    return function cleanup() {
-      if (timeout) {
-        clearTimeout(timeout.current);
-      }
-    };
-  }, []);
-
-  return [_setTimeout, _clearTimeout];
-}
-
-function StateComponent(state: boolean) {
-  return ({ children, or }: { children: React.ReactNode; or: Array<any> | any }) => {
-    if (state) {
-      return children;
-    }
-    if (or) {
-      let newOr = or;
-      if (!Array.isArray(or)) {
-        newOr = [or];
-      }
-      if (newOr.length === 0) return null;
-      newOr = [...newOr];
-      const Component = newOr.shift();
-      return Component({ children, or: newOr });
-    }
-    return null;
-  };
 }

@@ -1,6 +1,6 @@
 import React from 'react';
 import axios from 'axios';
-import { Alert, Box, Button, Image, Spinner } from 'fannypack';
+import { Alert, Box, Button, Image, Set, Spinner } from 'fannypack';
 
 import { storiesOf } from '@storybook/react';
 
@@ -222,6 +222,50 @@ storiesOf('Loads', module)
             </Box>
           </Success>
           <Error>{error && <Alert type="danger">{error.message}</Alert>}</Error>
+        </Box>
+      );
+    }
+    return <Component />;
+  })
+  .add('with dependant useLoads', () => {
+    function Component() {
+      const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
+      const getRandomDogLoader = useLoads(getRandomDog);
+
+      const saveDog = async () => new Promise(res => res(`Saved. Image: ${getRandomDogLoader.response.data.message}`));
+      const saveDogLoader = useLoads(saveDog);
+
+      return (
+        <Box>
+          <getRandomDogLoader.Idle>
+            <Button onClick={getRandomDogLoader.load}>Load dog</Button>
+          </getRandomDogLoader.Idle>
+          <getRandomDogLoader.Loading>
+            <Spinner size="large" />
+          </getRandomDogLoader.Loading>
+          <getRandomDogLoader.Success>
+            <Box>
+              <Box>
+                {getRandomDogLoader.response && (
+                  <Image src={getRandomDogLoader.response.data.message} width="300px" alt="Dog" />
+                )}
+              </Box>
+              <Set>
+                <Button onClick={getRandomDogLoader.load}>Load another</Button>
+                <saveDogLoader.Idle>
+                  <Button isLoading={saveDogLoader.isLoading} onClick={saveDogLoader.load}>
+                    Save dog
+                  </Button>
+                </saveDogLoader.Idle>
+              </Set>
+              <saveDogLoader.Success>
+                <Box>{saveDogLoader.response}</Box>
+              </saveDogLoader.Success>
+            </Box>
+          </getRandomDogLoader.Success>
+          <getRandomDogLoader.Error>
+            {getRandomDogLoader.error && <Alert type="danger">{getRandomDogLoader.error.message}</Alert>}
+          </getRandomDogLoader.Error>
         </Box>
       );
     }
