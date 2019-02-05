@@ -1,0 +1,17 @@
+{
+  "extends": ["@medipass/react-medipass"],
+  "rules": {
+    "react/jsx-handler-names": "off"
+  },
+  "overrides": [
+    {
+      "files": ["**/*.ts", "**/*.tsx"],
+      "parser": "typescript-eslint-parser",
+      "plugins": ["typescript"],
+      "rules": {
+        "no-undef": "off",
+        "no-unused-vars": "off"
+      }
+    }
+  ]
+}

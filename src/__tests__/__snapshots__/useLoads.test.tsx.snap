@@ -1,0 +1,189 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`context (cache) with deferred load initially renders & caches data correctly 1`] = `
+<div>
+  <button>
+    load
+  </button>
+  <span>
+    success
+  </span>
+  <span>
+    mockData
+  </span>
+</div>
+`;
+
+exports[`context (cache) with deferred load renders the cached data correctly on subsequent load 1`] = `
+<div>
+  <button>
+    load
+  </button>
+  <span>
+    success
+  </span>
+  <span>
+    mockData
+  </span>
+</div>
+`;
+
+exports[`context (cache) with load on mount on error initially renders & caches data correctly 1`] = `
+<div>
+  <span>
+    error
+  </span>
+  <span>
+    mockError
+  </span>
+</div>
+`;
+
+exports[`context (cache) with load on mount on error renders the cached data correctly on subsequent load 1`] = `
+<div>
+  <span>
+    error
+  </span>
+  <span>
+    mockError
+  </span>
+</div>
+`;
+
+exports[`context (cache) with load on mount on success initially renders & caches data correctly 1`] = `
+<div>
+  <span>
+    success
+  </span>
+  <span>
+    mockData
+  </span>
+</div>
+`;
+
+exports[`context (cache) with load on mount on success renders the cached data correctly on subsequent load 1`] = `
+<div>
+  <span>
+    success
+  </span>
+  <span>
+    mockData
+  </span>
+</div>
+`;
+
+exports[`states renders idle correctly the loading function has not been invoked 1`] = `
+<div>
+  idle
+</div>
+`;
+
+exports[`states with deferred load renders error correctly when the function rejects after 500ms 1`] = `
+<div>
+  <button>
+    load
+  </button>
+  idle
+</div>
+`;
+
+exports[`states with deferred load renders error correctly when the function rejects after 500ms 2`] = `
+<div>
+  <button>
+    load
+  </button>
+  error
+</div>
+`;
+
+exports[`states with deferred load renders loading indicator correctly (default delay) 1`] = `
+<div>
+  <button>
+    load
+  </button>
+  loading
+</div>
+`;
+
+exports[`states with deferred load renders loading indicator correctly (delay = 0) 1`] = `
+<div>
+  <button>
+    load
+  </button>
+</div>
+`;
+
+exports[`states with deferred load renders success correctly when the function has been resolved 1`] = `
+<div>
+  <button>
+    load
+  </button>
+  idle
+</div>
+`;
+
+exports[`states with deferred load renders success correctly when the function has been resolved 2`] = `
+<div>
+  <button>
+    load
+  </button>
+  success
+</div>
+`;
+
+exports[`states with deferred load renders success correctly when the function resolves after 500ms 1`] = `
+<div>
+  <button>
+    load
+  </button>
+  idle
+</div>
+`;
+
+exports[`states with deferred load renders success correctly when the function resolves after 500ms 2`] = `
+<div>
+  <button>
+    load
+  </button>
+  success
+</div>
+`;
+
+exports[`states with deferred load renders timeout indicator correctly 1`] = `
+<div>
+  <button>
+    load
+  </button>
+  timeout
+</div>
+`;
+
+exports[`states with load on mount renders error correctly when the function rejects after 500ms 1`] = `
+<div>
+  error
+</div>
+`;
+
+exports[`states with load on mount renders loading indicator correctly (default delay) 1`] = `
+<div>
+  loading
+</div>
+`;
+
+exports[`states with load on mount renders success correctly when the function has been resolved 1`] = `
+<div>
+  success
+</div>
+`;
+
+exports[`states with load on mount renders success correctly when the function resolves after 500ms 1`] = `
+<div>
+  success
+</div>
+`;
+
+exports[`states with load on mount renders timeout indicator correctly 1`] = `
+<div>
+  timeout
+</div>
+`;
