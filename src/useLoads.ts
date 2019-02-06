@@ -15,15 +15,15 @@ type LoadsConfig = {
   timeout?: number;
 };
 type LoadFunction = (opts?: any) => Promise<any>;
-type LoadingState = 'idle' | 'loading' | 'timeout' | 'success' | 'error';
+type LoadingState = 'idle' | 'pending' | 'timeout' | 'resolved' | 'rejected';
 
 const CACHE_LIMIT = 500;
 const STATES: { [key: string]: LoadingState } = {
   IDLE: 'idle',
-  LOADING: 'loading',
+  PENDING: 'pending',
   TIMEOUT: 'timeout',
-  SUCCESS: 'success',
-  ERROR: 'error'
+  RESOLVED: 'resolved',
+  REJECTED: 'rejected'
 };
 
 const cache = new LRUMap<string, Record>(CACHE_LIMIT);
@@ -32,14 +32,14 @@ function reducer(state: Record, action: { type: LoadingState; isCached?: boolean
   switch (action.type) {
     case STATES.IDLE:
       return { state: STATES.IDLE };
-    case STATES.LOADING:
-      return { ...state, state: STATES.LOADING };
+    case STATES.PENDING:
+      return { ...state, state: STATES.PENDING };
     case STATES.TIMEOUT:
       return { ...state, state: STATES.TIMEOUT };
-    case STATES.SUCCESS:
-      return { ...state, isCached: action.isCached, response: action.response, state: STATES.SUCCESS };
-    case STATES.ERROR:
-      return { ...state, isCached: action.isCached, error: action.error, state: STATES.ERROR };
+    case STATES.RESOLVED:
+      return { ...state, isCached: action.isCached, response: action.response, state: STATES.RESOLVED };
+    case STATES.REJECTED:
+      return { ...state, isCached: action.isCached, error: action.error, state: STATES.REJECTED };
     default:
       return state;
   }
@@ -60,7 +60,7 @@ export default function useLoads(
   const counter = React.useRef<number>(0);
   const hasMounted = useDetectMounted();
   const [record, dispatch] = React.useReducer(reducer, { state: STATES.IDLE });
-  const [setDelayTimeout, clearDelayTimeout] = useTimeout(() => dispatch({ type: STATES.LOADING }));
+  const [setDelayTimeout, clearDelayTimeout] = useTimeout(() => dispatch({ type: STATES.PENDING }));
   const [setTimeoutTimeout, clearTimeoutTimeout] = useTimeout(() => dispatch({ type: STATES.TIMEOUT }));
 
   function handleData(data: { response?: any; error?: any }, state: LoadingState, count: number) {
@@ -72,8 +72,8 @@ export default function useLoads(
       dispatch({
         type: state,
         isCached: Boolean(context),
-        error: state === STATES.ERROR ? data.error : undefined,
-        response: state === STATES.SUCCESS ? data.response : undefined
+        error: state === STATES.REJECTED ? data.error : undefined,
+        response: state === STATES.RESOLVED ? data.response : undefined
       });
       if (context) {
         const record = { error: data.error, response: data.response, state };
@@ -96,7 +96,7 @@ export default function useLoads(
     if (delay > 0) {
       setDelayTimeout(delay);
     } else {
-      dispatch({ type: STATES.LOADING });
+      dispatch({ type: STATES.PENDING });
     }
     if (timeout > 0) {
       setTimeoutTimeout(timeout);
@@ -104,9 +104,9 @@ export default function useLoads(
 
     try {
       const response = await fn(...args);
-      handleData({ response }, STATES.SUCCESS, counter.current);
+      handleData({ response }, STATES.RESOLVED, counter.current);
     } catch (err) {
-      handleData({ error: err }, STATES.ERROR, counter.current);
+      handleData({ error: err }, STATES.REJECTED, counter.current);
     }
   }
 
@@ -120,10 +120,10 @@ export default function useLoads(
 
   const renderStates = {
     isIdle: record.state === STATES.IDLE && Boolean(!record.isCached || enableBackgroundStates),
-    isLoading: record.state === STATES.LOADING && Boolean(!record.isCached || enableBackgroundStates),
+    isPending: record.state === STATES.PENDING && Boolean(!record.isCached || enableBackgroundStates),
     isTimeout: record.state === STATES.TIMEOUT && Boolean(!record.isCached || enableBackgroundStates),
-    isSuccess: record.state === STATES.SUCCESS || Boolean(record.isCached && record.response),
-    isError: record.state === STATES.ERROR || Boolean(record.isCached && record.error)
+    isResolved: record.state === STATES.RESOLVED || Boolean(record.isCached && record.response),
+    isRejected: record.state === STATES.REJECTED || Boolean(record.isCached && record.error)
   };
   return React.useMemo(
     () => ({
@@ -136,10 +136,10 @@ export default function useLoads(
       state: record.state,
 
       Idle: StateComponent(renderStates.isIdle),
-      Loading: StateComponent(renderStates.isLoading),
+      Pending: StateComponent(renderStates.isPending),
       Timeout: StateComponent(renderStates.isTimeout),
-      Success: StateComponent(renderStates.isSuccess),
-      Error: StateComponent(renderStates.isError),
+      Resolved: StateComponent(renderStates.isResolved),
+      Rejected: StateComponent(renderStates.isRejected),
 
       isCached: Boolean(record.isCached)
     }),

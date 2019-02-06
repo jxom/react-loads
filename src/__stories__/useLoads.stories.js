@@ -10,11 +10,11 @@ storiesOf('Loads', module)
   .add('load on mount', () => {
     function Component() {
       const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
-      const { response, error, load, isError, isLoading, isSuccess } = useLoads(getRandomDog);
+      const { response, error, load, isRejected, isPending, isResolved } = useLoads(getRandomDog);
       return (
         <Box>
-          {isLoading && <Spinner size="large" />}
-          {isSuccess && (
+          {isPending && <Spinner size="large" />}
+          {isResolved && (
             <Box>
               <Box>
                 <Image src={response.data.message} width="300px" alt="Dog" />
@@ -22,7 +22,7 @@ storiesOf('Loads', module)
               <Button onClick={load}>Load another</Button>
             </Box>
           )}
-          {isError && <Alert type="danger">{error.message}</Alert>}
+          {isRejected && <Alert type="danger">{error.message}</Alert>}
         </Box>
       );
     }
@@ -31,12 +31,14 @@ storiesOf('Loads', module)
   .add('with deferred load', () => {
     function Component() {
       const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
-      const { response, error, load, isIdle, isError, isLoading, isSuccess } = useLoads(getRandomDog, { defer: true });
+      const { response, error, load, isIdle, isRejected, isPending, isResolved } = useLoads(getRandomDog, {
+        defer: true
+      });
       return (
         <Box>
           {isIdle && <Button onClick={load}>Load dog</Button>}
-          {isLoading && <Spinner size="large" />}
-          {isSuccess && (
+          {isPending && <Spinner size="large" />}
+          {isResolved && (
             <Box>
               <Box>
                 <Image src={response.data.message} width="300px" alt="Dog" />
@@ -44,7 +46,7 @@ storiesOf('Loads', module)
               <Button onClick={load}>Load another</Button>
             </Box>
           )}
-          {isError && <Alert type="danger">{error.message}</Alert>}
+          {isRejected && <Alert type="danger">{error.message}</Alert>}
         </Box>
       );
     }
@@ -53,15 +55,15 @@ storiesOf('Loads', module)
   .add('custom delay', () => {
     function Component() {
       const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
-      const { response, error, load, isIdle, isError, isLoading, isSuccess } = useLoads(getRandomDog, {
+      const { response, error, load, isIdle, isRejected, isPending, isResolved } = useLoads(getRandomDog, {
         defer: true,
         delay: 1000
       });
       return (
         <Box>
           {isIdle && <Button onClick={load}>Load dog</Button>}
-          {isLoading && <Spinner size="large" />}
-          {isSuccess && (
+          {isPending && <Spinner size="large" />}
+          {isResolved && (
             <Box>
               <Box>
                 <Image src={response.data.message} width="300px" alt="Dog" />
@@ -69,7 +71,7 @@ storiesOf('Loads', module)
               <Button onClick={load}>Load another</Button>
             </Box>
           )}
-          {isError && <Alert type="danger">{error.message}</Alert>}
+          {isRejected && <Alert type="danger">{error.message}</Alert>}
         </Box>
       );
     }
@@ -78,15 +80,15 @@ storiesOf('Loads', module)
   .add('no delay', () => {
     function Component() {
       const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
-      const { response, error, load, isIdle, isError, isLoading, isSuccess } = useLoads(getRandomDog, {
+      const { response, error, load, isIdle, isRejected, isPending, isResolved } = useLoads(getRandomDog, {
         defer: true,
         delay: 0
       });
       return (
         <Box>
           {isIdle && <Button onClick={load}>Load dog</Button>}
-          {isLoading && <Spinner size="large" />}
-          {isSuccess && (
+          {isPending && <Spinner size="large" />}
+          {isResolved && (
             <Box>
               <Box>
                 <Image src={response.data.message} width="300px" alt="Dog" />
@@ -94,7 +96,7 @@ storiesOf('Loads', module)
               <Button onClick={load}>Load another</Button>
             </Box>
           )}
-          {isError && <Alert type="danger">{error.message}</Alert>}
+          {isRejected && <Alert type="danger">{error.message}</Alert>}
         </Box>
       );
     }
@@ -103,15 +105,15 @@ storiesOf('Loads', module)
   .add('with error', () => {
     function Component() {
       const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/bla');
-      const { response, error, load, isIdle, isError, isLoading, isSuccess } = useLoads(getRandomDog, {
+      const { response, error, load, isIdle, isRejected, isPending, isResolved } = useLoads(getRandomDog, {
         defer: true,
         delay: 1000
       });
       return (
         <Box>
           {isIdle && <Button onClick={load}>Load dog</Button>}
-          {isLoading && <Spinner size="large" />}
-          {isSuccess && (
+          {isPending && <Spinner size="large" />}
+          {isResolved && (
             <Box>
               <Box>
                 <Image src={response.data.message} width="300px" alt="Dog" />
@@ -119,7 +121,7 @@ storiesOf('Loads', module)
               <Button onClick={load}>Load another</Button>
             </Box>
           )}
-          {isError && <Alert type="danger">{error.message}</Alert>}
+          {isRejected && <Alert type="danger">{error.message}</Alert>}
         </Box>
       );
     }
@@ -128,16 +130,16 @@ storiesOf('Loads', module)
   .add('with timeout', () => {
     function Component() {
       const fn = () => new Promise(res => setTimeout(() => res('this is data'), 2000));
-      const { response, load, isIdle, isTimeout, isLoading, isSuccess } = useLoads(fn, {
+      const { response, load, isIdle, isTimeout, isPending, isResolved } = useLoads(fn, {
         defer: true,
         timeout: 1000
       });
       return (
         <Box>
           {isIdle && <Button onClick={load}>Load dog</Button>}
-          {(isLoading || isTimeout) && <Spinner size="large" />}
+          {(isPending || isTimeout) && <Spinner size="large" />}
           {isTimeout && 'taking a while'}
-          {isSuccess && <Box>{response}</Box>}
+          {isResolved && <Box>{response}</Box>}
         </Box>
       );
     }
@@ -146,14 +148,14 @@ storiesOf('Loads', module)
   .add('with function arguments', () => {
     function Component() {
       const getRandomDogByBreed = breed => axios.get(`https://dog.ceo/api/breed/${breed}/images/random`);
-      const { response, error, load, isIdle, isError, isLoading, isSuccess } = useLoads(getRandomDogByBreed, {
+      const { response, error, load, isIdle, isRejected, isPending, isResolved } = useLoads(getRandomDogByBreed, {
         defer: true
       });
       return (
         <Box>
           {isIdle && <Button onClick={() => load('beagle')}>Load beagle</Button>}
-          {isLoading && <Spinner size="large" />}
-          {isSuccess && (
+          {isPending && <Spinner size="large" />}
+          {isResolved && (
             <Box>
               <Box>
                 <Image src={response.data.message} width="300px" alt="Dog" />
@@ -161,7 +163,7 @@ storiesOf('Loads', module)
               <Button onClick={() => load('beagle')}>Load another</Button>
             </Box>
           )}
-          {isError && <Alert type="danger">{error.message}</Alert>}
+          {isRejected && <Alert type="danger">{error.message}</Alert>}
         </Box>
       );
     }
@@ -170,15 +172,15 @@ storiesOf('Loads', module)
   .add('with cache', () => {
     function Component() {
       const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
-      const { response, error, load, isIdle, isError, isLoading, isSuccess } = useLoads(getRandomDog, {
+      const { response, error, load, isIdle, isRejected, isPending, isResolved } = useLoads(getRandomDog, {
         context: 'foo',
         defer: true
       });
       return (
         <Box>
           {isIdle && <Button onClick={load}>Load dog</Button>}
-          {isLoading && <Spinner size="large" />}
-          {isSuccess && (
+          {isPending && <Spinner size="large" />}
+          {isResolved && (
             <Box>
               <Box>
                 <Image src={response.data.message} width="300px" alt="Dog" />
@@ -186,7 +188,7 @@ storiesOf('Loads', module)
               <Button onClick={load}>Load another</Button>
             </Box>
           )}
-          {isError && <Alert type="danger">{error.message}</Alert>}
+          {isRejected && <Alert type="danger">{error.message}</Alert>}
         </Box>
       );
     }
@@ -195,13 +197,13 @@ storiesOf('Loads', module)
   .add('with cache & load on mount', () => {
     function Component() {
       const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
-      const { response, error, load, isError, isLoading, isSuccess } = useLoads(getRandomDog, {
+      const { response, error, load, isRejected, isPending, isResolved } = useLoads(getRandomDog, {
         context: 'foo'
       });
       return (
         <Box>
-          {isLoading && <Spinner size="large" />}
-          {isSuccess && (
+          {isPending && <Spinner size="large" />}
+          {isResolved && (
             <Box>
               <Box>
                 <Image src={response.data.message} width="300px" alt="Dog" />
@@ -209,7 +211,7 @@ storiesOf('Loads', module)
               <Button onClick={load}>Load another</Button>
             </Box>
           )}
-          {isError && <Alert type="danger">{error.message}</Alert>}
+          {isRejected && <Alert type="danger">{error.message}</Alert>}
         </Box>
       );
     }
@@ -218,22 +220,22 @@ storiesOf('Loads', module)
   .add('with state components', () => {
     function Component() {
       const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
-      const { response, error, load, Idle, Error, Loading, Success } = useLoads(getRandomDog, { defer: true });
+      const { response, error, load, Idle, Rejected, Pending, Resolved } = useLoads(getRandomDog, { defer: true });
       return (
         <Box>
           <Idle>
             <Button onClick={load}>Load dog</Button>
           </Idle>
-          <Loading>
+          <Pending>
             <Spinner size="large" />
-          </Loading>
-          <Success>
+          </Pending>
+          <Resolved>
             <Box>
               <Box>{response && <Image src={response.data.message} width="300px" alt="Dog" />}</Box>
               <Button onClick={load}>Load another</Button>
             </Box>
-          </Success>
-          <Error>{error && <Alert type="danger">{error.message}</Alert>}</Error>
+          </Resolved>
+          <Rejected>{error && <Alert type="danger">{error.message}</Alert>}</Rejected>
         </Box>
       );
     }
@@ -252,10 +254,10 @@ storiesOf('Loads', module)
           <getRandomDogLoader.Idle>
             <Button onClick={getRandomDogLoader.load}>Load dog</Button>
           </getRandomDogLoader.Idle>
-          <getRandomDogLoader.Loading>
+          <getRandomDogLoader.Pending>
             <Spinner size="large" />
-          </getRandomDogLoader.Loading>
-          <getRandomDogLoader.Success>
+          </getRandomDogLoader.Pending>
+          <getRandomDogLoader.Resolved>
             <Box>
               <Box>
                 {getRandomDogLoader.response && (
@@ -265,19 +267,19 @@ storiesOf('Loads', module)
               <Set>
                 <Button onClick={getRandomDogLoader.load}>Load another</Button>
                 <saveDogLoader.Idle>
-                  <Button isLoading={saveDogLoader.isLoading} onClick={saveDogLoader.load}>
+                  <Button isPending={saveDogLoader.isPending} onClick={saveDogLoader.load}>
                     Save dog
                   </Button>
                 </saveDogLoader.Idle>
               </Set>
-              <saveDogLoader.Success>
+              <saveDogLoader.Resolved>
                 <Box>{saveDogLoader.response}</Box>
-              </saveDogLoader.Success>
+              </saveDogLoader.Resolved>
             </Box>
-          </getRandomDogLoader.Success>
-          <getRandomDogLoader.Error>
+          </getRandomDogLoader.Resolved>
+          <getRandomDogLoader.Rejected>
             {getRandomDogLoader.error && <Alert type="danger">{getRandomDogLoader.error.message}</Alert>}
-          </getRandomDogLoader.Error>
+          </getRandomDogLoader.Rejected>
         </Box>
       );
     }
@@ -288,12 +290,12 @@ storiesOf('Loads', module)
       const [breed, setBreed] = useState('dingo');
 
       const getRandomDogByBreed = () => axios.get(`https://dog.ceo/api/breed/${breed}/images/random`);
-      const { response, error, isError, isLoading, isSuccess } = useLoads(getRandomDogByBreed, {}, [breed]);
+      const { response, error, isRejected, isPending, isResolved } = useLoads(getRandomDogByBreed, {}, [breed]);
 
       return (
         <Box>
-          {isLoading && <Spinner size="large" />}
-          {isSuccess && (
+          {isPending && <Spinner size="large" />}
+          {isResolved && (
             <Box>
               <Box>
                 <Image src={response.data.message} width="300px" alt="Dog" />
@@ -304,7 +306,7 @@ storiesOf('Loads', module)
               </Set>
             </Box>
           )}
-          {isError && <Alert type="danger">{error.message}</Alert>}
+          {isRejected && <Alert type="danger">{error.message}</Alert>}
         </Box>
       );
     }

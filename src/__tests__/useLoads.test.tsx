@@ -21,7 +21,7 @@ describe('states', () => {
       const fn = jest.fn().mockReturnValue(new Promise(res => setTimeout(res, 500)));
       const Component = () => {
         const testLoader = useLoads(fn);
-        return <React.Fragment>{testLoader.isLoading && 'loading'}</React.Fragment>;
+        return <React.Fragment>{testLoader.isPending && 'loading'}</React.Fragment>;
       };
 
       const { container, getByText } = render(<Component />);
@@ -37,7 +37,7 @@ describe('states', () => {
         const testLoader = useLoads(fn, { timeout: 400 });
         return (
           <React.Fragment>
-            {testLoader.isLoading && 'loading'}
+            {testLoader.isPending && 'loading'}
             {testLoader.isTimeout && 'timeout'}
           </React.Fragment>
         );
@@ -58,8 +58,8 @@ describe('states', () => {
         return (
           <React.Fragment>
             {testLoader.isIdle && 'idle'}
-            {testLoader.isLoading && 'loading'}
-            {testLoader.isSuccess && 'success'}
+            {testLoader.isPending && 'loading'}
+            {testLoader.isResolved && 'success'}
           </React.Fragment>
         );
       };
@@ -78,8 +78,8 @@ describe('states', () => {
         return (
           <React.Fragment>
             {testLoader.isIdle && 'idle'}
-            {testLoader.isLoading && 'loading'}
-            {testLoader.isSuccess && 'success'}
+            {testLoader.isPending && 'loading'}
+            {testLoader.isResolved && 'success'}
           </React.Fragment>
         );
       };
@@ -99,8 +99,8 @@ describe('states', () => {
         return (
           <React.Fragment>
             {testLoader.isIdle && 'idle'}
-            {testLoader.isLoading && 'loading'}
-            {testLoader.isError && 'error'}
+            {testLoader.isPending && 'loading'}
+            {testLoader.isRejected && 'error'}
           </React.Fragment>
         );
       };
@@ -122,7 +122,7 @@ describe('states', () => {
         return (
           <React.Fragment>
             <button onClick={testLoader.load}>load</button>
-            {testLoader.isLoading && 'loading'}
+            {testLoader.isPending && 'loading'}
           </React.Fragment>
         );
       };
@@ -143,7 +143,7 @@ describe('states', () => {
         return (
           <React.Fragment>
             <button onClick={testLoader.load}>load</button>
-            {testLoader.isLoading && 'loading'}
+            {testLoader.isPending && 'loading'}
           </React.Fragment>
         );
       };
@@ -163,7 +163,7 @@ describe('states', () => {
         return (
           <React.Fragment>
             <button onClick={testLoader.load}>load</button>
-            {testLoader.isLoading && 'loading'}
+            {testLoader.isPending && 'loading'}
             {testLoader.isTimeout && 'timeout'}
           </React.Fragment>
         );
@@ -187,8 +187,8 @@ describe('states', () => {
           <React.Fragment>
             <button onClick={testLoader.load}>load</button>
             {testLoader.isIdle && 'idle'}
-            {testLoader.isLoading && 'loading'}
-            {testLoader.isSuccess && 'success'}
+            {testLoader.isPending && 'loading'}
+            {testLoader.isResolved && 'success'}
           </React.Fragment>
         );
       };
@@ -211,8 +211,8 @@ describe('states', () => {
           <React.Fragment>
             <button onClick={testLoader.load}>load</button>
             {testLoader.isIdle && 'idle'}
-            {testLoader.isLoading && 'loading'}
-            {testLoader.isSuccess && 'success'}
+            {testLoader.isPending && 'loading'}
+            {testLoader.isResolved && 'success'}
           </React.Fragment>
         );
       };
@@ -236,8 +236,8 @@ describe('states', () => {
           <React.Fragment>
             <button onClick={testLoader.load}>load</button>
             {testLoader.isIdle && 'idle'}
-            {testLoader.isLoading && 'loading'}
-            {testLoader.isError && 'error'}
+            {testLoader.isPending && 'loading'}
+            {testLoader.isRejected && 'error'}
           </React.Fragment>
         );
       };
@@ -264,8 +264,8 @@ describe('context (cache)', () => {
           const testLoader = useLoads(fn, { context: 'foo-success', delay: 0 });
           return (
             <React.Fragment>
-              {testLoader.isLoading && <span>loading</span>}
-              {testLoader.isSuccess && <span>success</span>}
+              {testLoader.isPending && <span>loading</span>}
+              {testLoader.isResolved && <span>success</span>}
               <span>{testLoader.response}</span>
             </React.Fragment>
           );
@@ -285,8 +285,8 @@ describe('context (cache)', () => {
           const testLoader = useLoads(fn, { context: 'foo-success', delay: 0 });
           return (
             <React.Fragment>
-              {testLoader.isLoading && <span>loading</span>}
-              {testLoader.isSuccess && <span>success</span>}
+              {testLoader.isPending && <span>loading</span>}
+              {testLoader.isResolved && <span>success</span>}
               <span>{testLoader.response}</span>
             </React.Fragment>
           );
@@ -307,8 +307,8 @@ describe('context (cache)', () => {
           const testLoader = useLoads(fn, { context: 'foo-error', delay: 0 });
           return (
             <React.Fragment>
-              {testLoader.isLoading && <span>loading</span>}
-              {testLoader.isError && <span>error</span>}
+              {testLoader.isPending && <span>loading</span>}
+              {testLoader.isRejected && <span>error</span>}
               <span>{testLoader.error}</span>
             </React.Fragment>
           );
@@ -329,8 +329,8 @@ describe('context (cache)', () => {
           const testLoader = useLoads(fn, { context: 'foo-error', delay: 0 });
           return (
             <React.Fragment>
-              {testLoader.isLoading && <span>loading</span>}
-              {testLoader.isError && <span>error</span>}
+              {testLoader.isPending && <span>loading</span>}
+              {testLoader.isRejected && <span>error</span>}
               <span>{testLoader.error}</span>
             </React.Fragment>
           );
@@ -354,8 +354,8 @@ describe('context (cache)', () => {
         return (
           <React.Fragment>
             <button onClick={testLoader.load}>load</button>
-            {testLoader.isLoading && <span>loading</span>}
-            {testLoader.isSuccess && <span>success</span>}
+            {testLoader.isPending && <span>loading</span>}
+            {testLoader.isResolved && <span>success</span>}
             <span>{testLoader.response}</span>
           </React.Fragment>
         );
@@ -377,8 +377,8 @@ describe('context (cache)', () => {
         return (
           <React.Fragment>
             <button onClick={testLoader.load}>load</button>
-            {testLoader.isLoading && <span>loading</span>}
-            {testLoader.isSuccess && <span>success</span>}
+            {testLoader.isPending && <span>loading</span>}
+            {testLoader.isResolved && <span>success</span>}
             <span>{testLoader.response}</span>
           </React.Fragment>
         );

@@ -1,6 +1,6 @@
 # React Loads
 
-> A headless React component to handle async data fetching.
+> A React Hook to handle promise state & response data.
 
 ## The problem
 
@@ -13,7 +13,7 @@ There are a few concerns in managing async data fetching manually:
 
 ```jsx
 <Fragment>
-  {isLoading ? (
+  {isPending ? (
     <p>{hasTimedOut ? 'Taking a while...' : 'Loading...'}</p>
   ) : (
     <Fragment>
@@ -54,15 +54,15 @@ React Loads comes with a handy set of features to help solve these concerns:
       - [error](#error)
       - [load](#load-1)
       - [isIdle](#isidle)
-      - [isLoading](#isloading)
+      - [isPending](#ispending)
       - [isTimeout](#istimeout)
-      - [isSuccess](#issuccess)
-      - [isError](#iserror)
+      - [isResolved](#isresolved)
+      - [isRejected](#isrejected)
       - [Idle](#idle)
-      - [Loading](#loading)
+      - [Pending](#pending)
       - [Timeout](#timeout)
-      - [Success](#success)
-      - [Error](#error)
+      - [Resolved](#resolved)
+      - [Rejected](#rejected)
       - [isCached](#iscached)
   - [Caching response data](#caching-response-data)
   - [Articles](#articles)
@@ -89,12 +89,12 @@ import { useLoads } from 'react-loads';
 
 export default function DogApp() {
   const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
-  const { response, error, load, isError, isLoading, isSuccess } = useLoads(getRandomDog);
+  const { response, error, load, isRejected, isPending, isResolved } = useLoads(getRandomDog);
 
   return (
     <div>
-      {isLoading && <div>loading...</div>}
-      {isSuccess && (
+      {isPending && <div>loading...</div>}
+      {isResolved && (
         <div>
           <div>
             <img src={response.data.message} width="300px" alt="Dog" />
@@ -102,7 +102,7 @@ export default function DogApp() {
           <button onClick={load}>Load another</button>
         </div>
       )}
-      {isError && <div type="danger">{error.message}</div>}
+      {isRejected && <div type="danger">{error.message}</div>}
     </div>
   );
 }
@@ -120,27 +120,27 @@ import { useLoads } from 'react-loads';
 
 export default function DogApp() {
   const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
-  const { response, error, load, Loading, Success, Error } = useLoads(getRandomDog);
+  const { response, error, load, Pending, Resolved, Rejected } = useLoads(getRandomDog);
 
   return (
     <div>
-      <Loading>
+      <Pending>
         <div>loading...</div>
-      </Loading>
-      <Success>
+      </Pending>
+      <Resolved>
         <div>
           <div>
             {response && <img src={response.data.message} width="300px" alt="Dog" />}
           </div>
           <button onClick={load}>Load another</button>
         </div>
-      </Success>
+      </Resolved>
       <Error>
         <div type="danger">{error.message}</div>
       </Error>
-      <Success or={[Loading, Error]}>
-        This will show when the state is loading, success or error.
-      </Success>
+      <Resolved or={[Pending, Rejected]}>
+        This will show when the state is pending, resolved or rejected.
+      </Resolved>
     </div>
   );
 }
@@ -175,24 +175,24 @@ Example:
 
 ```jsx
 const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
-const { response, error, load, Loading, Success, Error } = useLoads(getRandomDog, { defer: true });
+const { response, error, load, Pending, Resolved, Rejected } = useLoads(getRandomDog, { defer: true });
 
 return (
   <div>
     <Idle>
       <button onClick={load}>Load dog</button>
     </Idle>
-    <Loading>
+    <Pending>
       <div>loading...</div>
-    </Loading>
-    <Success>
+    </Pending>
+    <Resolved>
       <div>
         <div>
           {response && <img src={response.data.message} width="300px" alt="Dog" />}
         </div>
         <button onClick={load}>Load another</button>
       </div>
-    </Success>
+    </Resolved>
   </div>
 );
 ```
@@ -201,7 +201,7 @@ return (
 
 > `number` | default: `300`
 
-Number of milliseconds before the component transitions to the `'loading'` state upon invoking `load`.
+Number of milliseconds before the component transitions to the `'pending'` state upon invoking `load`.
 
 #### context
 
@@ -233,7 +233,7 @@ A load policy allows you to specify whether or not you want your data to be reso
 
 > `boolean` | default: `false`
 
-If true and the data is in cache, `isIdle`, `isLoading` and `isTimeout` will be evaluated on subsequent loads. When `false` (default), these states are only evaluated on initial load and are falsy on subsequent loads - this is helpful if you want to show the cached response and not have a idle/loading/timeout indicator when `load` is invoked again. You must have a `context` set to enable background states as it only effects data in the cache.
+If true and the data is in cache, `isIdle`, `isPending` and `isTimeout` will be evaluated on subsequent loads. When `false` (default), these states are only evaluated on initial load and are falsy on subsequent loads - this is helpful if you want to show the cached response and not have a idle/pending/timeout indicator when `load` is invoked again. You must have a `context` set to enable background states as it only effects data in the cache.
 
 ### inputs
 
@@ -243,24 +243,24 @@ You can optionally pass an array of `inputs` (or an empty array), which `useLoad
 
 ```jsx
 const getRandomDog = () => axios.get(`https://dog.ceo/api/breeds/image/${props.id}`);
-const { response, error, load, Loading, Success, Error } = useLoads(getRandomDog, {}, [props.id]);
+const { response, error, load, Pending, Resolved, Rejected } = useLoads(getRandomDog, {}, [props.id]);
 
 return (
   <div>
     <Idle>
       <button onClick={load}>Load dog</button>
     </Idle>
-    <Loading>
+    <Pending>
       <div>loading...</div>
-    </Loading>
-    <Success>
+    </Pending>
+    <Resolved>
       <div>
         <div>
           {response && <img src={response.data.message} width="300px" alt="Dog" />}
         </div>
         <button onClick={load}>Load another</button>
       </div>
-    </Success>
+    </Resolved>
   </div>
 );
 ```
@@ -291,11 +291,11 @@ Trigger to invoke [`load`](#load).
 
 Returns `true` if the state is idle (`load` has not been triggered).
 
-#### isLoading
+#### isPending
 
 > `boolean`
 
-Returns `true` if the state is loading (`load` is in a pending state).
+Returns `true` if the state is pending (`load` is in a pending state).
 
 #### isTimeout
 
@@ -303,17 +303,17 @@ Returns `true` if the state is loading (`load` is in a pending state).
 
 Returns `true` if the state is timeout (`load` is in a pending state for longer than `delay` milliseconds).
 
-#### isSuccess
+#### isResolved
 
 > `boolean`
 
-Returns `true` if the state is success (`load` has been resolved).
+Returns `true` if the state is resolved (`load` has been resolved).
 
-#### isError
+#### isRejected
 
 > `boolean`
 
-Returns `true` if the state is error (`load` has been rejected).
+Returns `true` if the state is rejected (`load` has been rejected).
 
 #### Idle
 
@@ -323,11 +323,11 @@ Renders it's children when the state is idle.
 
 [See here for an example](#usage-with-state-components)
 
-#### Loading
+#### Pending
 
 > `ReactComponent`
 
-Renders it's children when the state is loading.
+Renders it's children when the state is pending.
 
 [See here for an example](#usage-with-state-components)
 
@@ -339,19 +339,19 @@ Renders it's children when the state is timeout.
 
 [See here for an example](#usage-with-state-components)
 
-#### Success
+#### Resolved
 
 > `ReactComponent`
 
-Renders it's children when the state is success.
+Renders it's children when the state is resolved.
 
 [See here for an example](#usage-with-state-components)
 
-#### Error
+#### Rejected
 
 > `ReactComponent`
 
-Renders it's children when the state is error.
+Renders it's children when the state is rejected.
 
 [See here for an example](#usage-with-state-components)
 
@@ -371,27 +371,24 @@ import { useLoads } from 'react-loads';
 
 export default function DogApp() {
   const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
-  const { response, error, load, Loading, Success, Error } = useLoads(getRandomDog, { context: 'random-dog' });
+  const { response, error, load, Pending, Resolved, Rejected } = useLoads(getRandomDog, { context: 'random-dog' });
 
   return (
     <div>
-      <Loading>
+      <Pending>
         <div>loading...</div>
-      </Loading>
-      <Success>
+      </Pending>
+      <Resolved>
         <div>
           <div>
             {response && <img src={response.data.message} width="300px" alt="Dog" />}
           </div>
           <button onClick={load}>Load another</button>
         </div>
-      </Success>
+      </Resolved>
       <Error>
         <div type="danger">{error.message}</div>
       </Error>
-      <Success or={[Loading, Error]}>
-        This will show when the state is loading, success or error.
-      </Success>
     </div>
   );
 }
