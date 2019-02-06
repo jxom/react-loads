@@ -135,9 +135,9 @@ export default function DogApp() {
           <button onClick={load}>Load another</button>
         </div>
       </Resolved>
-      <Error>
+      <Rejected>
         <div type="danger">{error.message}</div>
-      </Error>
+      </Rejected>
       <Resolved or={[Pending, Rejected]}>
         This will show when the state is pending, resolved or rejected.
       </Resolved>
