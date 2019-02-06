@@ -158,31 +158,31 @@ exports[`states with deferred load renders timeout indicator correctly 1`] = `
 </div>
 `;
 
-exports[`states with load on mount renders error correctly when the function rejects after 500ms 1`] = `
+exports[`states with load on initial render renders error correctly when the function rejects after 500ms 1`] = `
 <div>
   error
 </div>
 `;
 
-exports[`states with load on mount renders loading indicator correctly (default delay) 1`] = `
+exports[`states with load on initial render renders loading indicator correctly (default delay) 1`] = `
 <div>
   loading
 </div>
 `;
 
-exports[`states with load on mount renders success correctly when the function has been resolved 1`] = `
+exports[`states with load on initial render renders success correctly when the function has been resolved 1`] = `
 <div>
   success
 </div>
 `;
 
-exports[`states with load on mount renders success correctly when the function resolves after 500ms 1`] = `
+exports[`states with load on initial render renders success correctly when the function resolves after 500ms 1`] = `
 <div>
   success
 </div>
 `;
 
-exports[`states with load on mount renders timeout indicator correctly 1`] = `
+exports[`states with load on initial render renders timeout indicator correctly 1`] = `
 <div>
   timeout
 </div>

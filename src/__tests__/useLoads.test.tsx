@@ -6,7 +6,7 @@ describe('states', () => {
   it('renders idle correctly the loading function has not been invoked', () => {
     const fn = jest.fn().mockReturnValue(new Promise(res => setTimeout(res, 500)));
     const Component = () => {
-      const testLoader = useLoads(fn);
+      const testLoader = useLoads(fn, { defer: true });
       return <React.Fragment>{testLoader.isIdle && 'idle'}</React.Fragment>;
     };
 
@@ -16,11 +16,11 @@ describe('states', () => {
     expect(container).toMatchSnapshot();
   });
 
-  describe('with load on mount', () => {
+  describe('with load on initial render', () => {
     it('renders loading indicator correctly (default delay)', async () => {
       const fn = jest.fn().mockReturnValue(new Promise(res => setTimeout(res, 500)));
       const Component = () => {
-        const testLoader = useLoads(fn, { loadOnMount: true });
+        const testLoader = useLoads(fn);
         return <React.Fragment>{testLoader.isLoading && 'loading'}</React.Fragment>;
       };
 
@@ -34,7 +34,7 @@ describe('states', () => {
     it('renders timeout indicator correctly', async () => {
       const fn = jest.fn().mockReturnValue(new Promise(res => setTimeout(res, 500)));
       const Component = () => {
-        const testLoader = useLoads(fn, { loadOnMount: true, timeout: 400 });
+        const testLoader = useLoads(fn, { timeout: 400 });
         return (
           <React.Fragment>
             {testLoader.isLoading && 'loading'}
@@ -54,7 +54,7 @@ describe('states', () => {
     it('renders success correctly when the function has been resolved', async () => {
       const fn = jest.fn().mockReturnValue(new Promise(res => res()));
       const Component = () => {
-        const testLoader = useLoads(fn, { loadOnMount: true });
+        const testLoader = useLoads(fn);
         return (
           <React.Fragment>
             {testLoader.isIdle && 'idle'}
@@ -74,7 +74,7 @@ describe('states', () => {
     it('renders success correctly when the function resolves after 500ms', async () => {
       const fn = jest.fn().mockReturnValue(new Promise(res => setTimeout(res, 500)));
       const Component = () => {
-        const testLoader = useLoads(fn, { loadOnMount: true });
+        const testLoader = useLoads(fn);
         return (
           <React.Fragment>
             {testLoader.isIdle && 'idle'}
@@ -95,7 +95,7 @@ describe('states', () => {
     it('renders error correctly when the function rejects after 500ms', async () => {
       const fn = jest.fn().mockReturnValue(new Promise((res, rej) => setTimeout(rej, 500)));
       const Component = () => {
-        const testLoader = useLoads(fn, { loadOnMount: true });
+        const testLoader = useLoads(fn);
         return (
           <React.Fragment>
             {testLoader.isIdle && 'idle'}
@@ -118,7 +118,7 @@ describe('states', () => {
     it('renders loading indicator correctly (default delay)', async () => {
       const fn = jest.fn().mockReturnValue(new Promise(res => setTimeout(res, 500)));
       const Component = () => {
-        const testLoader = useLoads(fn);
+        const testLoader = useLoads(fn, { defer: true });
         return (
           <React.Fragment>
             <button onClick={testLoader.load}>load</button>
@@ -139,7 +139,7 @@ describe('states', () => {
     it('renders loading indicator correctly (delay = 0)', async () => {
       const fn = jest.fn().mockReturnValue(new Promise(res => res()));
       const Component = () => {
-        const testLoader = useLoads(fn);
+        const testLoader = useLoads(fn, { defer: true });
         return (
           <React.Fragment>
             <button onClick={testLoader.load}>load</button>
@@ -159,7 +159,7 @@ describe('states', () => {
     it('renders timeout indicator correctly', async () => {
       const fn = jest.fn().mockReturnValue(new Promise(res => setTimeout(res, 500)));
       const Component = () => {
-        const testLoader = useLoads(fn, { timeout: 400 });
+        const testLoader = useLoads(fn, { defer: true, timeout: 400 });
         return (
           <React.Fragment>
             <button onClick={testLoader.load}>load</button>
@@ -182,7 +182,7 @@ describe('states', () => {
     it('renders success correctly when the function has been resolved', async () => {
       const fn = jest.fn().mockReturnValue(new Promise(res => res()));
       const Component = () => {
-        const testLoader = useLoads(fn);
+        const testLoader = useLoads(fn, { defer: true });
         return (
           <React.Fragment>
             <button onClick={testLoader.load}>load</button>
@@ -206,7 +206,7 @@ describe('states', () => {
     it('renders success correctly when the function resolves after 500ms', async () => {
       const fn = jest.fn().mockReturnValue(new Promise(res => setTimeout(res, 500)));
       const Component = () => {
-        const testLoader = useLoads(fn);
+        const testLoader = useLoads(fn, { defer: true });
         return (
           <React.Fragment>
             <button onClick={testLoader.load}>load</button>
@@ -231,7 +231,7 @@ describe('states', () => {
     it('renders error correctly when the function rejects after 500ms', async () => {
       const fn = jest.fn().mockReturnValue(new Promise((res, rej) => setTimeout(rej, 500)));
       const Component = () => {
-        const testLoader = useLoads(fn);
+        const testLoader = useLoads(fn, { defer: true });
         return (
           <React.Fragment>
             <button onClick={testLoader.load}>load</button>
@@ -261,7 +261,7 @@ describe('context (cache)', () => {
       it('initially renders & caches data correctly', async () => {
         const fn = jest.fn().mockReturnValue(new Promise(res => setTimeout(() => res('mockData'), 50)));
         const Component = () => {
-          const testLoader = useLoads(fn, { context: 'foo-success', delay: 0, loadOnMount: true });
+          const testLoader = useLoads(fn, { context: 'foo-success', delay: 0 });
           return (
             <React.Fragment>
               {testLoader.isLoading && <span>loading</span>}
@@ -282,7 +282,7 @@ describe('context (cache)', () => {
       it('renders the cached data correctly on subsequent load', async () => {
         const fn = jest.fn().mockReturnValue(new Promise(res => setTimeout(() => res('mockData'), 50)));
         const Component = () => {
-          const testLoader = useLoads(fn, { context: 'foo-success', delay: 0, loadOnMount: true });
+          const testLoader = useLoads(fn, { context: 'foo-success', delay: 0 });
           return (
             <React.Fragment>
               {testLoader.isLoading && <span>loading</span>}
@@ -304,12 +304,12 @@ describe('context (cache)', () => {
       it('initially renders & caches data correctly', async () => {
         const fn = jest.fn().mockReturnValue(new Promise((res, rej) => setTimeout(() => rej('mockError'), 50)));
         const Component = () => {
-          const testLoader = useLoads(fn, { context: 'foo-error', delay: 0, loadOnMount: true });
+          const testLoader = useLoads(fn, { context: 'foo-error', delay: 0 });
           return (
             <React.Fragment>
               {testLoader.isLoading && <span>loading</span>}
               {testLoader.isError && <span>error</span>}
-              <span>{testLoader.response}</span>
+              <span>{testLoader.error}</span>
             </React.Fragment>
           );
         };
@@ -318,19 +318,20 @@ describe('context (cache)', () => {
 
         await waitForElement(() => getByText('loading'));
         await waitForElement(() => getByText('error'));
+        await waitForElement(() => getByText('mockError'));
         expect(fn).toBeCalledTimes(1);
         expect(container).toMatchSnapshot();
       });
 
       it('renders the cached data correctly on subsequent load', async () => {
-        const fn = jest.fn().mockReturnValue(new Promise(res => setTimeout(() => res('mockData'), 50)));
+        const fn = jest.fn().mockReturnValue(new Promise((res, rej) => setTimeout(() => rej('mockData'), 50)));
         const Component = () => {
-          const testLoader = useLoads(fn, { context: 'foo-error', delay: 0, loadOnMount: true });
+          const testLoader = useLoads(fn, { context: 'foo-error', delay: 0 });
           return (
             <React.Fragment>
               {testLoader.isLoading && <span>loading</span>}
               {testLoader.isError && <span>error</span>}
-              <span>{testLoader.response}</span>
+              <span>{testLoader.error}</span>
             </React.Fragment>
           );
         };
@@ -339,6 +340,7 @@ describe('context (cache)', () => {
 
         expect(fn).toBeCalledTimes(0);
         await waitForElement(() => getByText('error'));
+        await waitForElement(() => getByText('mockError'));
         expect(container).toMatchSnapshot();
       });
     });
@@ -348,7 +350,7 @@ describe('context (cache)', () => {
     it('initially renders & caches data correctly', async () => {
       const fn = jest.fn().mockReturnValue(new Promise(res => setTimeout(() => res('mockData'), 50)));
       const Component = () => {
-        const testLoader = useLoads(fn, { context: 'bar', delay: 0 });
+        const testLoader = useLoads(fn, { defer: true, context: 'bar', delay: 0 });
         return (
           <React.Fragment>
             <button onClick={testLoader.load}>load</button>
@@ -371,7 +373,7 @@ describe('context (cache)', () => {
     it('renders the cached data correctly on subsequent load', async () => {
       const fn = jest.fn().mockReturnValue(new Promise(res => setTimeout(() => res('mockData'), 50)));
       const Component = () => {
-        const testLoader = useLoads(fn, { context: 'bar', delay: 0, loadOnMount: true });
+        const testLoader = useLoads(fn, { defer: true, context: 'bar', delay: 0 });
         return (
           <React.Fragment>
             <button onClick={testLoader.load}>load</button>

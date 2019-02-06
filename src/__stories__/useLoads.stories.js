@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
 import { Alert, Box, Button, Image, Set, Spinner } from 'fannypack';
 
@@ -10,7 +10,7 @@ storiesOf('Loads', module)
   .add('load on mount', () => {
     function Component() {
       const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
-      const { response, error, load, isError, isLoading, isSuccess } = useLoads(getRandomDog, { loadOnMount: true });
+      const { response, error, load, isError, isLoading, isSuccess } = useLoads(getRandomDog);
       return (
         <Box>
           {isLoading && <Spinner size="large" />}
@@ -31,7 +31,7 @@ storiesOf('Loads', module)
   .add('with deferred load', () => {
     function Component() {
       const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
-      const { response, error, load, isIdle, isError, isLoading, isSuccess } = useLoads(getRandomDog);
+      const { response, error, load, isIdle, isError, isLoading, isSuccess } = useLoads(getRandomDog, { defer: true });
       return (
         <Box>
           {isIdle && <Button onClick={load}>Load dog</Button>}
@@ -53,7 +53,10 @@ storiesOf('Loads', module)
   .add('custom delay', () => {
     function Component() {
       const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
-      const { response, error, load, isIdle, isError, isLoading, isSuccess } = useLoads(getRandomDog, { delay: 1000 });
+      const { response, error, load, isIdle, isError, isLoading, isSuccess } = useLoads(getRandomDog, {
+        defer: true,
+        delay: 1000
+      });
       return (
         <Box>
           {isIdle && <Button onClick={load}>Load dog</Button>}
@@ -75,7 +78,10 @@ storiesOf('Loads', module)
   .add('no delay', () => {
     function Component() {
       const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
-      const { response, error, load, isIdle, isError, isLoading, isSuccess } = useLoads(getRandomDog, { delay: 0 });
+      const { response, error, load, isIdle, isError, isLoading, isSuccess } = useLoads(getRandomDog, {
+        defer: true,
+        delay: 0
+      });
       return (
         <Box>
           {isIdle && <Button onClick={load}>Load dog</Button>}
@@ -97,7 +103,10 @@ storiesOf('Loads', module)
   .add('with error', () => {
     function Component() {
       const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/bla');
-      const { response, error, load, isIdle, isError, isLoading, isSuccess } = useLoads(getRandomDog, { delay: 1000 });
+      const { response, error, load, isIdle, isError, isLoading, isSuccess } = useLoads(getRandomDog, {
+        defer: true,
+        delay: 1000
+      });
       return (
         <Box>
           {isIdle && <Button onClick={load}>Load dog</Button>}
@@ -120,6 +129,7 @@ storiesOf('Loads', module)
     function Component() {
       const fn = () => new Promise(res => setTimeout(() => res('this is data'), 2000));
       const { response, load, isIdle, isTimeout, isLoading, isSuccess } = useLoads(fn, {
+        defer: true,
         timeout: 1000
       });
       return (
@@ -136,7 +146,9 @@ storiesOf('Loads', module)
   .add('with function arguments', () => {
     function Component() {
       const getRandomDogByBreed = breed => axios.get(`https://dog.ceo/api/breed/${breed}/images/random`);
-      const { response, error, load, isIdle, isError, isLoading, isSuccess } = useLoads(getRandomDogByBreed);
+      const { response, error, load, isIdle, isError, isLoading, isSuccess } = useLoads(getRandomDogByBreed, {
+        defer: true
+      });
       return (
         <Box>
           {isIdle && <Button onClick={() => load('beagle')}>Load beagle</Button>}
@@ -159,7 +171,8 @@ storiesOf('Loads', module)
     function Component() {
       const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
       const { response, error, load, isIdle, isError, isLoading, isSuccess } = useLoads(getRandomDog, {
-        context: 'foo'
+        context: 'foo',
+        defer: true
       });
       return (
         <Box>
@@ -183,8 +196,7 @@ storiesOf('Loads', module)
     function Component() {
       const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
       const { response, error, load, isError, isLoading, isSuccess } = useLoads(getRandomDog, {
-        context: 'foo',
-        loadOnMount: true
+        context: 'foo'
       });
       return (
         <Box>
@@ -206,7 +218,7 @@ storiesOf('Loads', module)
   .add('with state components', () => {
     function Component() {
       const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
-      const { response, error, load, Idle, Error, Loading, Success } = useLoads(getRandomDog);
+      const { response, error, load, Idle, Error, Loading, Success } = useLoads(getRandomDog, { defer: true });
       return (
         <Box>
           <Idle>
@@ -230,7 +242,7 @@ storiesOf('Loads', module)
   .add('with dependant useLoads', () => {
     function Component() {
       const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
-      const getRandomDogLoader = useLoads(getRandomDog);
+      const getRandomDogLoader = useLoads(getRandomDog, { defer: true });
 
       const saveDog = async () => new Promise(res => res(`Saved. Image: ${getRandomDogLoader.response.data.message}`));
       const saveDogLoader = useLoads(saveDog);
@@ -266,6 +278,33 @@ storiesOf('Loads', module)
           <getRandomDogLoader.Error>
             {getRandomDogLoader.error && <Alert type="danger">{getRandomDogLoader.error.message}</Alert>}
           </getRandomDogLoader.Error>
+        </Box>
+      );
+    }
+    return <Component />;
+  })
+  .add('with inputs', () => {
+    function Component() {
+      const [breed, setBreed] = useState('dingo');
+
+      const getRandomDogByBreed = () => axios.get(`https://dog.ceo/api/breed/${breed}/images/random`);
+      const { response, error, isError, isLoading, isSuccess } = useLoads(getRandomDogByBreed, {}, [breed]);
+
+      return (
+        <Box>
+          {isLoading && <Spinner size="large" />}
+          {isSuccess && (
+            <Box>
+              <Box>
+                <Image src={response.data.message} width="300px" alt="Dog" />
+              </Box>
+              <Set>
+                <Button onClick={() => setBreed('beagle')}>Set to beagle</Button>
+                <Button onClick={() => setBreed('dingo')}>Set to dingo</Button>
+              </Set>
+            </Box>
+          )}
+          {isError && <Alert type="danger">{error.message}</Alert>}
         </Box>
       );
     }

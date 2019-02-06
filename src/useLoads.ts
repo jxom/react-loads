@@ -10,7 +10,7 @@ type LoadsConfig = {
   context?: string;
   delay?: number;
   enableBackgroundStates?: boolean;
-  loadOnMount?: boolean;
+  defer?: boolean;
   loadPolicy?: 'cache-first' | 'cache-and-load' | 'load-only';
   timeout?: number;
 };
@@ -51,7 +51,7 @@ export default function useLoads(
     context,
     delay = 300,
     enableBackgroundStates = false,
-    loadOnMount = false,
+    defer = false,
     loadPolicy = 'cache-and-load',
     timeout = 0
   }: LoadsConfig = {},
@@ -112,11 +112,10 @@ export default function useLoads(
 
   React.useEffect(
     () => {
-      if (loadOnMount || inputs.length > 0) {
-        load();
-      }
+      if (defer) return;
+      load();
     },
-    [loadOnMount, context, ...inputs]
+    [defer, context, ...inputs]
   );
 
   const renderStates = {
