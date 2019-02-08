@@ -29,6 +29,15 @@ There are a few concerns in managing async data fetching manually:
 
 React Loads comes with a handy set of features to help solve these concerns:
 
+- Manage your async data & states with a declarative syntax with [React Hooks](#children-render-props)
+- Predictable outcomes with deterministic [state variables](#isidle) or [state components](#usage-with-state-components) to avoid messy state ternaries
+- Invoke your loading function **on initial render** and/or [on demand](#defer)
+- Pass any type of promise to your [loading function](#load)
+- Add a [delay](#delay) to prevent flashes of loading **state**
+- Add a [timeout](#timeout) to provide feedback when your loading function is taking a while to resolve
+- [Data caching](#caching-response-data) enabled by default to maximise user experience between page transitions
+- Tell Loads [how to load](#loadpolicy) your data from the cache to prevent unnessessary invocations
+
 ## Table of contents
 
 - [React Loads](#react-loads)
@@ -142,9 +151,9 @@ export default function DogApp() {
           <button onClick={load}>Load another</button>
         </div>
       </Resolved>
-      <Error>
+      <Rejected>
         <div type="danger">{error.message}</div>
-      </Error>
+      </Rejected>
       <Resolved or={[Pending, Rejected]}>
         This will show when the state is pending, resolved or rejected.
       </Resolved>
@@ -409,9 +418,9 @@ export default function DogApp() {
           <button onClick={load}>Load another</button>
         </div>
       </Resolved>
-      <Error>
+      <Rejected>
         <div type="danger">{error.message}</div>
-      </Error>
+      </Rejected>
     </div>
   );
 }
