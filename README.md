@@ -37,6 +37,7 @@ React Loads comes with a handy set of features to help solve these concerns:
 - Add a [timeout](#timeout) to provide feedback when your loading function is taking a while to resolve
 - [Data caching](#caching-response-data) enabled by default to maximise user experience between page transitions
 - Tell Loads [how to load](#loadpolicy) your data from the cache to prevent unnessessary invocations
+- [External cache](#external-cache) support to enable something like local storage caching
 
 ## Table of contents
 
