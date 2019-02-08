@@ -4,7 +4,7 @@ import { Alert, Box, Button, Image, Set, Spinner } from 'fannypack';
 
 import { storiesOf } from '@storybook/react';
 
-import { useLoads } from '../index';
+import { useLoads, setCacheProvider } from '../index';
 
 storiesOf('Loads', module)
   .add('load on mount', () => {

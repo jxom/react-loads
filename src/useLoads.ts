@@ -1,23 +1,10 @@
 import * as React from 'react';
-// @ts-ignore
-import { LRUMap } from 'lru_map';
 import useDetectMounted from './hooks/useDetectMounted';
 import useTimeout from './hooks/useTimeout';
 import StateComponent from './StateComponent';
+import cache from './cache';
+import { LoadsConfig, LoadFunction, LoadingState, Record } from './types';
 
-type Record = { error?: any; response?: any; isCached?: boolean; state: LoadingState };
-type LoadsConfig = {
-  context?: string;
-  delay?: number;
-  enableBackgroundStates?: boolean;
-  defer?: boolean;
-  loadPolicy?: 'cache-first' | 'cache-and-load' | 'load-only';
-  timeout?: number;
-};
-type LoadFunction = (opts?: any) => Promise<any>;
-type LoadingState = 'idle' | 'pending' | 'timeout' | 'resolved' | 'rejected';
-
-const CACHE_LIMIT = 500;
 const STATES: { [key: string]: LoadingState } = {
   IDLE: 'idle',
   PENDING: 'pending',
@@ -25,8 +12,6 @@ const STATES: { [key: string]: LoadingState } = {
   RESOLVED: 'resolved',
   REJECTED: 'rejected'
 };
-
-const cache = new LRUMap<string, Record>(CACHE_LIMIT);
 
 function reducer(state: Record, action: { type: LoadingState; isCached?: boolean; response?: any; error?: any }) {
   switch (action.type) {
@@ -48,6 +33,7 @@ function reducer(state: Record, action: { type: LoadingState; isCached?: boolean
 export default function useLoads(
   fn: LoadFunction,
   {
+    cacheProvider,
     context,
     delay = 300,
     enableBackgroundStates = false,
@@ -77,7 +63,7 @@ export default function useLoads(
       });
       if (context) {
         const record = { error: data.error, response: data.response, state };
-        cache.set(context, record);
+        cache.set(context, record, { cacheProvider });
       }
     }
   }
@@ -86,7 +72,7 @@ export default function useLoads(
 
     let cachedRecord;
     if (context && loadPolicy !== 'load-only') {
-      cachedRecord = cache.get(context);
+      cachedRecord = cache.get(context, { cacheProvider });
       if (cachedRecord) {
         dispatch({ type: cachedRecord.state, isCached: true, ...cachedRecord });
         if (loadPolicy === 'cache-first') return;

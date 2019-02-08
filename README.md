@@ -48,6 +48,7 @@ React Loads comes with a handy set of features to help solve these concerns:
       - [timeout](#timeout)
       - [loadPolicy](#loadpolicy)
       - [enableBackgroundStates](#enablebackgroundstates)
+      - [cacheProvider](#cacheprovider)
     - [inputs](#inputs)
     - [`loader`](#loader)
       - [response](#response)
@@ -64,7 +65,13 @@ React Loads comes with a handy set of features to help solve these concerns:
       - [Resolved](#resolved)
       - [Rejected](#rejected)
       - [isCached](#iscached)
+  - [`setCacheProvider(cacheProvider)`](#setcacheprovidercacheprovider)
+    - [cacheProvider](#cacheprovider-1)
   - [Caching response data](#caching-response-data)
+    - [Basic cache](#basic-cache)
+    - [External cache](#external-cache)
+      - [Global cache provider](#global-cache-provider)
+      - [Local cache provider](#local-cache-provider)
   - [Articles](#articles)
   - [Happy customers](#happy-customers)
   - [License](#license)
@@ -235,6 +242,12 @@ A load policy allows you to specify whether or not you want your data to be reso
 
 If true and the data is in cache, `isIdle`, `isPending` and `isTimeout` will be evaluated on subsequent loads. When `false` (default), these states are only evaluated on initial load and are falsy on subsequent loads - this is helpful if you want to show the cached response and not have a idle/pending/timeout indicator when `load` is invoked again. You must have a `context` set to enable background states as it only effects data in the cache.
 
+#### cacheProvider
+
+> `Object({ get: function(key), set: function(key, val) })`
+
+Set a custom cache provider (e.g. local storage, session storate, etc). See [external cache](#external-cache) below for an example.
+
 ### inputs
 
 > `Array<any>`
@@ -361,7 +374,17 @@ Renders it's children when the state is rejected.
 
 Returns `true` if data exists in the cache.
 
+## `setCacheProvider(cacheProvider)`
+
+### cacheProvider
+
+> `Object({ get: function(key), set: function(key, val) })`
+
+Set a custom cache provider (e.g. local storage, session storate, etc). See [external cache](#external-cache) below for an example.
+
 ## Caching response data
+
+### Basic cache
 
 React Loads has the ability to cache the response and error data. The cached data will persist while the application is mounted, however, will clear when the application is unmounted (on page refresh or window close). Here is an example to use it:
 
@@ -372,6 +395,70 @@ import { useLoads } from 'react-loads';
 export default function DogApp() {
   const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
   const { response, error, load, Pending, Resolved, Rejected } = useLoads(getRandomDog, { context: 'random-dog' });
+
+  return (
+    <div>
+      <Pending>
+        <div>loading...</div>
+      </Pending>
+      <Resolved>
+        <div>
+          <div>
+            {response && <img src={response.data.message} width="300px" alt="Dog" />}
+          </div>
+          <button onClick={load}>Load another</button>
+        </div>
+      </Resolved>
+      <Error>
+        <div type="danger">{error.message}</div>
+      </Error>
+    </div>
+  );
+}
+```
+
+### External cache
+
+#### Global cache provider
+
+If you would like the ability to persist response data upon unmounting the application (e.g. page refresh or closing window), a cache provider can also be utilised to cache response data.
+
+Here is an example using [Store.js](https://github.com/marcuswestin/store.js/) and setting the cache provider on an application level using `setCacheProvider`. If you would like to set a cache provider on a hooks level with `useLoads`, see [Local cache provider](#local-cache-provider).
+
+`index.js`
+```jsx
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { setCacheProvider } from 'react-loads';
+
+const cacheProvider = {
+  get: key => store.get(key),
+  set: (key, val) => store.set(key, val)
+}
+setCacheProvider(cacheProvider);
+
+ReactDOM.render(/* Your app here */)
+```
+
+#### Local cache provider
+
+A cache provider can also be specified on a component level with `useLoads`. If a `cacheProvider` is provided to `useLoads`, it will override the global cache provider if one is already set.
+
+```jsx
+import React from 'react';
+import { useLoads } from 'react-loads';
+
+const cacheProvider = {
+  get: key => store.get(key),
+  set: (key, val) => store.set(key, val)
+}
+
+export default function DogApp() {
+  const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
+  const { response, error, load, Pending, Resolved, Rejected } = useLoads(getRandomDog, {
+    cacheProvider,
+    context: 'random-dog'
+  });
 
   return (
     <div>
