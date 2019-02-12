@@ -54,6 +54,7 @@ React Loads comes with a handy set of features to help solve these concerns:
   - [Usage](#usage)
     - [Usage with state components](#usage-with-state-components)
     - [Usage with instances](#usage-with-instances)
+    - [Usage with hooks](#usage-with-hooks)
     - [More examples](#more-examples)
   - [`<Loads>` Props](#loads-props)
     - [load](#load)
@@ -199,6 +200,10 @@ export default () => {
   );
 }
 ```
+
+### Usage with hooks
+
+Hooks are coming soon! But you can check out the [`next` branch](https://github.com/jxom/react-loads/tree/next) if you're eager to use it.
 
 ### More examples
 
