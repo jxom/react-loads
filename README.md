@@ -2,8 +2,6 @@
 
 > A React Hook to handle promise state & response data.
 
-**Check out the [`next` branch](https://github.com/jxom/react-loads/tree/next) for a React Hooks version of React Loads**
-
 ## The problem
 
 There are a few concerns in managing async data fetching manually:
@@ -102,16 +100,18 @@ React Loads comes with a handy set of features to help solve these concerns:
 ## Installation
 
 ```
-npm install react-loads@next --save
+npm install react-loads --save
 ```
 
 or install with [Yarn](https://yarnpkg.com) if you prefer:
 
 ```
-yarn add react-loads@next
+yarn add react-loads
 ```
 
 ## Usage
+
+**Important note: In v7, React Loads is a [React Hook](https://reactjs.org/docs/hooks-intro.html), meaning you can only use `useLoads` inside a function component. If you want to use React Loads in a class component, read [Compatibility with class components](#compatibility-with-class-components)**
 
 ```jsx
 import React from 'react';
@@ -654,6 +654,17 @@ export default function DogApp() {
   );
 }
 ```
+
+## Compatibility with class components
+
+React Loads v7 is a [React Hook](https://reactjs.org/docs/hooks-intro.html) that can only be used inside function components. If you need to use React Loads inside class components, you can do one of the following:
+
+- If you **don't want to use React Hooks** and still wish use React Loads inside class (and/or function) components, then check out the [v6 docs](https://github.com/jxom/react-loads/tree/v6). 
+
+- If you have **React Loads v6 installed**, and **want to use React Loads v7** (for hook support), you can install v7 with `yarn add react-loads-hook` and import it accordingly.
+
+- If you have **React Loads v7 installed**, and also **want to use React Loads v6** (for class component support), you can install v6 with `yarn add react-loads-legacy` and import it accordingly.
+
 
 ## Articles
 
