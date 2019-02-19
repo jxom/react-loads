@@ -311,4 +311,72 @@ storiesOf('Loads', module)
       );
     }
     return <Component />;
+  })
+  .add('with optimistic response', () => {
+    function Component() {
+      const getRandomDog = ({ setResponse }) => {
+        // Update response in the current context
+        setResponse({
+          data: { message: 'https://images.dog.ceo/breeds/doberman/n02107142_17147.jpg' }
+        });
+
+        // Update response in the 'foo' context
+        setResponse(
+          {
+            data: { message: 'https://images.dog.ceo/breeds/doberman/n02107142_17147.jpg' }
+          },
+          { context: 'foo' }
+        );
+
+        return axios.get('https://dog.ceo/api/breeds/image/random');
+      };
+      const { response, error, load, isRejected, isPending, isResolved } = useLoads(getRandomDog);
+
+      const getRandomDoberman = () => {
+        return axios.get('https://dog.ceo/api/breed/doberman/images/random');
+      };
+      const { response: dobermanResponse, isResolved: isDobermanResolved } = useLoads(getRandomDoberman, {
+        context: 'foo'
+      });
+
+      return (
+        <Box>
+          {isPending && <Spinner size="large" />}
+          {isResolved &&
+            isDobermanResolved && (
+              <Box>
+                <Box>
+                  <Image src={response.data.message} width="300px" alt="Dog" />
+                  <Image src={dobermanResponse.data.message} width="300px" alt="Dog" />
+                </Box>
+                <Button onClick={load}>Load another</Button>
+              </Box>
+            )}
+          {isRejected && <Alert type="danger">{error.message}</Alert>}
+        </Box>
+      );
+    }
+    return <Component />;
+  })
+  .add('with optimistic response 2', () => {
+    function Component() {
+      async function createDog(dog, { setResponse }) {
+        setResponse(dog, { context: 'dog' });
+        // ... - create the dog
+      }
+      const createDogLoader = useLoads(createDog, { context: 'dog2', defer: true });
+
+      async function getDog() {
+        // ... - get the dog
+      }
+      const getDogLoader = useLoads(getDog, { context: 'dog' });
+
+      return (
+        <React.Fragment>
+          <button onClick={() => createDogLoader.load({ name: 'Teddy', breed: 'Groodle' })}>Create</button>
+          {getDogLoader.response && <div>{getDogLoader.response.name}</div>}
+        </React.Fragment>
+      );
+    }
+    return <Component />;
   });

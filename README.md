@@ -24,7 +24,6 @@ There are a few concerns in managing async data fetching manually:
   )}
 </Fragment>
 ```
-
 ## The solution
 
 React Loads comes with a handy set of features to help solve these concerns:
@@ -38,6 +37,7 @@ React Loads comes with a handy set of features to help solve these concerns:
 - [Data caching](#caching-response-data) enabled by default to maximise user experience between page transitions
 - Tell Loads [how to load](#loadpolicy) your data from the cache to prevent unnessessary invocations
 - [External cache](#external-cache) support to enable something like local storage caching
+- [Optimistic responses](#optimistic-responses) to update your UI optimistically
 
 ## Table of contents
 
@@ -82,6 +82,14 @@ React Loads comes with a handy set of features to help solve these concerns:
     - [External cache](#external-cache)
       - [Global cache provider](#global-cache-provider)
       - [Local cache provider](#local-cache-provider)
+  - [Optimistic responses](#optimistic-responses)
+    - [setResponse(data[, opts[, callback]]) / setError(data[, opts[, callback]])](#setresponsedata-opts-callback--seterrordata-opts-callback)
+      - [data](#data)
+      - [opts](#opts)
+        - [opts.context](#optscontext)
+      - [callback](#callback)
+    - [Basic example](#basic-example)
+    - [Example updating another `useLoads` optimistically](#example-updating-another-useloads-optimistically)
   - [Articles](#articles)
   - [Happy customers](#happy-customers)
   - [License](#license)
@@ -174,9 +182,11 @@ export default function DogApp() {
 
 ### load
 
-> `function(...args)` | returns `Promise` | required
+> `function(...args, { setResponse, setError })` | returns `Promise` | required
 
 The function to invoke. **It must return a promise.**
+
+The arguments `setResponse` & `setError` are optional and are used for optimistic responses. [Read more on optimistic responses](#optimistic-responses).
 
 ### config
 
@@ -304,9 +314,11 @@ Error from the rejected promise (`load`).
 
 #### load
 
-> `function(...args)`
+> `function(...args, { setResponse, setError })`
 
 Trigger to invoke [`load`](#load).
+
+The arguments `setResponse` & `setError` are optional and are used for optimistic responses. [Read more on optimistic responses](#optimistic-responses).
 
 #### isIdle
 
@@ -488,6 +500,95 @@ export default function DogApp() {
       </Error>
     </div>
   );
+}
+```
+
+## Optimistic responses
+
+React Loads has the ability to optimistically update your data while it is still waiting for a response (if you know what the response will potentially look like). Once a response is received, then the optimistically updated data will be replaced by the response. [This article](https://uxplanet.org/optimistic-1000-34d9eefe4c05) explains the gist of optimistic UIs pretty well.
+
+The `setResponse` and `setError` functions are provided as the last argument of your loading function (`load`). The interface for these functions, along with an example implementation are seen below.
+
+### setResponse(data[, opts[, callback]]) / setError(data[, opts[, callback]])
+
+Optimistically sets a successful response or error.
+
+#### data
+
+> `Object` or `function(currentData) {}` | required
+
+The updated data. If a function is provided, then the first argument will be the current loaded (or cached) data.
+
+#### opts
+
+> `Object{ context }`
+
+##### opts.context
+
+> `string` | optional
+
+The context where the data will be updated. If not provided, then it will use the `context` prop specified in `useLoads`. If a `context` is provided, it will update the responses of all `useLoads` using that context immediately.
+
+#### callback
+
+> function(currentData) {}
+
+A callback can be also provided as a *second or third* parameter to `setResponse`, where the first and only parameter is the current loaded (or cached) response (`currentData`).
+
+### Basic example
+
+```jsx
+import React from 'react';
+import { useLoads } from 'react-loads';
+
+export default function DogApp() {
+  const getRandomDog = ({ setResponse }) => {
+    setResponse({ data: { message: 'https://images.dog.ceo/breeds/doberman/n02107142_17147.jpg' } })
+    return axios.get('https://dog.ceo/api/breeds/image/random');
+  }
+  const { response, error, load, isRejected, isPending, isResolved } = useLoads(getRandomDog);
+
+  return (
+    <div>
+      {isPending && <div>loading...</div>}
+      {isResolved && (
+        <div>
+          <div>
+            <img src={response.data.message} width="300px" alt="Dog" />
+          </div>
+          <button onClick={load}>Load another</button>
+        </div>
+      )}
+      {isRejected && <div type="danger">{error.message}</div>}
+    </div>
+  );
+}
+```
+
+### Example updating another `useLoads` optimistically
+
+```jsx
+import React from 'react';
+import { useLoads } from 'react-loads';
+
+export default function DogApp() {
+  async function createDog(dog, { setResponse }) {
+    setResponse(dog, { context: 'dog' });
+    // ... - create the dog
+  }
+  const createDogLoader = useLoads(createDog, { defer: true });
+
+  async function getDog() {
+    // ... - fetch and return the dog
+  }
+  const getDogLoader = useLoads(getDog, { context: 'dog' });
+
+  return (
+    <React.Fragment>
+      <button onClick={() => createDogLoader.load({ name: 'Teddy', breed: 'Groodle' })}>Create</button>
+      {getDogLoader.response && <div>{getDogLoader.response.name}</div>}
+    </React.Fragment>
+  )
 }
 ```
 

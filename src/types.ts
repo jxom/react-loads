@@ -7,7 +7,12 @@ export type LoadsConfig = {
   defer?: boolean;
   loadPolicy?: 'cache-first' | 'cache-and-load' | 'load-only';
   timeout?: number;
+  update?: LoadFunction;
 };
 export type LoadFunction = (opts?: any) => Promise<any>;
 export type LoadingState = 'idle' | 'pending' | 'timeout' | 'resolved' | 'rejected';
+export type OptimisticCallback = (newData: any) => void;
+export type OptimisticOpts = {
+  context?: LoadsConfig['context'];
+};
 export type Record = { error?: any; response?: any; isCached?: boolean; state: LoadingState };

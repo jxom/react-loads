@@ -19,15 +19,18 @@ export function setCacheProvider(provider: CacheProvider) {
 }
 
 export default {
-  set: (key: string, val: Record, opts: { cacheProvider: CacheProvider | void }) => {
+  set(key: string, val: Record, opts: { cacheProvider: CacheProvider | void }) {
     cache.set(key, val);
     const _cacheProvider = opts.cacheProvider || cacheProvider;
     if (_cacheProvider) {
       _cacheProvider.set(key, val);
     }
+    if (this.onSet) {
+      this.onSet(key, val);
+    }
     return;
   },
-  get: (key: string, opts: { cacheProvider: CacheProvider | void }) => {
+  get(key: string, opts: { cacheProvider: CacheProvider | void }) {
     const _cacheProvider = opts.cacheProvider || cacheProvider;
     if (_cacheProvider) {
       const value = _cacheProvider.get(key);
@@ -36,5 +39,6 @@ export default {
       }
     }
     return cache.get(key);
-  }
+  },
+  onSet: (key: string, val: Record): void => undefined
 };
