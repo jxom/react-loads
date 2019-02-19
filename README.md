@@ -59,11 +59,13 @@ React Loads comes with a handy set of features to help solve these concerns:
       - [loadPolicy](#loadpolicy)
       - [enableBackgroundStates](#enablebackgroundstates)
       - [cacheProvider](#cacheprovider)
+      - [update](#update)
     - [inputs](#inputs)
     - [`loader`](#loader)
       - [response](#response)
       - [error](#error)
       - [load](#load-1)
+      - [update](#update-1)
       - [isIdle](#isidle)
       - [isPending](#ispending)
       - [isTimeout](#istimeout)
@@ -90,6 +92,7 @@ React Loads comes with a handy set of features to help solve these concerns:
       - [callback](#callback)
     - [Basic example](#basic-example)
     - [Example updating another `useLoads` optimistically](#example-updating-another-useloads-optimistically)
+  - [Updating resources](#updating-resources)
   - [Articles](#articles)
   - [Happy customers](#happy-customers)
   - [License](#license)
@@ -268,6 +271,16 @@ If true and the data is in cache, `isIdle`, `isPending` and `isTimeout` will be 
 
 Set a custom cache provider (e.g. local storage, session storate, etc). See [external cache](#external-cache) below for an example.
 
+#### update
+
+`function(...args, { setResponse, setError })` | returns `Promise | Array<Promise>`
+
+A function to update the response from `load`. **It must return a promise.** Think of `update` like a secondary `load`, which has a different way of fetching/loading data.
+
+**IMPORTANT NOTE ON `update`**: It is recommended that your update function resolves with the same response schema as your loading function (load) to avoid erroneous & confusing behaviour in your UI.
+
+Read more on the `update` function [here](#updating-resources).
+
 ### inputs
 
 > `Array<any>`
@@ -314,11 +327,17 @@ Error from the rejected promise (`load`).
 
 #### load
 
-> `function(...args, { setResponse, setError })`
+> `function(...args, { setResponse, setError })` | returns `Promise`
 
 Trigger to invoke [`load`](#load).
 
 The arguments `setResponse` & `setError` are optional and are used for optimistic responses. [Read more on optimistic responses](#optimistic-responses).
+
+#### update
+
+> `function(...args, { setResponse, setError })` or `Array<function(...args, { setResponse, setError })>`
+
+Trigger to invoke [`update`(#update)]
 
 #### isIdle
 
@@ -589,6 +608,48 @@ export default function DogApp() {
       {getDogLoader.response && <div>{getDogLoader.response.name}</div>}
     </React.Fragment>
   )
+}
+```
+
+## Updating resources
+
+Instead of using multiple `useLoads`'s to provide a way to update/amend a resource, you are able to specify an `update` function which mimics the `load` function. In order to use the `update` function, you must have a `load` function which shares the same response schema as your `update` function.
+
+Here's an example of how you could use an update function:
+
+```jsx
+import React from 'react';
+import { useLoads } from 'react-loads';
+
+export default function DogApp() {
+  const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
+  const getRandomDoberman = () => axios.get('https://dog.ceo/api/breed/doberman/images/random');
+  const getRandomPoodle = () => axios.get('https://dog.ceo/api/breed/poodle/images/random');
+  const {
+    response,
+    load,
+    update: [loadDoberman, loadPoodle],
+    isPending,
+    isResolved
+  } = useLoads(getRandomDog, {
+    update: [getRandomDoberman, getRandomPoodle]
+  });
+
+  return (
+    <div>
+      {isPending && 'Loading...'}
+      {isResolved && (
+        <div>
+          <div>
+            <img src={response.data.message} width="300px" alt="Dog" />
+          </div>
+          <button onClick={load}>Load another random dog</button>
+          <button onClick={loadDoberman}>Load doberman</button>
+          <button onClick={loadPoodle}>Load poodle</button>
+        </div>
+      )}
+    </div>
+  );
 }
 ```
 

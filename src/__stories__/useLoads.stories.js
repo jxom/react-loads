@@ -379,4 +379,60 @@ storiesOf('Loads', module)
       );
     }
     return <Component />;
+  })
+  .add('with update fn', () => {
+    function Component() {
+      const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
+      const getRandomDoberman = () => axios.get('https://dog.ceo/api/breed/doberman/images/random');
+      const { response, load, update, isPending, isResolved } = useLoads(getRandomDog, {
+        update: getRandomDoberman
+      });
+      return (
+        <Box>
+          {isPending && <Spinner size="large" />}
+          {isResolved && (
+            <Box>
+              <Box>
+                <Image src={response.data.message} width="300px" alt="Dog" />
+              </Box>
+              <Button onClick={load}>Load another random dog</Button>
+              <Button onClick={update}>Load doberman</Button>
+            </Box>
+          )}
+        </Box>
+      );
+    }
+    return <Component />;
+  })
+  .add('with update fns', () => {
+    function Component() {
+      const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
+      const getRandomDoberman = () => axios.get('https://dog.ceo/api/breed/doberman/images/random');
+      const getRandomPoodle = () => axios.get('https://dog.ceo/api/breed/poodle/images/random');
+      const {
+        response,
+        load,
+        update: [loadDoberman, loadPoodle],
+        isPending,
+        isResolved
+      } = useLoads(getRandomDog, {
+        update: [getRandomDoberman, getRandomPoodle]
+      });
+      return (
+        <Box>
+          {isPending && <Spinner size="large" />}
+          {isResolved && (
+            <Box>
+              <Box>
+                <Image src={response.data.message} width="300px" alt="Dog" />
+              </Box>
+              <Button onClick={load}>Load another random dog</Button>
+              <Button onClick={loadDoberman}>Load doberman</Button>
+              <Button onClick={loadPoodle}>Load poodle</Button>
+            </Box>
+          )}
+        </Box>
+      );
+    }
+    return <Component />;
   });

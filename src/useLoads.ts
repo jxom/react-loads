@@ -69,7 +69,7 @@ export default function useLoads(
     }
   }
 
-  function handleOptimisticResponse(
+  function handleOptimisticData(
     {
       data,
       optsOrCallback,
@@ -142,9 +142,9 @@ export default function useLoads(
             data: any,
             optsOrCallback: OptimisticOpts | OptimisticCallback,
             callback?: OptimisticCallback
-          ) => handleOptimisticResponse({ data, optsOrCallback, callback }, STATES.RESOLVED, counter.current),
+          ) => handleOptimisticData({ data, optsOrCallback, callback }, STATES.RESOLVED, counter.current),
           setError: (data: any, optsOrCallback: OptimisticOpts | OptimisticCallback, callback?: OptimisticCallback) =>
-            handleOptimisticResponse({ data, optsOrCallback, callback }, STATES.REJECTED, counter.current)
+            handleOptimisticData({ data, optsOrCallback, callback }, STATES.REJECTED, counter.current)
         });
         handleData({ response }, STATES.RESOLVED, counter.current);
       } catch (err) {
