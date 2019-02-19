@@ -2,6 +2,8 @@
 
 > A React Hook to handle promise state & response data.
 
+**Important note: As of v7, React Loads is a [React Hook](https://reactjs.org/docs/hooks-intro.html), meaning you can only use `useLoads` inside a [function component](https://reactjs.org/docs/components-and-props.html#function-and-class-components). If you want to use React Loads in a class component, read [Compatibility with class components](#compatibility-with-class-components)**
+
 ## The problem
 
 There are a few concerns in managing async data fetching manually:
@@ -111,7 +113,7 @@ yarn add react-loads
 
 ## Usage
 
-**Important note: In v7, React Loads is a [React Hook](https://reactjs.org/docs/hooks-intro.html), meaning you can only use `useLoads` inside a function component. If you want to use React Loads in a class component, read [Compatibility with class components](#compatibility-with-class-components)**
+**Important note: In v7, React Loads is a [React Hook](https://reactjs.org/docs/hooks-intro.html), meaning you can only use `useLoads` inside a [function component](https://reactjs.org/docs/components-and-props.html#function-and-class-components). If you want to use React Loads in a class component, read [Compatibility with class components](#compatibility-with-class-components)**
 
 ```jsx
 import React from 'react';
@@ -657,7 +659,7 @@ export default function DogApp() {
 
 ## Compatibility with class components
 
-React Loads v7 is a [React Hook](https://reactjs.org/docs/hooks-intro.html) that can only be used inside function components. If you need to use React Loads inside class components, you can do one of the following:
+React Loads v7 is a [React Hook](https://reactjs.org/docs/hooks-intro.html) that can only be used inside [function components](https://reactjs.org/docs/components-and-props.html#function-and-class-components). If you need to use React Loads inside class components, you can do one of the following:
 
 - If you **don't want to use React Hooks** and still wish use React Loads inside class (and/or function) components, then check out the [v6 docs](https://github.com/jxom/react-loads/tree/v6). 
 
