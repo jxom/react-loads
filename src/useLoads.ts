@@ -178,7 +178,7 @@ export default function useLoads(
     [defer, context, ...inputs]
   );
 
-  const renderStates = {
+  const states = {
     isIdle: record.state === STATES.IDLE && Boolean(!record.isCached || enableBackgroundStates),
     isPending: record.state === STATES.PENDING && Boolean(!record.isCached || enableBackgroundStates),
     isTimeout: record.state === STATES.TIMEOUT && Boolean(!record.isCached || enableBackgroundStates),
@@ -192,15 +192,14 @@ export default function useLoads(
 
       response: record.response,
       error: record.error,
-
-      ...renderStates,
       state: record.state,
 
-      Idle: StateComponent(renderStates.isIdle),
-      Pending: StateComponent(renderStates.isPending),
-      Timeout: StateComponent(renderStates.isTimeout),
-      Resolved: StateComponent(renderStates.isResolved),
-      Rejected: StateComponent(renderStates.isRejected),
+      ...states,
+      Idle: StateComponent(states.isIdle),
+      Pending: StateComponent(states.isPending),
+      Timeout: StateComponent(states.isTimeout),
+      Resolved: StateComponent(states.isResolved),
+      Rejected: StateComponent(states.isRejected),
 
       isCached: Boolean(record.isCached)
     }),
