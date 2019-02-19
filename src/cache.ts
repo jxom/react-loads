@@ -40,5 +40,6 @@ export default {
     }
     return cache.get(key);
   },
+  // @ts-ignore
   onSet: (key: string, val: Record): void => undefined
 };
