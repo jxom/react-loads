@@ -2,6 +2,8 @@
 
 > A React Hook to handle promise state & response data.
 
+**Check out the [`next` branch](https://github.com/jxom/react-loads/tree/next) for a React Hooks version of React Loads**
+
 ## The problem
 
 There are a few concerns in managing async data fetching manually:
