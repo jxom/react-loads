@@ -102,13 +102,13 @@ React Loads comes with a handy set of features to help solve these concerns:
 ## Installation
 
 ```
-npm install react-loads --save
+npm install react-loads@legacy --save
 ```
 
 or install with [Yarn](https://yarnpkg.com) if you prefer:
 
 ```
-yarn add react-loads
+yarn add react-loads@legacy
 ```
 
 ## Usage
