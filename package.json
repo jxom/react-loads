@@ -1,6 +1,6 @@
 {
   "name": "react-loads",
-  "version": "7.0.0",
+  "version": "7.0.1",
   "description": "A simple React component to handle loading state",
   "main": "lib/index.js",
   "module": "es/index.js",
@@ -9,7 +9,8 @@
   "files": [
     "es",
     "lib",
-    "umd"
+    "umd",
+    "ts"
   ],
   "license": "MIT",
   "repository": "jxom/react-loads",
