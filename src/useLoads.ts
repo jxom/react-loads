@@ -112,7 +112,7 @@ export default function useLoads(
   }
 
   function load(opts?: { fn?: LoadFunction }) {
-    return async (..._args: any) => {
+    return (..._args: any) => {
       const args = _args.filter((arg: any) => arg.constructor.name !== 'Class');
 
       counter.current = counter.current + 1;
@@ -135,21 +135,15 @@ export default function useLoads(
         setTimeoutTimeout(timeout);
       }
 
-      try {
-        const loadFn = opts && opts.fn ? opts.fn : fn;
-        const response = await loadFn(...args, {
-          setResponse: (
-            data: any,
-            optsOrCallback: OptimisticOpts | OptimisticCallback,
-            callback?: OptimisticCallback
-          ) => handleOptimisticData({ data, optsOrCallback, callback }, STATES.RESOLVED, counter.current),
-          setError: (data: any, optsOrCallback: OptimisticOpts | OptimisticCallback, callback?: OptimisticCallback) =>
-            handleOptimisticData({ data, optsOrCallback, callback }, STATES.REJECTED, counter.current)
-        });
-        handleData({ response }, STATES.RESOLVED, counter.current);
-      } catch (err) {
-        handleData({ error: err }, STATES.REJECTED, counter.current);
-      }
+      const loadFn = opts && opts.fn ? opts.fn : fn;
+      return loadFn(...args, {
+        setResponse: (data: any, optsOrCallback: OptimisticOpts | OptimisticCallback, callback?: OptimisticCallback) =>
+          handleOptimisticData({ data, optsOrCallback, callback }, STATES.RESOLVED, counter.current),
+        setError: (data: any, optsOrCallback: OptimisticOpts | OptimisticCallback, callback?: OptimisticCallback) =>
+          handleOptimisticData({ data, optsOrCallback, callback }, STATES.REJECTED, counter.current)
+      })
+        .then(response => handleData({ response }, STATES.RESOLVED, counter.current))
+        .catch(err => handleData({ error: err }, STATES.REJECTED, counter.current));
     };
   }
 
