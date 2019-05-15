@@ -120,7 +120,9 @@ import React from 'react';
 import { useLoads } from 'react-loads';
 
 export default function DogApp() {
-  const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
+  async function getRandomDog() {
+    return axios.get('https://dog.ceo/api/breeds/image/random')
+  }
   const { response, error, load, isRejected, isPending, isResolved } = useLoads(getRandomDog);
 
   return (
@@ -151,7 +153,9 @@ import React from 'react';
 import { useLoads } from 'react-loads';
 
 export default function DogApp() {
-  const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
+  async function getRandomDog() {
+    return axios.get('https://dog.ceo/api/breeds/image/random')
+  }
   const { response, error, load, Pending, Resolved, Rejected } = useLoads(getRandomDog);
 
   return (
@@ -419,14 +423,6 @@ Renders it's children when the state is rejected.
 
 Returns `true` if data exists in the cache.
 
-## `setCacheProvider(cacheProvider)`
-
-### cacheProvider
-
-> `Object({ get: function(key), set: function(key, val) })`
-
-Set a custom cache provider (e.g. local storage, session storate, etc). See [external cache](#external-cache) below for an example.
-
 ## Caching response data
 
 ### Basic cache
@@ -468,7 +464,7 @@ export default function DogApp() {
 
 If you would like the ability to persist response data upon unmounting the application (e.g. page refresh or closing window), a cache provider can also be utilised to cache response data.
 
-Here is an example using [Store.js](https://github.com/marcuswestin/store.js/) and setting the cache provider on an application level using `setCacheProvider`. If you would like to set a cache provider on a hooks level with `useLoads`, see [Local cache provider](#local-cache-provider).
+Here is an example using [Store.js](https://github.com/marcuswestin/store.js/) and setting the cache provider on an application level using `<LoadsContext.Provider>`. If you would like to set a cache provider on a hooks level with `useLoads`, see [Local cache provider](#local-cache-provider).
 
 `index.js`
 ```jsx
@@ -480,9 +476,12 @@ const cacheProvider = {
   get: key => store.get(key),
   set: (key, val) => store.set(key, val)
 }
-setCacheProvider(cacheProvider);
 
-ReactDOM.render(/* Your app here */)
+ReactDOM.render(
+  <LoadsContext.Provider cacheProvider={cacheProvider}>
+    {/* ... */}
+  </LoadsContext.Provider>
+)
 ```
 
 #### Local cache provider

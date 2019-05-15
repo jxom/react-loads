@@ -41,14 +41,13 @@ export default function useLoads(
     loadPolicy = 'cache-and-load',
     timeout = 0,
     update: updateFn
-  }: LoadsConfig = {},
-  inputs = []
+  }: LoadsConfig = {}
 ) {
   const cache = React.useContext(LoadsContext);
   const counter = React.useRef<number>(0);
   const hasMounted = useDetectMounted();
-  const [setDelayTimeout, clearDelayTimeout] = useTimeout(() => dispatch({ type: STATES.PENDING }));
-  const [setTimeoutTimeout, clearTimeoutTimeout] = useTimeout(() => dispatch({ type: STATES.TIMEOUT }));
+  const [setDelayTimeout, clearDelayTimeout] = useTimeout();
+  const [setTimeoutTimeout, clearTimeoutTimeout] = useTimeout();
 
   const cachedRecord = React.useMemo(
     () => {
@@ -66,100 +65,123 @@ export default function useLoads(
   }
   const [record, dispatch] = React.useReducer(reducer, initialRecord);
 
-  function handleData(data: { response?: any; error?: any }, state: LoadingState, count: number) {
-    if (hasMounted.current && count === counter.current) {
-      // @ts-ignore
-      clearDelayTimeout();
-      // @ts-ignore
-      clearTimeoutTimeout();
-      dispatch({
-        type: state,
-        isCached: Boolean(context),
-        error: state === STATES.REJECTED ? data.error : undefined,
-        response: state === STATES.RESOLVED ? data.response : undefined
-      });
-      if (context) {
-        const record = { error: data.error, response: data.response, state };
-        cache.set(context, record, { cacheProvider });
+  const handleData = React.useCallback(
+    (data: { response?: any; error?: any }, state: LoadingState, count: number) => {
+      if (hasMounted.current && count === counter.current) {
+        // @ts-ignore
+        clearDelayTimeout();
+        // @ts-ignore
+        clearTimeoutTimeout();
+        dispatch({
+          type: state,
+          isCached: Boolean(context),
+          error: state === STATES.REJECTED ? data.error : undefined,
+          response: state === STATES.RESOLVED ? data.response : undefined
+        });
+        if (context) {
+          const record = { error: data.error, response: data.response, state };
+          cache.set(context, record, { cacheProvider });
+        }
       }
-    }
-  }
+    },
+    [cache, cacheProvider, clearDelayTimeout, clearTimeoutTimeout, context, hasMounted]
+  );
 
-  function handleOptimisticData(
-    {
-      data,
-      optsOrCallback,
-      callback
-    }: { data: any; optsOrCallback?: OptimisticOpts | OptimisticCallback; callback?: OptimisticCallback },
-    state: LoadingState,
-    count: number
-  ) {
-    let newData = data;
-    let opts: OptimisticOpts = {};
+  const handleOptimisticData = React.useCallback(
+    (
+      {
+        data,
+        optsOrCallback,
+        callback
+      }: { data: any; optsOrCallback?: OptimisticOpts | OptimisticCallback; callback?: OptimisticCallback },
+      state: LoadingState,
+      count: number
+    ) => {
+      let newData = data;
+      let opts: OptimisticOpts = {};
 
-    if (typeof optsOrCallback === 'object') {
-      opts = optsOrCallback;
-    }
-
-    if (typeof data === 'function') {
-      let cachedValue;
-      if (record.response) {
-        cachedValue = record.response;
-      } else if (opts.context) {
-        cachedValue = cache.get(opts.context, { cacheProvider }) || {};
+      if (typeof optsOrCallback === 'object') {
+        opts = optsOrCallback;
       }
-      newData = data(cachedValue);
-    }
 
-    const value = {
-      error: state === STATES.REJECTED ? newData : undefined,
-      response: state === STATES.RESOLVED ? newData : undefined
-    };
-    if (!opts.context || context === opts.context) {
-      handleData(value, state, count);
-    } else {
-      if (cache) {
-        cache.set(opts.context, { ...value, state }, { cacheProvider });
+      if (typeof data === 'function') {
+        let cachedValue;
+        if (record.response) {
+          cachedValue = record.response;
+        } else if (opts.context) {
+          cachedValue = cache.get(opts.context, { cacheProvider }) || {};
+        }
+        newData = data(cachedValue);
       }
-    }
 
-    let newCallback = typeof optsOrCallback === 'function' ? optsOrCallback : callback;
-    newCallback && newCallback(newData);
-  }
-
-  function load(opts?: { fn?: LoadFunction }) {
-    return (..._args: any) => {
-      const args = _args.filter((arg: any) => arg.constructor.name !== 'Class');
-
-      counter.current = counter.current + 1;
-
-      if (context && loadPolicy !== 'load-only') {
-        if (cachedRecord) {
-          dispatch({ type: cachedRecord.state, isCached: true, ...cachedRecord });
-          if (loadPolicy === 'cache-first') return;
+      const value = {
+        error: state === STATES.REJECTED ? newData : undefined,
+        response: state === STATES.RESOLVED ? newData : undefined
+      };
+      if (!opts.context || context === opts.context) {
+        handleData(value, state, count);
+      } else {
+        if (cache) {
+          cache.set(opts.context, { ...value, state }, { cacheProvider });
         }
       }
 
-      if (delay > 0) {
-        setDelayTimeout(delay);
-      } else {
-        dispatch({ type: STATES.PENDING });
-      }
-      if (timeout > 0) {
-        setTimeoutTimeout(timeout);
-      }
+      let newCallback = typeof optsOrCallback === 'function' ? optsOrCallback : callback;
+      newCallback && newCallback(newData);
+    },
+    [cache, cacheProvider, context, handleData]
+  );
 
-      const loadFn = opts && opts.fn ? opts.fn : fn;
-      return loadFn(...args, {
-        setResponse: (data: any, optsOrCallback: OptimisticOpts | OptimisticCallback, callback?: OptimisticCallback) =>
-          handleOptimisticData({ data, optsOrCallback, callback }, STATES.RESOLVED, counter.current),
-        setError: (data: any, optsOrCallback: OptimisticOpts | OptimisticCallback, callback?: OptimisticCallback) =>
-          handleOptimisticData({ data, optsOrCallback, callback }, STATES.REJECTED, counter.current)
-      })
-        .then(response => handleData({ response }, STATES.RESOLVED, counter.current))
-        .catch(err => handleData({ error: err }, STATES.REJECTED, counter.current));
-    };
-  }
+  const load = React.useCallback(
+    (opts?: { fn?: LoadFunction }) => {
+      return (..._args: any) => {
+        const args = _args.filter((arg: any) => arg.constructor.name !== 'Class');
+
+        counter.current = counter.current + 1;
+
+        if (context && loadPolicy !== 'load-only') {
+          if (cachedRecord) {
+            dispatch({ type: cachedRecord.state, isCached: true, ...cachedRecord });
+            if (loadPolicy === 'cache-first') return;
+          }
+        }
+
+        if (delay > 0) {
+          setDelayTimeout(() => dispatch({ type: STATES.PENDING }), delay);
+        } else {
+          dispatch({ type: STATES.PENDING });
+        }
+        if (timeout > 0) {
+          setTimeoutTimeout(() => dispatch({ type: STATES.TIMEOUT }), timeout);
+        }
+
+        const loadFn = opts && opts.fn ? opts.fn : fn;
+        return loadFn(...args, {
+          setResponse: (
+            data: any,
+            optsOrCallback: OptimisticOpts | OptimisticCallback,
+            callback?: OptimisticCallback
+          ) => handleOptimisticData({ data, optsOrCallback, callback }, STATES.RESOLVED, counter.current),
+          setError: (data: any, optsOrCallback: OptimisticOpts | OptimisticCallback, callback?: OptimisticCallback) =>
+            handleOptimisticData({ data, optsOrCallback, callback }, STATES.REJECTED, counter.current)
+        })
+          .then(response => handleData({ response }, STATES.RESOLVED, counter.current))
+          .catch(err => handleData({ error: err }, STATES.REJECTED, counter.current));
+      };
+    },
+    [
+      cachedRecord,
+      context,
+      delay,
+      fn,
+      handleData,
+      handleOptimisticData,
+      loadPolicy,
+      setDelayTimeout,
+      setTimeoutTimeout,
+      timeout
+    ]
+  );
 
   const update = React.useMemo(
     () => {
@@ -169,7 +191,7 @@ export default function useLoads(
       }
       return load({ fn: updateFn });
     },
-    [updateFn]
+    [load, updateFn]
   );
 
   React.useEffect(
@@ -186,7 +208,7 @@ export default function useLoads(
       if (defer) return;
       load()();
     },
-    [defer, context, ...inputs]
+    [defer, load]
   );
 
   const states = {

@@ -12,13 +12,11 @@ function loadStories() {
 }
 
 const Decorator = storyFn => (
-  <LoadsContext.Provider>
-    <ThemeProvider>
-      <Box padding="major-2">
-        {storyFn()}
-      </Box>
-    </ThemeProvider>
-  </LoadsContext.Provider>
+  <ThemeProvider>
+    <Box padding="major-2">
+      {storyFn()}
+    </Box>
+  </ThemeProvider>
 );
 addDecorator(Decorator);
 
