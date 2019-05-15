@@ -169,54 +169,6 @@ storiesOf('Loads', module)
     }
     return <Component />;
   })
-  .add('with cache', () => {
-    function Component() {
-      const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
-      const { response, error, load, isIdle, isRejected, isPending, isResolved } = useLoads(getRandomDog, {
-        context: 'foo',
-        defer: true
-      });
-      return (
-        <Box>
-          {isIdle && <Button onClick={load}>Load dog</Button>}
-          {isPending && <Spinner size="large" />}
-          {isResolved && (
-            <Box>
-              <Box>
-                <Image src={response.data.message} width="300px" alt="Dog" />
-              </Box>
-              <Button onClick={load}>Load another</Button>
-            </Box>
-          )}
-          {isRejected && <Alert type="danger">{error.message}</Alert>}
-        </Box>
-      );
-    }
-    return <Component />;
-  })
-  .add('with cache & load on mount', () => {
-    function Component() {
-      const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
-      const { response, error, load, isRejected, isPending, isResolved } = useLoads(getRandomDog, {
-        context: 'foo'
-      });
-      return (
-        <Box>
-          {isPending && <Spinner size="large" />}
-          {isResolved && (
-            <Box>
-              <Box>
-                <Image src={response.data.message} width="300px" alt="Dog" />
-              </Box>
-              <Button onClick={load}>Load another</Button>
-            </Box>
-          )}
-          {isRejected && <Alert type="danger">{error.message}</Alert>}
-        </Box>
-      );
-    }
-    return <Component />;
-  })
   .add('with state components', () => {
     function Component() {
       const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');

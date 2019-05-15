@@ -2,7 +2,7 @@ import * as React from 'react';
 import useDetectMounted from './hooks/useDetectMounted';
 import useTimeout from './hooks/useTimeout';
 import StateComponent from './StateComponent';
-import cache from './cache';
+import { LoadsContext } from './LoadsContext';
 import { LoadsConfig, LoadFunction, LoadingState, OptimisticCallback, OptimisticOpts, Record } from './types';
 
 const STATES: { [key: string]: LoadingState } = {
@@ -44,11 +44,22 @@ export default function useLoads(
   }: LoadsConfig = {},
   inputs = []
 ) {
+  const cache = React.useContext(LoadsContext);
   const counter = React.useRef<number>(0);
   const hasMounted = useDetectMounted();
   const [record, dispatch] = React.useReducer(reducer, { state: STATES.IDLE });
   const [setDelayTimeout, clearDelayTimeout] = useTimeout(() => dispatch({ type: STATES.PENDING }));
   const [setTimeoutTimeout, clearTimeoutTimeout] = useTimeout(() => dispatch({ type: STATES.TIMEOUT }));
+
+  const cachedRecord = React.useMemo(
+    () => {
+      if (context) {
+        return cache.get(context, { cacheProvider });
+      }
+      return;
+    },
+    [cache, cacheProvider, context]
+  );
 
   function handleData(data: { response?: any; error?: any }, state: LoadingState, count: number) {
     if (hasMounted.current && count === counter.current) {
@@ -117,9 +128,7 @@ export default function useLoads(
 
       counter.current = counter.current + 1;
 
-      let cachedRecord;
       if (context && loadPolicy !== 'load-only') {
-        cachedRecord = cache.get(context, { cacheProvider });
         if (cachedRecord) {
           dispatch({ type: cachedRecord.state, isCached: true, ...cachedRecord });
           if (loadPolicy === 'cache-first') return;
@@ -158,11 +167,14 @@ export default function useLoads(
     [updateFn]
   );
 
-  cache.onSet = (key, value) => {
-    if (key === context && loadPolicy !== 'load-only') {
-      dispatch({ type: value.state, isCached: true, ...value });
-    }
-  };
+  React.useEffect(
+    () => {
+      if (cachedRecord && loadPolicy !== 'load-only') {
+        dispatch({ type: cachedRecord.state, isCached: true, ...cachedRecord });
+      }
+    },
+    [cachedRecord, loadPolicy, dispatch]
+  );
 
   React.useEffect(
     () => {
@@ -181,8 +193,6 @@ export default function useLoads(
     isResolved: record.state === STATES.RESOLVED || Boolean(record.response),
     isRejected: record.state === STATES.REJECTED || Boolean(record.error)
   };
-
-  console.log(states, record);
 
   return React.useMemo(
     () => ({

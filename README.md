@@ -661,7 +661,7 @@ export default function DogApp() {
 
 React Loads v7 is a [React Hook](https://reactjs.org/docs/hooks-intro.html) that can only be used inside [function components](https://reactjs.org/docs/components-and-props.html#function-and-class-components). If you need to use React Loads inside class components, you can do one of the following:
 
-- If you **don't want to use React Hooks** and still wish use React Loads inside class (and/or function) components, then check out the [v6 docs](https://github.com/jxom/react-loads/tree/v6). 
+- If you **don't want to use React Hooks** and still wish use React Loads inside class (and/or function) components, then check out the [v6 docs](https://github.com/jxom/react-loads/tree/v6).
 
 - If you have **React Loads v6 installed**, and **want to use React Loads v7** (for hook support), you can install v7 with `yarn add react-loads-hook` and import it accordingly.
 

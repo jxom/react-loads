@@ -9,6 +9,10 @@ export type LoadsConfig = {
   timeout?: number;
   update?: LoadFunction;
 };
+export type LoadsContextState = {
+  get: (key: string, opts: { cacheProvider: CacheProvider | void }) => any;
+  set: (key: string, val: Record, opts: { cacheProvider: CacheProvider | void }) => any;
+};
 export type LoadFunction = (opts?: any) => Promise<any>;
 export type LoadingState = 'idle' | 'pending' | 'timeout' | 'resolved' | 'rejected';
 export type OptimisticCallback = (newData: any) => void;
