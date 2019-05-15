@@ -5,13 +5,13 @@ export const LoadsContext = React.createContext<LoadsContextState>({ get: () => 
 
 export function Provider({ children, cacheProvider }: { children: React.ReactNode; cacheProvider: CacheProvider }) {
   const [cache, setCache] = React.useState<{ [key: string]: Record }>({});
-  console.log(cache);
 
   const set = React.useCallback(
     (key: string, val: Record, opts: { cacheProvider: CacheProvider | void }) => {
-      setCache({
+      setCache(currentCache => ({
+        ...currentCache,
         [key]: val
-      });
+      }));
       const _cacheProvider = opts.cacheProvider || cacheProvider;
       if (_cacheProvider) {
         _cacheProvider.set(key, val);
