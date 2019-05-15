@@ -60,10 +60,11 @@ export default function useLoads(
     [cache, cacheProvider, context]
   );
 
-  const [record, dispatch] = React.useReducer(
-    reducer,
-    defer || loadPolicy === 'load-only' ? { state: STATES.IDLE } : cachedRecord || { state: STATES.IDLE }
-  );
+  let initialRecord = { state: STATES.IDLE };
+  if (cachedRecord && !defer && loadPolicy !== 'load-only') {
+    initialRecord = cachedRecord;
+  }
+  const [record, dispatch] = React.useReducer(reducer, initialRecord);
 
   function handleData(data: { response?: any; error?: any }, state: LoadingState, count: number) {
     if (hasMounted.current && count === counter.current) {
