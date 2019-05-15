@@ -4,9 +4,9 @@ import { Alert, Box, Button, Image, Set, Spinner } from 'fannypack';
 
 import { storiesOf } from '@storybook/react';
 
-import { useLoads } from '../index';
+import { Loads, useLoads } from '../index';
 
-storiesOf('Loads', module)
+storiesOf('useLoads (Hook)', module)
   .add('load on mount', () => {
     function Component() {
       const getRandomDog = React.useCallback(() => axios.get('https://dog.ceo/api/breeds/image/random'), []);
@@ -104,7 +104,7 @@ storiesOf('Loads', module)
   })
   .add('with error', () => {
     function Component() {
-      const getRandomDog = React.useCallback(() => axios.get('https://dog.ceo/api/breeds/image/random'), []);
+      const getRandomDog = React.useCallback(() => axios.get('https://dog.ceo/api/breeds/sssss/random'), []);
       const { response, error, load, isIdle, isRejected, isPending, isResolved } = useLoads(getRandomDog, {
         defer: true,
         delay: 1000
@@ -334,4 +334,194 @@ storiesOf('Loads', module)
       );
     }
     return <Component />;
+  });
+
+storiesOf('<Loads> (Render Props)', module)
+  .add('load on mount', () => {
+    class DogApp extends React.Component {
+      getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
+
+      render = () => {
+        return (
+          <Loads fn={this.getRandomDog}>
+            {({ response, error, load, isRejected, isPending, isResolved }) => (
+              <Box>
+                {isPending && <Spinner size="large" />}
+                {isResolved && (
+                  <Box>
+                    <Box>
+                      <Image src={response.data.message} width="300px" alt="Dog" />
+                    </Box>
+                    <Button onClick={load}>Load another</Button>
+                  </Box>
+                )}
+                {isRejected && <Alert type="danger">{error.message}</Alert>}
+              </Box>
+            )}
+          </Loads>
+        );
+      };
+    }
+    return <DogApp />;
+  })
+  .add('with deferred load', () => {
+    class DogApp extends React.Component {
+      getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
+
+      render = () => {
+        return (
+          <Loads defer fn={this.getRandomDog}>
+            {({ response, error, load, isIdle, isRejected, isPending, isResolved }) => (
+              <Box>
+                {isIdle && <Button onClick={load}>Load dog</Button>}
+                {isPending && <Spinner size="large" />}
+                {isResolved && (
+                  <Box>
+                    <Box>
+                      <Image src={response.data.message} width="300px" alt="Dog" />
+                    </Box>
+                    <Button onClick={load}>Load another</Button>
+                  </Box>
+                )}
+                {isRejected && <Alert type="danger">{error.message}</Alert>}
+              </Box>
+            )}
+          </Loads>
+        );
+      };
+    }
+    return <DogApp />;
+  })
+  .add('custom delay', () => {
+    class DogApp extends React.Component {
+      getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
+
+      render = () => {
+        return (
+          <Loads defer delay={1000} fn={this.getRandomDog}>
+            {({ response, error, load, isIdle, isRejected, isPending, isResolved }) => (
+              <Box>
+                {isIdle && <Button onClick={load}>Load dog</Button>}
+                {isPending && <Spinner size="large" />}
+                {isResolved && (
+                  <Box>
+                    <Box>
+                      <Image src={response.data.message} width="300px" alt="Dog" />
+                    </Box>
+                    <Button onClick={load}>Load another</Button>
+                  </Box>
+                )}
+                {isRejected && <Alert type="danger">{error.message}</Alert>}
+              </Box>
+            )}
+          </Loads>
+        );
+      };
+    }
+    return <DogApp />;
+  })
+  .add('no delay', () => {
+    class DogApp extends React.Component {
+      getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
+
+      render = () => {
+        return (
+          <Loads defer delay={0} fn={this.getRandomDog}>
+            {({ response, error, load, isIdle, isRejected, isPending, isResolved }) => (
+              <Box>
+                {isIdle && <Button onClick={load}>Load dog</Button>}
+                {isPending && <Spinner size="large" />}
+                {isResolved && (
+                  <Box>
+                    <Box>
+                      <Image src={response.data.message} width="300px" alt="Dog" />
+                    </Box>
+                    <Button onClick={load}>Load another</Button>
+                  </Box>
+                )}
+                {isRejected && <Alert type="danger">{error.message}</Alert>}
+              </Box>
+            )}
+          </Loads>
+        );
+      };
+    }
+    return <DogApp />;
+  })
+  .add('with error', () => {
+    class DogApp extends React.Component {
+      getRandomDog = () => axios.get('https://dog.ceo/api/breeds/sss/random');
+
+      render = () => {
+        return (
+          <Loads defer fn={this.getRandomDog}>
+            {({ response, error, load, isIdle, isRejected, isPending, isResolved }) => (
+              <Box>
+                {isIdle && <Button onClick={load}>Load dog</Button>}
+                {isPending && <Spinner size="large" />}
+                {isResolved && (
+                  <Box>
+                    <Box>
+                      <Image src={response.data.message} width="300px" alt="Dog" />
+                    </Box>
+                    <Button onClick={load}>Load another</Button>
+                  </Box>
+                )}
+                {isRejected && <Alert type="danger">{error.message}</Alert>}
+              </Box>
+            )}
+          </Loads>
+        );
+      };
+    }
+    return <DogApp />;
+  })
+  .add('with timeout', () => {
+    class DogApp extends React.Component {
+      getRandomDog = () => new Promise(res => setTimeout(() => res('this is data'), 2000));
+
+      render = () => {
+        return (
+          <Loads defer timeout={1000} fn={this.getRandomDog}>
+            {({ response, error, load, isIdle, isTimeout, isPending, isResolved }) => (
+              <Box>
+                {isIdle && <Button onClick={load}>Load dog</Button>}
+                {(isPending || isTimeout) && <Spinner size="large" />}
+                {isTimeout && 'taking a while'}
+                {isResolved && <Box>{response}</Box>}
+              </Box>
+            )}
+          </Loads>
+        );
+      };
+    }
+    return <DogApp />;
+  })
+  .add('with function arguments', () => {
+    class DogApp extends React.Component {
+      getRandomDog = breed => axios.get(`https://dog.ceo/api/breed/${breed}/images/random`);
+
+      render = () => {
+        return (
+          <Loads defer fn={this.getRandomDog}>
+            {({ response, error, load, isIdle, isRejected, isPending, isResolved }) => (
+              <Box>
+                {isIdle && <Button onClick={() => load('beagle')}>Load beagle</Button>}
+                {isPending && <Spinner size="large" />}
+                {isResolved && (
+                  <Box>
+                    <Box>
+                      <Image src={response.data.message} width="300px" alt="Dog" />
+                    </Box>
+                    <Button onClick={() => load('beagle')}>Load another</Button>
+                  </Box>
+                )}
+                {isRejected && <Alert type="danger">{error.message}</Alert>}
+              </Box>
+            )}
+          </Loads>
+        );
+      };
+    }
+    return <DogApp />;
   });
