@@ -173,12 +173,17 @@ export default function useLoads(
   );
 
   const states = {
-    isIdle: record.state === STATES.IDLE && Boolean(!record.isCached || enableBackgroundStates),
-    isPending: record.state === STATES.PENDING && Boolean(!record.isCached || enableBackgroundStates),
-    isTimeout: record.state === STATES.TIMEOUT && Boolean(!record.isCached || enableBackgroundStates),
-    isResolved: record.state === STATES.RESOLVED || Boolean(record.isCached && record.response),
-    isRejected: record.state === STATES.REJECTED || Boolean(record.isCached && record.error)
+    isIdle: record.state === STATES.IDLE && Boolean((!record.response && !record.error) || enableBackgroundStates),
+    isPending:
+      record.state === STATES.PENDING && Boolean((!record.response && !record.error) || enableBackgroundStates),
+    isTimeout:
+      record.state === STATES.TIMEOUT && Boolean((!record.response && !record.error) || enableBackgroundStates),
+    isResolved: record.state === STATES.RESOLVED || Boolean(record.response),
+    isRejected: record.state === STATES.REJECTED || Boolean(record.error)
   };
+
+  console.log(states, record);
+
   return React.useMemo(
     () => ({
       load: load(),
