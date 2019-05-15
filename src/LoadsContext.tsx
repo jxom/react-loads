@@ -5,27 +5,35 @@ export const LoadsContext = React.createContext<LoadsContextState>({ get: () => 
 
 export function Provider({ children, cacheProvider }: { children: React.ReactNode; cacheProvider: CacheProvider }) {
   const [cache, setCache] = React.useState<{ [key: string]: Record }>({});
-  function set(key: string, val: Record, opts: { cacheProvider: CacheProvider | void }) {
-    setCache(cache => ({
-      ...cache,
-      [key]: val
-    }));
-    const _cacheProvider = opts.cacheProvider || cacheProvider;
-    if (_cacheProvider) {
-      _cacheProvider.set(key, val);
-    }
-    return;
-  }
-  function get(key: string, opts: { cacheProvider: CacheProvider | void }) {
-    const _cacheProvider = opts.cacheProvider || cacheProvider;
-    if (_cacheProvider) {
-      const value = _cacheProvider.get(key);
-      if (value) {
-        return value;
+
+  const set = React.useCallback(
+    (key: string, val: Record, opts: { cacheProvider: CacheProvider | void }) => {
+      setCache(cache => ({
+        ...cache,
+        [key]: val
+      }));
+      const _cacheProvider = opts.cacheProvider || cacheProvider;
+      if (_cacheProvider) {
+        _cacheProvider.set(key, val);
       }
-    }
-    return cache[key];
-  }
+      return;
+    },
+    [cache, cacheProvider]
+  );
+  const get = React.useCallback(
+    (key: string, opts: { cacheProvider: CacheProvider | void }) => {
+      const _cacheProvider = opts.cacheProvider || cacheProvider;
+      if (_cacheProvider) {
+        const value = _cacheProvider.get(key);
+        if (value) {
+          return value;
+        }
+      }
+      return cache[key];
+    },
+    [cache, cacheProvider]
+  );
+
   const value = React.useMemo<LoadsContextState>(() => ({ get, set }), [get, set]);
   return <LoadsContext.Provider value={value}>{children}</LoadsContext.Provider>;
 }
