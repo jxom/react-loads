@@ -216,6 +216,6 @@ export default function useLoads(
 
       isCached: Boolean(record.isCached)
     }),
-    [load, record.response, record.error, record.state, record.isCached, states, update]
+    [record.response, record.error, record.state, record.isCached, states, update]
   );
 }
