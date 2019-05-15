@@ -47,7 +47,6 @@ export default function useLoads(
   const cache = React.useContext(LoadsContext);
   const counter = React.useRef<number>(0);
   const hasMounted = useDetectMounted();
-  const [record, dispatch] = React.useReducer(reducer, { state: STATES.IDLE });
   const [setDelayTimeout, clearDelayTimeout] = useTimeout(() => dispatch({ type: STATES.PENDING }));
   const [setTimeoutTimeout, clearTimeoutTimeout] = useTimeout(() => dispatch({ type: STATES.TIMEOUT }));
 
@@ -59,6 +58,11 @@ export default function useLoads(
       return;
     },
     [cache, cacheProvider, context]
+  );
+
+  const [record, dispatch] = React.useReducer(
+    reducer,
+    defer || loadPolicy === 'load-only' ? { state: STATES.IDLE } : cachedRecord || { state: STATES.IDLE }
   );
 
   function handleData(data: { response?: any; error?: any }, state: LoadingState, count: number) {
@@ -212,6 +216,6 @@ export default function useLoads(
 
       isCached: Boolean(record.isCached)
     }),
-    [load, record.response, record.error, record.state, record.isCached]
+    [load, record.response, record.error, record.state, record.isCached, states, update]
   );
 }
