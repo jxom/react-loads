@@ -1,6 +1,6 @@
 # React Loads
 
-> A React utility to help with promise state & response data.
+> A zero-dependency React utility to help with promise state & response data.
 
 ## The problem
 
