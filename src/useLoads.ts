@@ -41,7 +41,8 @@ export default function useLoads(
     loadPolicy = 'cache-and-load',
     timeout = 0,
     update: updateFn
-  }: LoadsConfig = {}
+  }: LoadsConfig = {},
+  inputs: Array<any> = []
 ) {
   const cache = React.useContext(LoadsContext);
   const counter = React.useRef<number>(0);
@@ -185,7 +186,7 @@ export default function useLoads(
       if (defer) return;
       load()();
     },
-    [defer, context, fn]
+    [defer, context, !inputs ? fn : undefined, ...inputs]
   );
 
   const states = {

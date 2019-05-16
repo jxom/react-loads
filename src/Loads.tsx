@@ -9,7 +9,7 @@ export type LoadsProps = {
 };
 
 export const Loads: React.FunctionComponent<LoadsProps> = ({ children, fn, ...props }) => {
-  const loader = useLoads(fn, props);
+  const loader = useLoads(fn, props, []);
   return <React.Fragment>{children(loader)}</React.Fragment>;
 };
 
