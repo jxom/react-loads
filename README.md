@@ -302,6 +302,8 @@ class DogApp extends React.Component {
 }
 ```
 
+### [See a demo](https://jxom.github.io/react-loads/)
+
 ### More examples
 
 - [Stories](./src/__stories__/index.stories.js)
