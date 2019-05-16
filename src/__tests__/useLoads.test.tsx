@@ -324,7 +324,7 @@ describe('context (cache)', () => {
       });
 
       it('renders the cached data correctly on subsequent load', async () => {
-        const fn = jest.fn().mockReturnValue(new Promise((res, rej) => setTimeout(() => rej('mockData'), 50)));
+        const fn = jest.fn().mockReturnValue(new Promise((res, rej) => setTimeout(() => rej('mockError'), 50)));
         const Component = () => {
           const testLoader = useLoads(fn, { context: 'foo-error', delay: 0 });
           return (

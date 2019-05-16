@@ -1,2 +1,3 @@
 export { default as useLoads } from './useLoads';
-export { setCacheProvider } from './cache';
+export { default as Loads } from './Loads';
+export { default as LoadsContext } from './LoadsContext';

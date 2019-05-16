@@ -1,8 +1,6 @@
 # React Loads
 
-> A React Hook to handle promise state & response data.
-
-**Important note: As of v7, React Loads is a [React Hook](https://reactjs.org/docs/hooks-intro.html), meaning you can only use `useLoads` inside a [function component](https://reactjs.org/docs/components-and-props.html#function-and-class-components). If you want to use React Loads in a class component, read [Compatibility with class components](#compatibility-with-class-components)**
+> A React utility to help with promise state & response data.
 
 ## The problem
 
@@ -30,7 +28,7 @@ There are a few concerns in managing async data fetching manually:
 
 React Loads comes with a handy set of features to help solve these concerns:
 
-- Manage your async data & states with a declarative syntax with [React Hooks](#children-render-props)
+- Manage your async data & states with a declarative syntax with [React Hooks](https://reactjs.org/docs/hooks-intro.html) or [Render Props](#children-render-props)
 - Predictable outcomes with deterministic [state variables](#isidle) or [state components](#usage-with-state-components) to avoid messy state ternaries
 - Invoke your loading function **on initial render** and/or [on demand](#defer)
 - Pass any type of promise to your [loading function](#load)
@@ -49,7 +47,11 @@ React Loads comes with a handy set of features to help solve these concerns:
   - [Table of contents](#table-of-contents)
   - [Installation](#installation)
   - [Usage](#usage)
-    - [Usage with state components](#usage-with-state-components)
+    - [FIRSTLY](#firstly)
+    - [With Hooks](#with-hooks)
+      - [Usage with state components](#usage-with-state-components)
+    - [With Render Props](#with-render-props)
+      - [Usage with state components](#usage-with-state-components-1)
     - [More examples](#more-examples)
   - [`useLoads(load[, config[, inputs]])`](#useloadsload-config-inputs)
     - [load](#load)
@@ -62,7 +64,6 @@ React Loads comes with a handy set of features to help solve these concerns:
       - [enableBackgroundStates](#enablebackgroundstates)
       - [cacheProvider](#cacheprovider)
       - [update](#update)
-    - [inputs](#inputs)
     - [`loader`](#loader)
       - [response](#response)
       - [error](#error)
@@ -79,8 +80,33 @@ React Loads comes with a handy set of features to help solve these concerns:
       - [Resolved](#resolved)
       - [Rejected](#rejected)
       - [isCached](#iscached)
-  - [`setCacheProvider(cacheProvider)`](#setcacheprovidercacheprovider)
+  - [`<Loads>` Props](#loads-props)
+    - [load](#load-2)
+    - [inputs](#inputs)
+    - [defer](#defer-1)
+    - [delay](#delay-1)
+    - [context](#context-1)
+    - [timeout](#timeout-1)
+    - [loadPolicy](#loadpolicy-1)
+    - [enableBackgroundStates](#enablebackgroundstates-1)
     - [cacheProvider](#cacheprovider-1)
+    - [update](#update-2)
+  - [`<Loads>` Render Props](#loads-render-props)
+    - [response](#response-1)
+    - [error](#error-1)
+    - [load](#load-3)
+    - [update](#update-3)
+    - [isIdle](#isidle-1)
+    - [isPending](#ispending-1)
+    - [isTimeout](#istimeout-1)
+    - [isResolved](#isresolved-1)
+    - [isRejected](#isrejected-1)
+    - [Idle](#idle-1)
+    - [Pending](#pending-1)
+    - [Timeout](#timeout-1)
+    - [Resolved](#resolved-1)
+    - [Rejected](#rejected-1)
+    - [isCached](#iscached-1)
   - [Caching response data](#caching-response-data)
     - [Basic cache](#basic-cache)
     - [External cache](#external-cache)
@@ -113,14 +139,34 @@ yarn add react-loads
 
 ## Usage
 
-**Important note: In v7, React Loads is a [React Hook](https://reactjs.org/docs/hooks-intro.html), meaning you can only use `useLoads` inside a [function component](https://reactjs.org/docs/components-and-props.html#function-and-class-components). If you want to use React Loads in a class component, read [Compatibility with class components](#compatibility-with-class-components)**
+### FIRSTLY
+
+Wrap your app in a `<LoadsContext.Provider>`:
+
+```jsx
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { LoadsContext } from 'react-loads';
+
+ReactDOM.render(
+  <LoadsContext.Provider>
+    {/* ... */}
+  <LoadsContext.Provider>
+)
+```
+
+### With Hooks
+
+[See the `useLoads` API](#useloadsload-config-inputs)
 
 ```jsx
 import React from 'react';
 import { useLoads } from 'react-loads';
 
 export default function DogApp() {
-  const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
+  const getRandomDog = React.useCallback(() => {
+    return axios.get('https://dog.ceo/api/breeds/image/random')
+  }, []);
   const { response, error, load, isRejected, isPending, isResolved } = useLoads(getRandomDog);
 
   return (
@@ -140,18 +186,22 @@ export default function DogApp() {
 }
 ```
 
-> Note: You don't always have to provide a 'getter' function to `load`. You can provide any type of promise!
+> IMPORTANT NOTE: You must provide `useLoads` with a memoized promise (via **`React.useCallback`** or **bounded outside of your function component**), otherwise `useLoads` will be invoked on every render.
+>
+>If you are using `React.useCallback`, the [`react-hooks` ESLint Plugin](https://www.npmjs.com/package/eslint-plugin-react-hooks) is incredibly handy to ensure your hook dependencies are set up correctly.
 
-### Usage with state components
+#### Usage with state components
 
-You can also use state components to conditionally render children:
+You can also use state components to conditionally render children. [Learn more](#pending)
 
 ```jsx
 import React from 'react';
 import { useLoads } from 'react-loads';
 
 export default function DogApp() {
-  const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
+  const getRandomDog = React.useCallback(() => {
+    return axios.get('https://dog.ceo/api/breeds/image/random')
+  }, []);
   const { response, error, load, Pending, Resolved, Rejected } = useLoads(getRandomDog);
 
   return (
@@ -175,6 +225,80 @@ export default function DogApp() {
       </Resolved>
     </div>
   );
+}
+```
+
+### With Render Props
+
+[See the `<Loads>` API](#useloadsload-config-inputs)
+
+```jsx
+import React from 'react';
+import { useLoads } from 'react-loads';
+
+class DogApp extends React.Component {
+  getRandomDog = () => {
+    return axios.get('https://dog.ceo/api/breeds/image/random');
+  }
+
+  render = () => {
+    return (
+      <Loads load={this.getRandomDog}>
+        {({ response, error, load, isRejected, isPending, isResolved }) => (
+          <div>
+            {isPending && <div>loading...</div>}
+            {isResolved && (
+              <div>
+                <div>
+                  <img src={response.data.message} width="300px" alt="Dog" />
+                </div>
+                <button onClick={load}>Load another</button>
+              </div>
+            )}
+            {isRejected && <div type="danger">{error.message}</div>}
+          </div>
+        )}
+      </Loads>
+    )
+  }
+}
+```
+
+#### Usage with state components
+
+You can also use state components to conditionally render children. [Learn more](#TODO)
+
+```jsx
+import React from 'react';
+import { useLoads } from 'react-loads';
+
+class DogApp extends React.Component {
+  getRandomDog = () => {
+    return axios.get('https://dog.ceo/api/breeds/image/random');
+  }
+
+  render = () => {
+    return (
+      <Loads load={this.getRandomDog}>
+        <Loads.Pending>Loading...</Loads.Pending>
+        <Loads.Resolved>
+          {({ response, load }) => (
+            <div>
+              <div>
+                <img src={response.data.message} width="300px" alt="Dog" />
+              </div>
+              <button onClick={load}>Load another</button>
+            </div>
+          )}
+        </Loads.Resolved>
+        <Loads.Rejected>
+          {({ error }) => (
+            <div>{error.message}</div>
+          )}
+        </Loads.Rejected>
+      </Loads>
+    )
+  }
 }
 ```
 
@@ -208,7 +332,7 @@ By default, the loading function will be invoked on initial render. However, if 
 Example:
 
 ```jsx
-const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
+const getRandomDog = React.useCallback(() => axios.get('https://dog.ceo/api/breeds/image/random'), []);
 const { response, error, load, Pending, Resolved, Rejected } = useLoads(getRandomDog, { defer: true });
 
 return (
@@ -284,36 +408,6 @@ A function to update the response from `load`. **It must return a promise.** Thi
 **IMPORTANT NOTE ON `update`**: It is recommended that your update function resolves with the same response schema as your loading function (load) to avoid erroneous & confusing behaviour in your UI.
 
 Read more on the `update` function [here](#updating-resources).
-
-### inputs
-
-> `Array<any>`
-
-You can optionally pass an array of `inputs` (or an empty array), which `useLoads` will use to determine whether or not to load the loading function. If any of the values in the `inputs` array change, then it will reload the loading function.
-
-```jsx
-const getRandomDog = () => axios.get(`https://dog.ceo/api/breeds/image/${props.id}`);
-const { response, error, load, Pending, Resolved, Rejected } = useLoads(getRandomDog, {}, [props.id]);
-
-return (
-  <div>
-    <Idle>
-      <button onClick={load}>Load dog</button>
-    </Idle>
-    <Pending>
-      <div>loading...</div>
-    </Pending>
-    <Resolved>
-      <div>
-        <div>
-          {response && <img src={response.data.message} width="300px" alt="Dog" />}
-        </div>
-        <button onClick={load}>Load another</button>
-      </div>
-    </Resolved>
-  </div>
-);
-```
 
 ### `loader`
 
@@ -419,13 +513,116 @@ Renders it's children when the state is rejected.
 
 Returns `true` if data exists in the cache.
 
-## `setCacheProvider(cacheProvider)`
+## `<Loads>` Props
+
+The `<Loads>` props mimics the `useLoads` arguments and it's config attributes.
+
+### load
+
+[See here](#load)
+
+### inputs
+
+You can optionally pass an array of `inputs` (or an empty array), which `<Loads>` will use to determine whether or not to load the loading function. If any of the values in the `inputs` array change, then it will reload the loading function.
+
+### defer
+
+[See here](#defer)
+
+### delay
+
+[See here](#delay)
+
+### context
+
+[See here](#context)
+
+### timeout
+
+[See here](#timeout)
+
+### loadPolicy
+
+[See here](#loadpolicy)
+
+### enableBackgroundStates
+
+[See here](#enablebackgroundstates)
 
 ### cacheProvider
 
-> `Object({ get: function(key), set: function(key, val) })`
+[See here](#cacheprovider)
 
-Set a custom cache provider (e.g. local storage, session storate, etc). See [external cache](#external-cache) below for an example.
+### update
+
+[See here](#update)
+
+## `<Loads>` Render Props
+
+The `<Loads>` render props mimics the [`useLoads`' `loader`](#loader).
+
+> Note: `<Loads.Idle>`, `<Loads.Pending>`, `<Loads.Timeout>`, `<Loads.Resolved>` and `<Loads.Rejected>` share the same render props as `<Loads>`.
+
+### response
+
+[See here](#response)
+
+### error
+
+[See here](#error)
+
+### load
+
+[See here](#load-1)
+
+### update
+
+[See here](#update-1)
+
+### isIdle
+
+[See here](#isidle)
+
+### isPending
+
+[See here](#ispending)
+
+### isTimeout
+
+[See here](#istimeout)
+
+### isResolved
+
+[See here](#isresolved)
+
+### isRejected
+
+[See here](#isrejected)
+
+### Idle
+
+[See here](#idle)
+
+### Pending
+
+[See here](#pending)
+
+### Timeout
+
+[See here](#timeout)
+
+### Resolved
+
+[See here](#resolved)
+
+### Rejected
+
+[See here](#rejected)
+
+### isCached
+
+[See here](#iscached)
+
 
 ## Caching response data
 
@@ -438,7 +635,7 @@ import React from 'react';
 import { useLoads } from 'react-loads';
 
 export default function DogApp() {
-  const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
+  const getRandomDog = React.useCallback(() => axios.get('https://dog.ceo/api/breeds/image/random'), []);
   const { response, error, load, Pending, Resolved, Rejected } = useLoads(getRandomDog, { context: 'random-dog' });
 
   return (
@@ -468,21 +665,24 @@ export default function DogApp() {
 
 If you would like the ability to persist response data upon unmounting the application (e.g. page refresh or closing window), a cache provider can also be utilised to cache response data.
 
-Here is an example using [Store.js](https://github.com/marcuswestin/store.js/) and setting the cache provider on an application level using `setCacheProvider`. If you would like to set a cache provider on a hooks level with `useLoads`, see [Local cache provider](#local-cache-provider).
+Here is an example using [Store.js](https://github.com/marcuswestin/store.js/) and setting the cache provider on an application level using `<LoadsContext.Provider>`. If you would like to set a cache provider on a hooks level with `useLoads`, see [Local cache provider](#local-cache-provider).
 
 `index.js`
 ```jsx
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { setCacheProvider } from 'react-loads';
+import { LoadsContext } from 'react-loads';
 
 const cacheProvider = {
   get: key => store.get(key),
   set: (key, val) => store.set(key, val)
 }
-setCacheProvider(cacheProvider);
 
-ReactDOM.render(/* Your app here */)
+ReactDOM.render(
+  <LoadsContext.Provider cacheProvider={cacheProvider}>
+    {/* ... */}
+  </LoadsContext.Provider>
+)
 ```
 
 #### Local cache provider
@@ -499,7 +699,7 @@ const cacheProvider = {
 }
 
 export default function DogApp() {
-  const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
+  const getRandomDog = React.useCallback(() => axios.get('https://dog.ceo/api/breeds/image/random'), []);
   const { response, error, load, Pending, Resolved, Rejected } = useLoads(getRandomDog, {
     cacheProvider,
     context: 'random-dog'
@@ -565,10 +765,10 @@ import React from 'react';
 import { useLoads } from 'react-loads';
 
 export default function DogApp() {
-  const getRandomDog = ({ setResponse }) => {
+  const getRandomDog = React.useCallback(({ setResponse }) => {
     setResponse({ data: { message: 'https://images.dog.ceo/breeds/doberman/n02107142_17147.jpg' } })
     return axios.get('https://dog.ceo/api/breeds/image/random');
-  }
+  }, []);
   const { response, error, load, isRejected, isPending, isResolved } = useLoads(getRandomDog);
 
   return (
@@ -595,15 +795,15 @@ import React from 'react';
 import { useLoads } from 'react-loads';
 
 export default function DogApp() {
-  async function createDog(dog, { setResponse }) {
+  const createDog = React.useCallback(async (dog, { setResponse }) => {
     setResponse(dog, { context: 'dog' });
     // ... - create the dog
-  }
+  }, [])
   const createDogLoader = useLoads(createDog, { defer: true });
 
-  async function getDog() {
+  const getDog = React.useCallback(async () {
     // ... - fetch and return the dog
-  }
+  }, []);
   const getDogLoader = useLoads(getDog, { context: 'dog' });
 
   return (
@@ -626,9 +826,9 @@ import React from 'react';
 import { useLoads } from 'react-loads';
 
 export default function DogApp() {
-  const getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
-  const getRandomDoberman = () => axios.get('https://dog.ceo/api/breed/doberman/images/random');
-  const getRandomPoodle = () => axios.get('https://dog.ceo/api/breed/poodle/images/random');
+  const getRandomDog = React.useCallback(() => axios.get('https://dog.ceo/api/breeds/image/random'), []);
+  const getRandomDoberman = React.useCallback(() => axios.get('https://dog.ceo/api/breed/doberman/images/random'), []);
+  const getRandomPoodle = React.useCallback(() => axios.get('https://dog.ceo/api/breed/poodle/images/random'), []);
   const {
     response,
     load,
@@ -656,16 +856,6 @@ export default function DogApp() {
   );
 }
 ```
-
-## Compatibility with class components
-
-React Loads v7 is a [React Hook](https://reactjs.org/docs/hooks-intro.html) that can only be used inside [function components](https://reactjs.org/docs/components-and-props.html#function-and-class-components). If you need to use React Loads inside class components, you can do one of the following:
-
-- If you **don't want to use React Hooks** and still wish use React Loads inside class (and/or function) components, then check out the [v6 docs](https://github.com/jxom/react-loads/tree/v6). 
-
-- If you have **React Loads v6 installed**, and **want to use React Loads v7** (for hook support), you can install v7 with `yarn add react-loads-hook` and import it accordingly.
-
-- If you have **React Loads v7 installed**, and also **want to use React Loads v6** (for class component support), you can install v6 with `yarn add react-loads-legacy` and import it accordingly.
 
 
 ## Articles

@@ -1,6 +1,6 @@
 {
   "name": "react-loads",
-  "version": "7.0.2",
+  "version": "8.0.0-next.2",
   "description": "A simple React component to handle loading state",
   "main": "lib/index.js",
   "module": "es/index.js",
@@ -25,11 +25,11 @@
     "build:types": "tsc --emitDeclarationOnly",
     "clean": "rimraf es/ lib/ dist/ ts/ umd/",
     "develop": "rollup -c -w",
-    "lint": "eslint src/**/*.ts",
+    "lint": "eslint src/**/*.ts src/**/*.tsx",
     "test": "jest src/",
     "prepublish": "yarn lint && yarn build",
     "storybook": "start-storybook -p 6006",
-    "build-storybook": "build-storybook"
+    "build-storybook": "build-storybook -o docs/"
   },
   "keywords": [
     "react",
@@ -44,8 +44,7 @@
   },
   "dependencies": {
     "@types/jest": "24.0.6",
-    "@types/react": "16.8.4",
-    "lru_map": "0.3.3"
+    "@types/react": "16.8.4"
   },
   "devDependencies": {
     "@babel/cli": "7.2.3",
@@ -57,14 +56,14 @@
     "@babel/preset-env": "7.3.1",
     "@babel/preset-react": "7.0.0",
     "@babel/preset-typescript": "7.1.0",
-    "@medipass/eslint-config-react-medipass": "8.3.8",
-    "@storybook/react": "^4.1.11",
+    "@medipass/eslint-config-react-medipass": "8.4.1",
+    "@storybook/react": "5.0.11",
     "axios": "0.18.0",
     "babel-eslint": "10.0.1",
     "babel-jest": "24.0.0",
     "babel-loader": "8.0.5",
-    "eslint": "5.12.1",
-    "eslint-plugin-import": "2.14.0",
+    "eslint": "5.16.0",
+    "eslint-plugin-import": "2.17.2",
     "eslint-plugin-typescript": "0.14.0",
     "fannypack": "4.8.1",
     "jest": "24.0.0",

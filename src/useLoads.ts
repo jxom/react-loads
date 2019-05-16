@@ -2,7 +2,7 @@ import * as React from 'react';
 import useDetectMounted from './hooks/useDetectMounted';
 import useTimeout from './hooks/useTimeout';
 import StateComponent from './StateComponent';
-import cache from './cache';
+import { LoadsContext } from './LoadsContext';
 import { LoadsConfig, LoadFunction, LoadingState, OptimisticCallback, OptimisticOpts, Record } from './types';
 
 const STATES: { [key: string]: LoadingState } = {
@@ -42,13 +42,29 @@ export default function useLoads(
     timeout = 0,
     update: updateFn
   }: LoadsConfig = {},
-  inputs = []
+  inputs: Array<any> = []
 ) {
+  const cache = React.useContext(LoadsContext);
   const counter = React.useRef<number>(0);
   const hasMounted = useDetectMounted();
-  const [record, dispatch] = React.useReducer(reducer, { state: STATES.IDLE });
-  const [setDelayTimeout, clearDelayTimeout] = useTimeout(() => dispatch({ type: STATES.PENDING }));
-  const [setTimeoutTimeout, clearTimeoutTimeout] = useTimeout(() => dispatch({ type: STATES.TIMEOUT }));
+  const [setDelayTimeout, clearDelayTimeout] = useTimeout();
+  const [setTimeoutTimeout, clearTimeoutTimeout] = useTimeout();
+
+  const cachedRecord = React.useMemo(
+    () => {
+      if (context) {
+        return cache.get(context, { cacheProvider });
+      }
+      return;
+    },
+    [cache, cacheProvider, context]
+  );
+
+  let initialRecord = { state: STATES.IDLE };
+  if (cachedRecord && !defer && loadPolicy !== 'load-only') {
+    initialRecord = cachedRecord;
+  }
+  const [record, dispatch] = React.useReducer(reducer, initialRecord);
 
   function handleData(data: { response?: any; error?: any }, state: LoadingState, count: number) {
     if (hasMounted.current && count === counter.current) {
@@ -117,9 +133,7 @@ export default function useLoads(
 
       counter.current = counter.current + 1;
 
-      let cachedRecord;
       if (context && loadPolicy !== 'load-only') {
-        cachedRecord = cache.get(context, { cacheProvider });
         if (cachedRecord) {
           dispatch({ type: cachedRecord.state, isCached: true, ...cachedRecord });
           if (loadPolicy === 'cache-first') return;
@@ -127,12 +141,12 @@ export default function useLoads(
       }
 
       if (delay > 0) {
-        setDelayTimeout(delay);
+        setDelayTimeout(() => dispatch({ type: STATES.PENDING }), delay);
       } else {
         dispatch({ type: STATES.PENDING });
       }
       if (timeout > 0) {
-        setTimeoutTimeout(timeout);
+        setTimeoutTimeout(() => dispatch({ type: STATES.TIMEOUT }), timeout);
       }
 
       const loadFn = opts && opts.fn ? opts.fn : fn;
@@ -158,27 +172,33 @@ export default function useLoads(
     [updateFn]
   );
 
-  cache.onSet = (key, value) => {
-    if (key === context && loadPolicy !== 'load-only') {
-      dispatch({ type: value.state, isCached: true, ...value });
-    }
-  };
+  React.useEffect(
+    () => {
+      if (cachedRecord && loadPolicy !== 'load-only') {
+        dispatch({ type: cachedRecord.state, isCached: true, ...cachedRecord });
+      }
+    },
+    [cachedRecord, loadPolicy, dispatch]
+  );
 
   React.useEffect(
     () => {
       if (defer) return;
       load()();
     },
-    [defer, context, ...inputs]
+    [defer, context, !inputs ? fn : undefined, ...inputs]
   );
 
   const states = {
-    isIdle: record.state === STATES.IDLE && Boolean(!record.isCached || enableBackgroundStates),
-    isPending: record.state === STATES.PENDING && Boolean(!record.isCached || enableBackgroundStates),
-    isTimeout: record.state === STATES.TIMEOUT && Boolean(!record.isCached || enableBackgroundStates),
-    isResolved: record.state === STATES.RESOLVED || Boolean(record.isCached && record.response),
-    isRejected: record.state === STATES.REJECTED || Boolean(record.isCached && record.error)
+    isIdle: record.state === STATES.IDLE && Boolean((!record.response && !record.error) || enableBackgroundStates),
+    isPending:
+      record.state === STATES.PENDING && Boolean((!record.response && !record.error) || enableBackgroundStates),
+    isTimeout:
+      record.state === STATES.TIMEOUT && Boolean((!record.response && !record.error) || enableBackgroundStates),
+    isResolved: record.state === STATES.RESOLVED || Boolean(record.response),
+    isRejected: record.state === STATES.REJECTED || Boolean(record.error)
   };
+
   return React.useMemo(
     () => ({
       load: load(),
@@ -197,6 +217,6 @@ export default function useLoads(
 
       isCached: Boolean(record.isCached)
     }),
-    [load, record.response, record.error, record.state, record.isCached]
+    [record.response, record.error, record.state, record.isCached, states, update]
   );
 }

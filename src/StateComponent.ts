@@ -1,7 +1,7 @@
 export default function StateComponent(state: boolean) {
-  return ({ children, or }: { children: React.ReactNode; or: Array<any> | any }) => {
+  return ({ children, or }: { children: React.ReactNode; or?: Array<any> | any }, loader?: Object) => {
     if (state) {
-      return children;
+      return typeof children === 'function' ? children(loader) : children;
     }
     if (or) {
       let newOr = or;
