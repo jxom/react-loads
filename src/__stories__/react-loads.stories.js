@@ -343,7 +343,7 @@ storiesOf('<Loads> (Render Props)', module)
 
       render = () => {
         return (
-          <Loads fn={this.getRandomDog}>
+          <Loads load={this.getRandomDog}>
             {({ response, error, load, isRejected, isPending, isResolved }) => (
               <Box>
                 {isPending && <Spinner size="large" />}
@@ -370,7 +370,7 @@ storiesOf('<Loads> (Render Props)', module)
 
       render = () => {
         return (
-          <Loads defer fn={this.getRandomDog}>
+          <Loads defer load={this.getRandomDog}>
             {({ response, error, load, isIdle, isRejected, isPending, isResolved }) => (
               <Box>
                 {isIdle && <Button onClick={load}>Load dog</Button>}
@@ -398,7 +398,7 @@ storiesOf('<Loads> (Render Props)', module)
 
       render = () => {
         return (
-          <Loads defer delay={1000} fn={this.getRandomDog}>
+          <Loads defer delay={1000} load={this.getRandomDog}>
             {({ response, error, load, isIdle, isRejected, isPending, isResolved }) => (
               <Box>
                 {isIdle && <Button onClick={load}>Load dog</Button>}
@@ -426,7 +426,7 @@ storiesOf('<Loads> (Render Props)', module)
 
       render = () => {
         return (
-          <Loads defer delay={0} fn={this.getRandomDog}>
+          <Loads defer delay={0} load={this.getRandomDog}>
             {({ response, error, load, isIdle, isRejected, isPending, isResolved }) => (
               <Box>
                 {isIdle && <Button onClick={load}>Load dog</Button>}
@@ -454,7 +454,7 @@ storiesOf('<Loads> (Render Props)', module)
 
       render = () => {
         return (
-          <Loads defer fn={this.getRandomDog}>
+          <Loads defer load={this.getRandomDog}>
             {({ response, error, load, isIdle, isRejected, isPending, isResolved }) => (
               <Box>
                 {isIdle && <Button onClick={load}>Load dog</Button>}
@@ -482,7 +482,7 @@ storiesOf('<Loads> (Render Props)', module)
 
       render = () => {
         return (
-          <Loads defer timeout={1000} fn={this.getRandomDog}>
+          <Loads defer timeout={1000} load={this.getRandomDog}>
             {({ response, error, load, isIdle, isTimeout, isPending, isResolved }) => (
               <Box>
                 {isIdle && <Button onClick={load}>Load dog</Button>}
@@ -503,7 +503,7 @@ storiesOf('<Loads> (Render Props)', module)
 
       render = () => {
         return (
-          <Loads defer fn={this.getRandomDog}>
+          <Loads defer load={this.getRandomDog}>
             {({ response, error, load, isIdle, isRejected, isPending, isResolved }) => (
               <Box>
                 {isIdle && <Button onClick={() => load('beagle')}>Load beagle</Button>}
@@ -531,7 +531,7 @@ storiesOf('<Loads> (Render Props)', module)
 
       render = () => {
         return (
-          <Loads defer fn={this.getRandomDog}>
+          <Loads defer load={this.getRandomDog}>
             {({ response, error, load, Idle, Rejected, Pending, Resolved }) => (
               <Box>
                 <Idle>
@@ -563,9 +563,9 @@ storiesOf('<Loads> (Render Props)', module)
 
       render = () => {
         return (
-          <Loads defer fn={this.getRandomDog}>
+          <Loads defer load={this.getRandomDog}>
             {getRandomDogLoader => (
-              <Loads defer fn={this.saveDog}>
+              <Loads defer load={this.saveDog}>
                 {saveDogLoader => (
                   <Box>
                     <getRandomDogLoader.Idle>
@@ -615,7 +615,7 @@ storiesOf('<Loads> (Render Props)', module)
 
       render = () => {
         return (
-          <Loads fn={this.getRandomDog} update={this.getRandomDoberman}>
+          <Loads load={this.getRandomDog} update={this.getRandomDoberman}>
             {({ response, load, update, isPending, isResolved }) => (
               <Box>
                 {isPending && <Spinner size="large" />}
@@ -646,7 +646,7 @@ storiesOf('<Loads> (Render Props)', module)
 
       render = () => {
         return (
-          <Loads fn={this.getRandomDog} update={[this.getRandomDoberman, this.loadPoodle]}>
+          <Loads load={this.getRandomDog} update={[this.getRandomDoberman, this.loadPoodle]}>
             {({ response, load, update: [loadDoberman, loadPoodle], isPending, isResolved }) => (
               <Box>
                 {isPending && <Spinner size="large" />}
