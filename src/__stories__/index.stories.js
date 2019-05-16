@@ -532,23 +532,21 @@ storiesOf('<Loads> (Render Props)', module)
       render = () => {
         return (
           <Loads defer load={this.getRandomDog}>
-            {({ response, error, load, Idle, Rejected, Pending, Resolved }) => (
-              <Box>
-                <Idle>
-                  <Button onClick={load}>Load dog</Button>
-                </Idle>
-                <Pending>
-                  <Spinner size="large" />
-                </Pending>
-                <Resolved>
-                  <Box>
-                    <Box>{response && <Image src={response.data.message} width="300px" alt="Dog" />}</Box>
-                    <Button onClick={load}>Load another</Button>
-                  </Box>
-                </Resolved>
-                <Rejected>{error && <Alert type="danger">{error.message}</Alert>}</Rejected>
-              </Box>
-            )}
+            <Loads.Idle>{({ load }) => <Button onClick={load}>Load dog</Button>}</Loads.Idle>
+            <Loads.Pending>
+              <Spinner size="large" />
+            </Loads.Pending>
+            <Loads.Resolved>
+              {({ response, load }) => (
+                <Box>
+                  <Box>{response && <Image src={response.data.message} width="300px" alt="Dog" />}</Box>
+                  <Button onClick={load}>Load another</Button>
+                </Box>
+              )}
+            </Loads.Resolved>
+            <Loads.Rejected>
+              {({ error }) => <Alert type="danger">{error ? error.message : 'error'}</Alert>}
+            </Loads.Rejected>
           </Loads>
         );
       };
@@ -667,4 +665,4 @@ storiesOf('<Loads> (Render Props)', module)
       };
     }
     return <DogApp />;
-  })
+  });

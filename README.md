@@ -137,6 +137,22 @@ yarn add react-loads
 
 ## Usage
 
+### FIRSTLY
+
+Wrap your app in a `<LoadsContext.Provider>`:
+
+```jsx
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { LoadsContext } from 'react-loads';
+
+ReactDOM.render(
+  <LoadsContext.Provider>
+    {/* ... */}
+  <LoadsContext.Provider>
+)
+```
+
 ### With Hooks
 
 [See the `useLoads` API](#useloadsload-config-inputs)
@@ -174,7 +190,7 @@ export default function DogApp() {
 
 #### Usage with state components
 
-You can also use state components to conditionally render children:
+You can also use state components to conditionally render children. [Learn more](#pending)
 
 ```jsx
 import React from 'react';
@@ -240,6 +256,44 @@ class DogApp extends React.Component {
             {isRejected && <div type="danger">{error.message}</div>}
           </div>
         )}
+      </Loads>
+    )
+  }
+}
+```
+
+#### Usage with state components
+
+You can also use state components to conditionally render children. [Learn more](#TODO)
+
+```jsx
+import React from 'react';
+import { useLoads } from 'react-loads';
+
+class DogApp extends React.Component {
+  getRandomDog = () => {
+    return axios.get('https://dog.ceo/api/breeds/image/random');
+  }
+
+  render = () => {
+    return (
+      <Loads load={this.getRandomDog}>
+        <Loads.Pending>Loading...</Loads.Pending>
+        <Loads.Resolved>
+          {({ response, load }) => (
+            <div>
+              <div>
+                <img src={response.data.message} width="300px" alt="Dog" />
+              </div>
+              <button onClick={load}>Load another</button>
+            </div>
+          )}
+        </Loads.Resolved>
+        <Loads.Rejected>
+          {({ error }) => (
+            <div>{error.message}</div>
+          )}
+        </Loads.Rejected>
       </Loads>
     )
   }
@@ -505,6 +559,8 @@ You can optionally pass an array of `inputs` (or an empty array), which `<Loads>
 
 The `<Loads>` render props mimics the [`useLoads`' `loader`](#loader).
 
+> Note: `<Loads.Idle>`, `<Loads.Pending>`, `<Loads.Timeout>`, `<Loads.Resolved>` and `<Loads.Rejected>` share the same render props as `<Loads>`.
+
 ### response
 
 [See here](#response)
@@ -613,7 +669,7 @@ Here is an example using [Store.js](https://github.com/marcuswestin/store.js/) a
 ```jsx
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { setCacheProvider } from 'react-loads';
+import { LoadsContext } from 'react-loads';
 
 const cacheProvider = {
   get: key => store.get(key),

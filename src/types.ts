@@ -1,3 +1,5 @@
+import * as React from 'react';
+
 export type CacheProvider = { get: (key: string) => any; set: (key: string, value: any) => void };
 export type LoadsConfig = {
   cacheProvider?: CacheProvider;
@@ -20,3 +22,7 @@ export type OptimisticOpts = {
   context?: LoadsConfig['context'];
 };
 export type Record = { error?: any; response?: any; isCached?: boolean; state: LoadingState };
+export type StateComponentProps = {
+  children: ((loader: any) => React.ReactNode | React.ReactNode);
+  or?: Array<any> | any;
+};
