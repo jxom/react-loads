@@ -1,5 +1,8 @@
 export default function StateComponent(state: boolean) {
-  return ({ children, or }: { children: React.ReactNode; or?: Array<any> | any }, loader?: Object) => {
+  return (
+    { children, or }: { children: ((loader: any) => React.ReactNode | React.ReactNode); or?: Array<any> | any },
+    loader?: Object
+  ) => {
     if (state) {
       return typeof children === 'function' ? children(loader) : children;
     }
