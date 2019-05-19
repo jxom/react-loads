@@ -23,6 +23,6 @@ export type OptimisticOpts = {
 };
 export type Record = { error?: any; response?: any; isCached?: boolean; state: LoadingState };
 export type StateComponentProps = {
-  children: ((loader: any) => React.ReactNode | React.ReactNode);
+  children: ((loader: any) => React.ReactNode) | React.ReactNode;
   or?: Array<any> | any;
 };

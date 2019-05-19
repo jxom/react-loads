@@ -1,10 +1,10 @@
 import * as React from 'react';
 import * as PropTypes from 'prop-types';
-import { LoadFunction, StateComponentProps } from './types';
+import { LoadsConfig, LoadFunction, StateComponentProps } from './types';
 import useLoads from './useLoads';
 import StateComponent from './StateComponent';
 
-export type LoadsProps = {
+export type LoadsProps = LoadsConfig & {
   children: (loader: any) => React.ReactNode;
   load: LoadFunction;
   inputs?: Array<any>;
