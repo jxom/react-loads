@@ -4,6 +4,7 @@ export default function StateComponent(state: boolean) {
     loader?: Object
   ) => {
     if (state) {
+      // @ts-ignore
       return typeof children === 'function' ? children(loader) : children;
     }
     if (or) {
