@@ -1,6 +1,6 @@
 {
   "name": "react-loads",
-  "version": "8.1.0-next.0",
+  "version": "8.1.0-next.1",
   "description": "A simple React component to handle loading state",
   "main": "lib/index.js",
   "module": "es/index.js",
