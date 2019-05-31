@@ -315,9 +315,11 @@ class DogApp extends React.Component {
 
 ### load
 
-> `function(...args, { setResponse, setError })` | returns `Promise` | required
+> `function(...args, { cachedRecord, setResponse, setError })` | returns `Promise` | required
 
 The function to invoke. **It must return a promise.**
+
+The argument `cachedRecord` is the stored record in the cache (if exists). It uses the [`context` option](#context) to retrieve the cache record.
 
 The arguments `setResponse` & `setError` are optional and are used for optimistic responses. [Read more on optimistic responses](#optimistic-responses).
 

@@ -151,6 +151,7 @@ export default function useLoads(
 
       const loadFn = opts && opts.fn ? opts.fn : fn;
       return loadFn(...args, {
+        cachedRecord,
         setResponse: (data: any, optsOrCallback: OptimisticOpts | OptimisticCallback, callback?: OptimisticCallback) =>
           handleOptimisticData({ data, optsOrCallback, callback }, STATES.RESOLVED, counter.current),
         setError: (data: any, optsOrCallback: OptimisticOpts | OptimisticCallback, callback?: OptimisticCallback) =>
