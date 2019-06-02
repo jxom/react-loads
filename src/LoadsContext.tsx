@@ -1,7 +1,8 @@
 import * as React from 'react';
 import { CacheProvider, LoadsContextState, Record } from './types';
+import { string } from 'prop-types';
 
-export const LoadsContext = React.createContext<LoadsContextState>({ get: () => {}, set: () => {} });
+export const LoadsContext = React.createContext<LoadsContextState>({ cache: {}, get: () => {}, set: () => {} });
 
 export function Provider({ children, cacheProvider }: { children: React.ReactNode; cacheProvider?: CacheProvider }) {
   const [cache, setCache] = React.useState<{ [key: string]: Record }>({});
@@ -34,7 +35,7 @@ export function Provider({ children, cacheProvider }: { children: React.ReactNod
     [cache, cacheProvider]
   );
 
-  const value = React.useMemo<LoadsContextState>(() => ({ get, set }), [get, set]);
+  const value = React.useMemo<LoadsContextState>(() => ({ cache, get, set }), [cache, get, set]);
   return <LoadsContext.Provider value={value}>{children}</LoadsContext.Provider>;
 }
 

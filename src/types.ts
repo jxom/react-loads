@@ -12,6 +12,7 @@ export type LoadsConfig = {
   update?: LoadFunction;
 };
 export type LoadsContextState = {
+  cache: { [key: string]: any };
   get: (key: string, opts: { cacheProvider: CacheProvider | void }) => any;
   set: (key: string, val: Record, opts: { cacheProvider: CacheProvider | void }) => any;
 };
