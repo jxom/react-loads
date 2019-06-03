@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 export type CacheProvider = { get: (key: string) => any; set: (key: string, value: any) => void };
-export type LoadsConfig = {
+export type LoadsConfig<R> = {
   cacheProvider?: CacheProvider;
   context?: string;
   delay?: number;
@@ -9,20 +9,20 @@ export type LoadsConfig = {
   defer?: boolean;
   loadPolicy?: 'cache-first' | 'cache-and-load' | 'load-only';
   timeout?: number;
-  update?: LoadFunction;
+  update?: LoadFunction<R>;
 };
 export type LoadsContextState = {
   cache: { [key: string]: any };
   get: (key: string, opts: { cacheProvider: CacheProvider | void }) => any;
-  set: (key: string, val: Record, opts: { cacheProvider: CacheProvider | void }) => any;
+  set: (key: string, val: any, opts: { cacheProvider: CacheProvider | void }) => any;
 };
-export type LoadFunction = (opts?: any) => Promise<any>;
+export type LoadFunction<R> = (opts?: any) => Promise<R>;
 export type LoadingState = 'idle' | 'pending' | 'timeout' | 'resolved' | 'rejected';
 export type OptimisticCallback = (newData: any) => void;
-export type OptimisticOpts = {
-  context?: LoadsConfig['context'];
+export type OptimisticOpts<R> = {
+  context?: LoadsConfig<R>['context'];
 };
-export type Record = { error?: any; response?: any; isCached?: boolean; state: LoadingState };
+export type Record<R> = { error?: any; response?: R; isCached?: boolean; state: LoadingState };
 export type StateComponentProps = {
   children: ((loader: any) => React.ReactNode) | React.ReactNode;
   or?: Array<any> | any;
