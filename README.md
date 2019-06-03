@@ -52,8 +52,9 @@ React Loads comes with a handy set of features to help solve these concerns:
       - [Usage with state components](#usage-with-state-components)
     - [With Render Props](#with-render-props)
       - [Usage with state components](#usage-with-state-components-1)
+    - [See a demo](#see-a-demo)
     - [More examples](#more-examples)
-  - [`useLoads(load[, config[, inputs]])`](#useloadsload-config-inputs)
+  - [`loader = useLoads(load[, config[, inputs]])`](#loader--useloadsload-config-inputs)
     - [load](#load)
     - [config](#config)
       - [defer](#defer)
@@ -107,6 +108,9 @@ React Loads comes with a handy set of features to help solve these concerns:
     - [Resolved](#resolved-1)
     - [Rejected](#rejected-1)
     - [isCached](#iscached-1)
+  - [`cache = useLoadsCache(context)`](#cache--useloadscachecontext)
+    - [context](#context-2)
+    - [`cache`](#cache)
   - [Caching response data](#caching-response-data)
     - [Basic cache](#basic-cache)
     - [External cache](#external-cache)
@@ -309,15 +313,17 @@ class DogApp extends React.Component {
 - [Stories](./src/__stories__/index.stories.js)
 - [Tests](./src/__tests__/useLoads.test.tsx)
 
-## `useLoads(load[, config[, inputs]])`
+## `loader = useLoads(load[, config[, inputs]])`
 
 > returns [an object (`loader`)](#loader)
 
 ### load
 
-> `function(...args, { setResponse, setError })` | returns `Promise` | required
+> `function(...args, { cachedRecord, setResponse, setError })` | returns `Promise` | required
 
 The function to invoke. **It must return a promise.**
+
+The argument `cachedRecord` is the stored record in the cache (if exists). It uses the [`context` option](#context) to retrieve the cache record.
 
 The arguments `setResponse` & `setError` are optional and are used for optimistic responses. [Read more on optimistic responses](#optimistic-responses).
 
@@ -625,6 +631,21 @@ The `<Loads>` render props mimics the [`useLoads`' `loader`](#loader).
 
 [See here](#iscached)
 
+## `cache = useLoadsCache(context)`
+
+> returns [an object (`cache`)](#TODO)
+
+### context
+
+> string
+
+The context key of the record to retrieve from cache.
+
+### `cache`
+
+> Object
+
+The cached record.
 
 ## Caching response data
 

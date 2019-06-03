@@ -1,13 +1,13 @@
 import * as React from 'react';
 import { CacheProvider, LoadsContextState, Record } from './types';
 
-export const LoadsContext = React.createContext<LoadsContextState>({ get: () => {}, set: () => {} });
+export const LoadsContext = React.createContext<LoadsContextState>({ cache: {}, get: () => {}, set: () => {} });
 
 export function Provider({ children, cacheProvider }: { children: React.ReactNode; cacheProvider?: CacheProvider }) {
-  const [cache, setCache] = React.useState<{ [key: string]: Record }>({});
+  const [cache, setCache] = React.useState<{ [key: string]: Record<unknown> }>({});
 
   const set = React.useCallback(
-    (key: string, val: Record, opts: { cacheProvider: CacheProvider | void }) => {
+    (key: string, val: Record<unknown>, opts: { cacheProvider: CacheProvider | void }) => {
       setCache(currentCache => ({
         ...currentCache,
         [key]: val
@@ -34,7 +34,7 @@ export function Provider({ children, cacheProvider }: { children: React.ReactNod
     [cache, cacheProvider]
   );
 
-  const value = React.useMemo<LoadsContextState>(() => ({ get, set }), [get, set]);
+  const value = React.useMemo<LoadsContextState>(() => ({ cache, get, set }), [cache, get, set]);
   return <LoadsContext.Provider value={value}>{children}</LoadsContext.Provider>;
 }
 

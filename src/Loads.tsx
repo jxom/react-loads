@@ -4,9 +4,9 @@ import { LoadsConfig, LoadFunction, StateComponentProps } from './types';
 import useLoads from './useLoads';
 import StateComponent from './StateComponent';
 
-export type LoadsProps = LoadsConfig & {
+export type LoadsProps = LoadsConfig<unknown> & {
   children: (loader: any) => React.ReactNode;
-  load: LoadFunction;
+  load: LoadFunction<unknown>;
   inputs?: Array<any>;
 };
 

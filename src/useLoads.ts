@@ -13,25 +13,8 @@ const STATES: { [key: string]: LoadingState } = {
   REJECTED: 'rejected'
 };
 
-function reducer(state: Record, action: { type: LoadingState; isCached?: boolean; response?: any; error?: any }) {
-  switch (action.type) {
-    case STATES.IDLE:
-      return { state: STATES.IDLE };
-    case STATES.PENDING:
-      return { ...state, state: STATES.PENDING };
-    case STATES.TIMEOUT:
-      return { ...state, state: STATES.TIMEOUT };
-    case STATES.RESOLVED:
-      return { ...state, isCached: action.isCached, response: action.response, state: STATES.RESOLVED };
-    case STATES.REJECTED:
-      return { ...state, isCached: action.isCached, error: action.error, state: STATES.REJECTED };
-    default:
-      return state;
-  }
-}
-
-export default function useLoads(
-  fn: LoadFunction,
+export default function useLoads<R>(
+  fn: LoadFunction<R>,
   {
     cacheProvider,
     context,
@@ -41,7 +24,7 @@ export default function useLoads(
     loadPolicy = 'cache-and-load',
     timeout = 0,
     update: updateFn
-  }: LoadsConfig = {},
+  }: LoadsConfig<R> = {},
   inputs: Array<any> = []
 ) {
   const cache = React.useContext(LoadsContext);
@@ -49,6 +32,23 @@ export default function useLoads(
   const hasMounted = useDetectMounted();
   const [setDelayTimeout, clearDelayTimeout] = useTimeout();
   const [setTimeoutTimeout, clearTimeoutTimeout] = useTimeout();
+
+  function reducer(state: Record<R>, action: { type: LoadingState; isCached?: boolean; response?: R; error?: any }) {
+    switch (action.type) {
+      case STATES.IDLE:
+        return { state: STATES.IDLE };
+      case STATES.PENDING:
+        return { ...state, state: STATES.PENDING };
+      case STATES.TIMEOUT:
+        return { ...state, state: STATES.TIMEOUT };
+      case STATES.RESOLVED:
+        return { ...state, isCached: action.isCached, response: action.response, state: STATES.RESOLVED };
+      case STATES.REJECTED:
+        return { ...state, isCached: action.isCached, error: action.error, state: STATES.REJECTED };
+      default:
+        return state;
+    }
+  }
 
   const cachedRecord = React.useMemo(
     () => {
@@ -66,7 +66,7 @@ export default function useLoads(
   }
   const [record, dispatch] = React.useReducer(reducer, initialRecord);
 
-  function handleData(data: { response?: any; error?: any }, state: LoadingState, count: number) {
+  function handleData(data: { response?: R; error?: any }, state: LoadingState, count: number) {
     if (hasMounted.current && count === counter.current) {
       // @ts-ignore
       clearDelayTimeout();
@@ -90,12 +90,12 @@ export default function useLoads(
       data,
       optsOrCallback,
       callback
-    }: { data: any; optsOrCallback?: OptimisticOpts | OptimisticCallback; callback?: OptimisticCallback },
+    }: { data: any; optsOrCallback?: OptimisticOpts<R> | OptimisticCallback; callback?: OptimisticCallback },
     state: LoadingState,
     count: number
   ) {
     let newData = data;
-    let opts: OptimisticOpts = {};
+    let opts: OptimisticOpts<R> = {};
 
     if (typeof optsOrCallback === 'object') {
       opts = optsOrCallback;
@@ -127,7 +127,7 @@ export default function useLoads(
     newCallback && newCallback(newData);
   }
 
-  function load(opts?: { fn?: LoadFunction }) {
+  function load(opts?: { fn?: LoadFunction<R> }) {
     return (..._args: any) => {
       const args = _args.filter((arg: any) => arg.constructor.name !== 'Class');
 
@@ -151,9 +151,13 @@ export default function useLoads(
 
       const loadFn = opts && opts.fn ? opts.fn : fn;
       return loadFn(...args, {
-        setResponse: (data: any, optsOrCallback: OptimisticOpts | OptimisticCallback, callback?: OptimisticCallback) =>
-          handleOptimisticData({ data, optsOrCallback, callback }, STATES.RESOLVED, counter.current),
-        setError: (data: any, optsOrCallback: OptimisticOpts | OptimisticCallback, callback?: OptimisticCallback) =>
+        cachedRecord,
+        setResponse: (
+          data: any,
+          optsOrCallback: OptimisticOpts<R> | OptimisticCallback,
+          callback?: OptimisticCallback
+        ) => handleOptimisticData({ data, optsOrCallback, callback }, STATES.RESOLVED, counter.current),
+        setError: (data: any, optsOrCallback: OptimisticOpts<R> | OptimisticCallback, callback?: OptimisticCallback) =>
           handleOptimisticData({ data, optsOrCallback, callback }, STATES.REJECTED, counter.current)
       })
         .then(response => handleData({ response }, STATES.RESOLVED, counter.current))
@@ -169,7 +173,7 @@ export default function useLoads(
       }
       return load({ fn: updateFn });
     },
-    [updateFn]
+    [updateFn] // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   React.useEffect(
@@ -186,7 +190,7 @@ export default function useLoads(
       if (defer) return;
       load()();
     },
-    [defer, context, !inputs ? fn : undefined, ...inputs]
+    [defer, context, !inputs ? fn : undefined, ...inputs] // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   const states = {
@@ -217,6 +221,6 @@ export default function useLoads(
 
       isCached: Boolean(record.isCached)
     }),
-    [record.response, record.error, record.state, record.isCached, states, update]
+    [record.response, record.error, record.state, record.isCached, states, update] // eslint-disable-line react-hooks/exhaustive-deps
   );
 }
