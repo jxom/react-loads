@@ -651,8 +651,8 @@ The cached record.
 
 ```jsx
 export default function DogApp() {
-  const dogsRecord = useLoadsCache('dog');
-  // dogsRecord = { response: { ... }, error: undefined, isIdle: false, isPending: false, isResolved, true, ... }
+  const dogRecord = useLoadsCache('dog');
+  // dogRecord = { response: { ... }, error: undefined, isIdle: false, isPending: false, isResolved, true, ... }
   
   // ...
 }
