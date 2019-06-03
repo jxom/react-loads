@@ -14,7 +14,7 @@ export type LoadsConfig<R> = {
 export type LoadsContextState = {
   cache: { [key: string]: any };
   get: (key: string, opts: { cacheProvider: CacheProvider | void }) => any;
-  set: (key: string, val: any, opts: { cacheProvider: CacheProvider | void }) => any;
+  set: (key: string, val: Record<any>, opts: { cacheProvider: CacheProvider | void }) => any;
 };
 export type LoadFunction<R> = (opts?: any) => Promise<R>;
 export type LoadingState = 'idle' | 'pending' | 'timeout' | 'resolved' | 'rejected';
