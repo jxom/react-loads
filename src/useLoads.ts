@@ -17,9 +17,10 @@ export default function useLoads<R>(
   fn: LoadFunction<R>,
   {
     cacheProvider,
-    context,
+    context: contextKey,
     delay = 300,
     enableBackgroundStates = false,
+    unstable_enableSuspense,
     defer = false,
     loadPolicy = 'cache-and-load',
     timeout = 0,
@@ -27,9 +28,10 @@ export default function useLoads<R>(
   }: LoadsConfig<R> = {},
   inputs: Array<any> = []
 ) {
-  const cache = React.useContext(LoadsContext);
+  const globalContext = React.useContext(LoadsContext);
   const counter = React.useRef<number>(0);
   const hasMounted = useDetectMounted();
+  const loadsPromise = React.useRef<Promise<void> | void>(undefined);
   const [setDelayTimeout, clearDelayTimeout] = useTimeout();
   const [setTimeoutTimeout, clearTimeoutTimeout] = useTimeout();
 
@@ -52,12 +54,12 @@ export default function useLoads<R>(
 
   const cachedRecord = React.useMemo(
     () => {
-      if (context) {
-        return cache.get(context, { cacheProvider });
+      if (contextKey) {
+        return globalContext.cache.get(contextKey, { cacheProvider });
       }
       return;
     },
-    [cache, cacheProvider, context]
+    [cacheProvider, contextKey, globalContext.cache]
   );
 
   let initialRecord = { state: STATES.IDLE };
@@ -74,13 +76,13 @@ export default function useLoads<R>(
       clearTimeoutTimeout();
       dispatch({
         type: state,
-        isCached: Boolean(context),
+        isCached: Boolean(contextKey),
         error: state === STATES.REJECTED ? data.error : undefined,
         response: state === STATES.RESOLVED ? data.response : undefined
       });
-      if (context) {
+      if (contextKey) {
         const record = { error: data.error, response: data.response, state };
-        cache.set(context, record, { cacheProvider });
+        globalContext.cache.set(contextKey, record, { cacheProvider });
       }
     }
   }
@@ -106,7 +108,7 @@ export default function useLoads<R>(
       if (record.response) {
         cachedValue = record.response;
       } else if (opts.context) {
-        cachedValue = cache.get(opts.context, { cacheProvider }) || {};
+        cachedValue = globalContext.cache.get(opts.context, { cacheProvider }) || {};
       }
       newData = data(cachedValue);
     }
@@ -115,11 +117,11 @@ export default function useLoads<R>(
       error: state === STATES.REJECTED ? newData : undefined,
       response: state === STATES.RESOLVED ? newData : undefined
     };
-    if (!opts.context || context === opts.context) {
+    if (!opts.context || contextKey === opts.context) {
       handleData(value, state, count);
     } else {
-      if (cache) {
-        cache.set(opts.context, { ...value, state }, { cacheProvider });
+      if (globalContext.cache) {
+        globalContext.cache.set(opts.context, { ...value, state }, { cacheProvider });
       }
     }
 
@@ -133,7 +135,7 @@ export default function useLoads<R>(
 
       counter.current = counter.current + 1;
 
-      if (context && loadPolicy !== 'load-only') {
+      if (contextKey && loadPolicy !== 'load-only') {
         if (cachedRecord) {
           dispatch({ type: cachedRecord.state, isCached: true, ...cachedRecord });
           if (loadPolicy === 'cache-first') return;
@@ -150,7 +152,7 @@ export default function useLoads<R>(
       }
 
       const loadFn = opts && opts.fn ? opts.fn : fn;
-      return loadFn(...args, {
+      const promise = loadFn(...args, {
         cachedRecord,
         setResponse: (
           data: any,
@@ -162,6 +164,8 @@ export default function useLoads<R>(
       })
         .then(response => handleData({ response }, STATES.RESOLVED, counter.current))
         .catch(err => handleData({ error: err }, STATES.REJECTED, counter.current));
+      loadsPromise.current = promise;
+      return promise;
     };
   }
 
@@ -190,7 +194,7 @@ export default function useLoads<R>(
       if (defer) return;
       load()();
     },
-    [defer, context, !inputs ? fn : undefined, ...inputs] // eslint-disable-line react-hooks/exhaustive-deps
+    [defer, contextKey, !inputs ? fn : undefined, ...inputs] // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   const states = {
@@ -202,6 +206,24 @@ export default function useLoads<R>(
     isResolved: record.state === STATES.RESOLVED || Boolean(record.response),
     isRejected: record.state === STATES.REJECTED || Boolean(record.error)
   };
+
+  function isSuspenseEnabled() {
+    if (unstable_enableSuspense === false) {
+      return false;
+    }
+    if (unstable_enableSuspense) {
+      return true;
+    }
+    if (globalContext.unstable_enableSuspense) {
+      return true;
+    }
+    return false;
+  }
+  if (isSuspenseEnabled() && loadsPromise.current) {
+    if (states.isPending) {
+      throw loadsPromise.current;
+    }
+  }
 
   return React.useMemo(
     () => ({

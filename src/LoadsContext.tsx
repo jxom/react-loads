@@ -1,15 +1,26 @@
 import * as React from 'react';
 import { CacheProvider, LoadsContextState, Record } from './types';
 
-export const LoadsContext = React.createContext<LoadsContextState>({ cache: {}, get: () => {}, set: () => {} });
+export const LoadsContext = React.createContext<LoadsContextState>({
+  cache: { records: {}, get: () => {}, set: () => {} },
+  unstable_enableSuspense: false
+});
 
-export function Provider({ children, cacheProvider }: { children: React.ReactNode; cacheProvider?: CacheProvider }) {
-  const [cache, setCache] = React.useState<{ [key: string]: Record<unknown> }>({});
+export function Provider({
+  children,
+  cacheProvider,
+  unstable_enableSuspense = false
+}: {
+  children: React.ReactNode;
+  cacheProvider?: CacheProvider;
+  unstable_enableSuspense?: boolean;
+}) {
+  const [records, setRecords] = React.useState<{ [key: string]: Record<unknown> }>({});
 
   const set = React.useCallback(
     (key: string, val: Record<unknown>, opts: { cacheProvider: CacheProvider | void }) => {
-      setCache(currentCache => ({
-        ...currentCache,
+      setRecords(currentRecords => ({
+        ...currentRecords,
         [key]: val
       }));
       const _cacheProvider = opts.cacheProvider || cacheProvider;
@@ -29,12 +40,17 @@ export function Provider({ children, cacheProvider }: { children: React.ReactNod
           return value;
         }
       }
-      return cache[key];
+      return records[key];
     },
-    [cache, cacheProvider]
+    [records, cacheProvider]
   );
 
-  const value = React.useMemo<LoadsContextState>(() => ({ cache, get, set }), [cache, get, set]);
+  const value = React.useMemo<LoadsContextState>(() => ({ cache: { records, get, set }, unstable_enableSuspense }), [
+    records,
+    get,
+    set,
+    unstable_enableSuspense
+  ]);
   return <LoadsContext.Provider value={value}>{children}</LoadsContext.Provider>;
 }
 
