@@ -647,6 +647,17 @@ The context key of the record to retrieve from cache.
 
 The cached record.
 
+### Example
+
+```jsx
+export default function DogApp() {
+  const dogRecord = useLoadsCache('dog');
+  // dogRecord = { response: { ... }, error: undefined, isIdle: false, isPending: false, isResolved, true, ... }
+  
+  // ...
+}
+```
+
 ## Caching response data
 
 ### Basic cache
