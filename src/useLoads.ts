@@ -44,9 +44,9 @@ export default function useLoads<R>(
       case STATES.TIMEOUT:
         return { ...state, state: STATES.TIMEOUT };
       case STATES.RESOLVED:
-        return { ...state, isCached: action.isCached, response: action.response, state: STATES.RESOLVED };
+        return { isCached: action.isCached, error: undefined, response: action.response, state: STATES.RESOLVED };
       case STATES.REJECTED:
-        return { ...state, isCached: action.isCached, error: action.error, state: STATES.REJECTED };
+        return { isCached: action.isCached, error: action.error, response: undefined, state: STATES.REJECTED };
       default:
         return state;
     }
