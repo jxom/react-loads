@@ -1,9 +1,10 @@
 import * as React from 'react';
 import useDetectMounted from './hooks/useDetectMounted';
 import useTimeout from './hooks/useTimeout';
+import * as utils from './utils';
 import StateComponent from './StateComponent';
 import { LoadsContext } from './LoadsContext';
-import { LoadsConfig, LoadFunction, LoadingState, OptimisticCallback, OptimisticOpts, Record } from './types';
+import { LoadsConfig, LoadFunction, LoadingState, Loaders, OptimisticCallback, OptimisticOpts, Record } from './types';
 
 const STATES: { [key: string]: LoadingState } = {
   IDLE: 'idle',
@@ -14,10 +15,23 @@ const STATES: { [key: string]: LoadingState } = {
 };
 
 export default function useLoads<R>(
-  fn: LoadFunction<R>,
-  {
+  fnOrLoaders: LoadFunction<R> | Loaders<R>,
+  _config: LoadsConfig<R> = {},
+  inputs: Array<any> = []
+) {
+  const globalContext = React.useContext(LoadsContext);
+  const counter = React.useRef<number>(0);
+  const fn = utils.getLoadFunction(fnOrLoaders, _config);
+  const config = utils.getLoadConfig(fnOrLoaders, _config);
+  const hasMounted = useDetectMounted();
+  const loadsPromise = React.useRef<Promise<void> | void>(undefined);
+  const [setDelayTimeout, clearDelayTimeout] = useTimeout();
+  const [setTimeoutTimeout, clearTimeoutTimeout] = useTimeout();
+
+  const {
     cacheProvider,
     context: contextKey,
+    defaultParams,
     delay = 300,
     enableBackgroundStates = false,
     unstable_enableSuspense,
@@ -25,15 +39,7 @@ export default function useLoads<R>(
     loadPolicy = 'cache-and-load',
     timeout = 0,
     update: updateFn
-  }: LoadsConfig<R> = {},
-  inputs: Array<any> = []
-) {
-  const globalContext = React.useContext(LoadsContext);
-  const counter = React.useRef<number>(0);
-  const hasMounted = useDetectMounted();
-  const loadsPromise = React.useRef<Promise<void> | void>(undefined);
-  const [setDelayTimeout, clearDelayTimeout] = useTimeout();
-  const [setTimeoutTimeout, clearTimeoutTimeout] = useTimeout();
+  } = config;
 
   function reducer(state: Record<R>, action: { type: LoadingState; isCached?: boolean; response?: R; error?: any }) {
     switch (action.type) {
@@ -131,7 +137,10 @@ export default function useLoads<R>(
 
   function load(opts?: { fn?: LoadFunction<R> }) {
     return (..._args: any) => {
-      const args = _args.filter((arg: any) => arg.constructor.name !== 'Class');
+      let args = _args.filter((arg: any) => arg.constructor.name !== 'Class');
+      if (defaultParams && (!args || args.length === 0)) {
+        args = defaultParams;
+      }
 
       counter.current = counter.current + 1;
 
