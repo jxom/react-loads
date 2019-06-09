@@ -6,6 +6,8 @@ export const LoadsContext = React.createContext<LoadsContextState>({
   unstable_enableSuspense: false
 });
 
+const records = new Map();
+
 export function Provider({
   children,
   cacheProvider,
@@ -15,14 +17,9 @@ export function Provider({
   cacheProvider?: CacheProvider;
   unstable_enableSuspense?: boolean;
 }) {
-  const [records, setRecords] = React.useState<{ [key: string]: Record<unknown> }>({});
-
   const set = React.useCallback(
-    (key: string, val: Record<unknown>, opts: { cacheProvider: CacheProvider | void }) => {
-      setRecords(currentRecords => ({
-        ...currentRecords,
-        [key]: val
-      }));
+    (key: string, val: Record<unknown>, opts: { cacheProvider?: CacheProvider | void } = {}) => {
+      records.set(key, val);
       const _cacheProvider = opts.cacheProvider || cacheProvider;
       if (_cacheProvider) {
         _cacheProvider.set(key, val);
@@ -32,7 +29,7 @@ export function Provider({
     [cacheProvider]
   );
   const get = React.useCallback(
-    (key: string, opts: { cacheProvider: CacheProvider | void }) => {
+    (key: string, opts: { cacheProvider?: CacheProvider | void } = {}) => {
       const _cacheProvider = opts.cacheProvider || cacheProvider;
       if (_cacheProvider) {
         const value = _cacheProvider.get(key);
@@ -40,13 +37,12 @@ export function Provider({
           return value;
         }
       }
-      return records[key];
+      return records.get(key);
     },
-    [records, cacheProvider]
+    [cacheProvider]
   );
 
   const value = React.useMemo<LoadsContextState>(() => ({ cache: { records, get, set }, unstable_enableSuspense }), [
-    records,
     get,
     set,
     unstable_enableSuspense

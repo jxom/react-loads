@@ -6,13 +6,7 @@ import StateComponent from './StateComponent';
 import { LoadsContext } from './LoadsContext';
 import { LoadsConfig, LoadFunction, LoadingState, Loaders, OptimisticCallback, OptimisticOpts, Record } from './types';
 
-const STATES: { [key: string]: LoadingState } = {
-  IDLE: 'idle',
-  PENDING: 'pending',
-  TIMEOUT: 'timeout',
-  RESOLVED: 'resolved',
-  REJECTED: 'rejected'
-};
+const STATES = utils.STATES;
 
 export default function useLoads<R>(
   fnOrLoaders: LoadFunction<R> | Loaders<R>,

@@ -1,13 +1,25 @@
-import { LoadFunction, Loaders, LoadsConfig } from './types';
+import { LoadFunction, Loaders, LoadsConfig, LoadingState } from './types';
 
 const noop = async () => {};
+
+export const STATES: { [key: string]: LoadingState } = {
+  IDLE: 'idle',
+  PENDING: 'pending',
+  TIMEOUT: 'timeout',
+  RESOLVED: 'resolved',
+  REJECTED: 'rejected'
+};
 
 export function getLoadConfig<R>(fnOrLoaders: LoadFunction<R> | Loaders<R>, config: LoadsConfig<R>): LoadsConfig<R> {
   if (typeof fnOrLoaders === 'function') {
     return config;
   }
   if (typeof fnOrLoaders === 'object') {
-    const context = `${config.context}.${config.id}`;
+    let context = config.context;
+    if (config.accessKey) {
+      context = `${config.context}.${config.accessKey}`;
+    }
+
     if (fnOrLoaders.load[1]) {
       const loaderConfig = fnOrLoaders.load[1];
       return { ...loaderConfig, ...config, context };

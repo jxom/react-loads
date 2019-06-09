@@ -46,6 +46,7 @@ function accessResult(resource, fetch, input, key) {
     entries.set(resource, entriesForResource);
   }
   let entry = entriesForResource.get(key);
+  console.log('test', entry);
   if (entry === undefined) {
     const thenable = fetch(input);
     thenable.then(

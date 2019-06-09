@@ -22,10 +22,10 @@ import { movieResource, movieReviewsResource } from './resources';
 // export default function MovieDetails(props) {
 //   const { movieId, onClickBack } = props;
 
-//   const getMoviesLoader = movieResource.useLoads({ defaultParams: [movieId], id: movieId });
+//   const getMoviesLoader = movieResource.useLoads({ defaultParams: [movieId], accessKey: movieId });
 //   const movie = getMoviesLoader.response || {};
 
-//   const getReviewsLoader = movieReviewsResource.useLoads({ defaultParams: [movieId], id: movieId });
+//   const getReviewsLoader = movieReviewsResource.useLoads({ defaultParams: [movieId], accessKey: movieId });
 //   const reviews = getReviewsLoader.response || [];
 
 //   return (
@@ -94,8 +94,8 @@ import { movieResource, movieReviewsResource } from './resources';
 export default function MovieDetails(props) {
   const { movieId, onClickBack } = props;
 
-  const movie = movieResource.unstable_load(movieId);
-  const reviews = movieReviewsResource.unstable_load(movieId);
+  const movie = movieResource.unstable_load({ accessKey: movieId, params: [movieId] });
+  const reviews = movieReviewsResource.unstable_load({ accessKey: movieId, params: [movieId] });
 
   return (
     <LayoutSet>

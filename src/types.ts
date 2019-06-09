@@ -2,6 +2,7 @@ import * as React from 'react';
 
 export type CacheProvider = { get: (key: string) => any; set: (key: string, value: any) => void };
 export type LoadsConfig<R> = {
+  accessKey?: string;
   cacheProvider?: CacheProvider;
   context?: string;
   defaultParams?: Array<unknown>;
@@ -9,7 +10,6 @@ export type LoadsConfig<R> = {
   enableBackgroundStates?: boolean;
   unstable_enableSuspense?: boolean;
   defer?: boolean;
-  id?: string;
   loadPolicy?: 'cache-first' | 'cache-and-load' | 'load-only';
   timeout?: number;
   type?: string;
@@ -30,7 +30,13 @@ export type OptimisticCallback = (newData: any) => void;
 export type OptimisticOpts<R> = {
   context?: LoadsConfig<R>['context'];
 };
-export type Record<R> = { error?: any; response?: R; isCached?: boolean; state: LoadingState };
+export type Record<R> = {
+  error?: any;
+  response?: R;
+  isCached?: boolean;
+  promise?: Promise<unknown>;
+  state: LoadingState;
+};
 export type StateComponentProps = {
   children: ((loader: any) => React.ReactNode) | React.ReactNode;
   or?: Array<any> | any;
