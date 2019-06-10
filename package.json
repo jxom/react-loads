@@ -1,6 +1,6 @@
 {
   "name": "react-loads",
-  "version": "8.2.1",
+  "version": "8.3.0-next.0",
   "description": "A simple React component to handle loading state",
   "main": "lib/index.js",
   "module": "es/index.js",
@@ -43,8 +43,7 @@
     "react": ">=16.8.0",
     "react-dom": ">=16.8.0"
   },
-  "dependencies": {
-  },
+  "dependencies": {},
   "devDependencies": {
     "@babel/cli": "7.2.3",
     "@babel/core": "7.2.2",
