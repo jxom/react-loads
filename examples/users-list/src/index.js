@@ -2,47 +2,56 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import axios from 'axios';
 import { Button, Container, Group, Heading, LayoutSet, List, Input, Spinner, ThemeProvider } from 'fannypack';
-import { LoadsContext, useLoads } from 'react-loads';
+import * as Loads from 'react-loads';
+
+async function getUsers() {
+  const response = await axios.get('https://jsonplaceholder.typicode.com/users');
+  return response.data;
+}
+
+async function addUser({ name }, { cachedRecord }) {
+  const response = await axios.post('https://jsonplaceholder.typicode.com/users', {
+    data: { name }
+  });
+  const currentUsers = cachedRecord.response;
+  const newUser = response.data.data;
+  return [...currentUsers, newUser];
+}
+
+async function deleteUser(user, { cachedRecord }) {
+  await axios.delete(`https://jsonplaceholder.typicode.com/users/${user.id}`);
+  const currentUsers = cachedRecord.response;
+  const newUsers = currentUsers.filter(_user => _user.id !== user.id);
+  return newUsers;
+}
+
+export const usersResource = Loads.createResource({
+  _key: 'users',
+  load: [getUsers],
+  add: [addUser],
+  delete: [deleteUser]
+});
 
 function App() {
   const [name, setName] = React.useState();
 
-  const getUsers = React.useCallback(async () => {
-    const response = await axios.get('https://jsonplaceholder.typicode.com/users');
-    return response.data;
-  }, []);
-  const getUsersLoader = useLoads(getUsers, {
-    context: 'users'
-  });
+  const getUsersLoader = usersResource.useLoads();
   const users = getUsersLoader.response;
 
-  const addUser = React.useCallback(
-    async ({ cachedRecord }) => {
-      const response = await axios.post('https://jsonplaceholder.typicode.com/users', {
-        data: { name }
-      });
-      setName('');
-      const currentUsers = cachedRecord.response;
-      const newUser = response.data.data;
-      return [...currentUsers, newUser];
-    },
-    [name]
-  );
-  const addUserLoader = useLoads(addUser, {
-    context: 'users',
-    defer: true
+  const addUserLoader = usersResource.useLoads({
+    defer: true,
+    type: 'add'
   });
 
-  const deleteUser = React.useCallback(async (user, { cachedRecord }) => {
-    await axios.delete(`https://jsonplaceholder.typicode.com/users/${user.id}`);
-    const currentUsers = cachedRecord.response;
-    const newUsers = currentUsers.filter(_user => _user.id !== user.id);
-    return newUsers;
-  }, []);
-  const deleteUserLoader = useLoads(deleteUser, {
-    context: 'users',
-    defer: true
+  const deleteUserLoader = usersResource.useLoads({
+    defer: true,
+    type: 'delete'
   });
+
+  async function handleAddUser() {
+    await addUserLoader.load({ name });
+    setName('');
+  }
 
   return (
     <ThemeProvider>
@@ -70,7 +79,7 @@ function App() {
             </List>
             <Group width="300px">
               <Input placeholder="John Smith" onChange={e => setName(e.target.value)} value={name} />
-              <Button isLoading={addUserLoader.isPending} onClick={addUserLoader.load} palette="primary">
+              <Button isLoading={addUserLoader.isPending} onClick={handleAddUser} palette="primary">
                 Add
               </Button>
             </Group>
@@ -83,8 +92,8 @@ function App() {
 
 const rootElement = document.getElementById('root');
 ReactDOM.render(
-  <LoadsContext.Provider>
+  <Loads.Provider>
     <App />
-  </LoadsContext.Provider>,
+  </Loads.Provider>,
   rootElement
 );

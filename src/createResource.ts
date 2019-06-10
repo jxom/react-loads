@@ -1,10 +1,8 @@
-import * as React from 'react';
-import { LoadsContext } from './LoadsContext';
 import { LoadFunction, LoadsConfig, Record } from './types';
 import useLoads from './useLoads';
 import * as utils from './utils';
 
-type LoadsSuspenderOpts = { accessKey?: string; params?: Array<unknown> };
+type LoadsSuspenderOpts = { hash?: string; params?: Array<unknown> };
 type ResourceOptions<R> = {
   _key: string;
   [loadKey: string]: [LoadFunction<R>, LoadsConfig<R> | undefined] | string;
@@ -12,32 +10,19 @@ type ResourceOptions<R> = {
 
 const STATES = utils.STATES;
 
-function readContext() {
-  // @ts-ignore
-  const dispatcher = React.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED.ReactCurrentDispatcher.current;
-  if (dispatcher === null) {
-    throw new Error(
-      'react-loads: load and preload may only be called from within a ' +
-        "component's render. They are not supported in event handlers or " +
-        'lifecycle methods.'
-    );
-  }
-  return dispatcher.readContext(LoadsContext);
-}
+const records = new Map();
 
-function createLoadsSuspender<R>(opts: ResourceOptions<R>, { type = 'load' }: { type?: string } = {}) {
-  const loader = opts[type][0];
+function createLoadsSuspender<R>(opts: ResourceOptions<R>, { preload = false }: { preload?: boolean } = {}) {
+  const loader = opts.load[0];
 
-  return ({ accessKey, params = [] }: LoadsSuspenderOpts = {}) => {
-    const globalContext = readContext();
-
+  return ({ hash, params = [] }: LoadsSuspenderOpts = {}): R | undefined => {
     let key = opts._key;
-    if (accessKey) {
-      key = `${key}.${accessKey}`;
+    if (hash) {
+      key = `${key}.${hash}`;
     }
 
-    let record: Record<R> = globalContext.cache.get(key);
-    if (typeof loader !== 'function') return record;
+    let record: Record<R> = records.get(key);
+    if (typeof loader !== 'function') throw new Error('TODO');
 
     const promise = loader(...params);
 
@@ -46,7 +31,7 @@ function createLoadsSuspender<R>(opts: ResourceOptions<R>, { type = 'load' }: { 
         state: STATES.PENDING,
         promise
       };
-      globalContext.cache.set(key, record);
+      records.set(key, record);
     }
 
     promise
@@ -55,31 +40,32 @@ function createLoadsSuspender<R>(opts: ResourceOptions<R>, { type = 'load' }: { 
           state: STATES.RESOLVED,
           response
         };
-        globalContext.cache.set(key, record);
+        records.set(key, record);
       })
       .catch(error => {
         record = {
           state: STATES.REJECTED,
           error
         };
-        globalContext.cache.set(key, record);
+        records.set(key, record);
       });
 
-    if (record.state === STATES.PENDING) {
-      throw record.promise;
+    if (!preload) {
+      if (record.state === STATES.PENDING) {
+        throw record.promise;
+      }
+      if (record.state === STATES.RESOLVED && record.response) {
+        return record.response;
+      }
+      if (record.state === STATES.REJECTED) {
+        return record.error;
+      }
     }
-    if (record.state === STATES.RESOLVED) {
-      return record.response;
-    }
-    if (record.state === STATES.REJECTED) {
-      return record.error;
-    }
-
-    return;
+    return undefined;
   };
 }
 
-export default function unstable_createResource<R>(opts: ResourceOptions<R>) {
+function createLoadsHook<R>(opts: ResourceOptions<R>) {
   const loaders = Object.entries(opts).reduce((currentLoaders, [loadKey, val]) => {
     if (loadKey[0] === '_' || typeof val === 'string') return currentLoaders;
     return {
@@ -87,9 +73,13 @@ export default function unstable_createResource<R>(opts: ResourceOptions<R>) {
       [loadKey]: val
     };
   }, {});
+  return (loadsConfig: LoadsConfig<R> | undefined) => useLoads(loaders, { context: opts._key, ...loadsConfig });
+}
 
+export default function createResource<R>(opts: ResourceOptions<R>) {
   return {
-    useLoads: (loadsConfig: LoadsConfig<R> | undefined) => useLoads(loaders, { context: opts._key, ...loadsConfig }),
-    unstable_load: createLoadsSuspender(opts)
+    useLoads: createLoadsHook<R>(opts),
+    unstable_load: createLoadsSuspender<R>(opts),
+    unstable_preload: createLoadsSuspender<R>(opts, { preload: true })
   };
 }

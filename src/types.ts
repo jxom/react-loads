@@ -2,13 +2,12 @@ import * as React from 'react';
 
 export type CacheProvider = { get: (key: string) => any; set: (key: string, value: any) => void };
 export type LoadsConfig<R> = {
-  accessKey?: string;
+  hash?: string;
   cacheProvider?: CacheProvider;
   context?: string;
   defaultParams?: Array<unknown>;
   delay?: number;
   enableBackgroundStates?: boolean;
-  unstable_enableSuspense?: boolean;
   defer?: boolean;
   loadPolicy?: 'cache-first' | 'cache-and-load' | 'load-only';
   timeout?: number;
@@ -18,10 +17,9 @@ export type LoadsConfig<R> = {
 export type LoadsContextState = {
   cache: {
     records: { [key: string]: any };
-    get: (key: string, opts: { cacheProvider: CacheProvider | void }) => any;
-    set: (key: string, val: Record<any>, opts: { cacheProvider: CacheProvider | void }) => any;
+    get: (key: string, opts?: { cacheProvider: CacheProvider | void }) => any;
+    set: (key: string, val: Record<any>, opts?: { cacheProvider: CacheProvider | void }) => any;
   };
-  unstable_enableSuspense: boolean;
 };
 export type LoadFunction<R> = (opts?: any) => Promise<R>;
 export type LoadingState = 'idle' | 'pending' | 'timeout' | 'resolved' | 'rejected';

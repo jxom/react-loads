@@ -28,7 +28,6 @@ export default function useLoads<R>(
     defaultParams,
     delay = 300,
     enableBackgroundStates = false,
-    unstable_enableSuspense,
     defer = false,
     loadPolicy = 'cache-and-load',
     timeout = 0,
@@ -209,24 +208,6 @@ export default function useLoads<R>(
     isResolved: record.state === STATES.RESOLVED || Boolean(record.response),
     isRejected: record.state === STATES.REJECTED || Boolean(record.error)
   };
-
-  function isSuspenseEnabled() {
-    if (unstable_enableSuspense === false) {
-      return false;
-    }
-    if (unstable_enableSuspense) {
-      return true;
-    }
-    if (globalContext.unstable_enableSuspense) {
-      return true;
-    }
-    return false;
-  }
-  if (isSuspenseEnabled() && loadsPromise.current) {
-    if (states.isPending) {
-      throw loadsPromise.current;
-    }
-  }
 
   return React.useMemo(
     () => ({
