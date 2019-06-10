@@ -16,8 +16,8 @@ export function getLoadConfig<R>(fnOrLoaders: LoadFunction<R> | Loaders<R>, conf
   }
   if (typeof fnOrLoaders === 'object') {
     let context = config.context;
-    if (config.hash) {
-      context = `${config.context}.${config.hash}`;
+    if (config.id) {
+      context = `${config.context}.${config.id}`;
     }
 
     if (fnOrLoaders.load[1]) {

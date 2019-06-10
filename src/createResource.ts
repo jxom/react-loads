@@ -2,7 +2,7 @@ import { LoadFunction, LoadsConfig, Record } from './types';
 import useLoads from './useLoads';
 import * as utils from './utils';
 
-type LoadsSuspenderOpts = { hash?: string; params?: Array<unknown> };
+type LoadsSuspenderOpts = { id?: string; params?: Array<unknown> };
 type ResourceOptions<R> = {
   _key: string;
   [loadKey: string]: [LoadFunction<R>, LoadsConfig<R> | undefined] | string;
@@ -15,10 +15,10 @@ const records = new Map();
 function createLoadsSuspender<R>(opts: ResourceOptions<R>, { preload = false }: { preload?: boolean } = {}) {
   const loader = opts.load[0];
 
-  return ({ hash, params = [] }: LoadsSuspenderOpts = {}): R | undefined => {
+  return ({ id, params = [] }: LoadsSuspenderOpts = {}): R | undefined => {
     let key = opts._key;
-    if (hash) {
-      key = `${key}.${hash}`;
+    if (id) {
+      key = `${key}.${id}`;
     }
 
     let record: Record<R> = records.get(key);

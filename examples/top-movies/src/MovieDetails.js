@@ -20,10 +20,10 @@ import { movieResource, movieReviewsResource } from './resources';
 export default function MovieDetails(props) {
   const { movieId, onClickBack } = props;
 
-  const getMoviesLoader = movieResource.useLoads({ defaultParams: [movieId], hash: movieId });
+  const getMoviesLoader = movieResource.useLoads({ defaultParams: [movieId], id: movieId });
   const movie = getMoviesLoader.response || {};
 
-  const getReviewsLoader = movieReviewsResource.useLoads({ defaultParams: [movieId], hash: movieId });
+  const getReviewsLoader = movieReviewsResource.useLoads({ defaultParams: [movieId], id: movieId });
   const reviews = getReviewsLoader.response || [];
 
   return (
