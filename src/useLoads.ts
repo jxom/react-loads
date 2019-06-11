@@ -18,7 +18,6 @@ export default function useLoads<R>(
   const fn = utils.getLoadFunction(fnOrLoaders, _config);
   const config = utils.getLoadConfig(fnOrLoaders, _config);
   const hasMounted = useDetectMounted();
-  const loadsPromise = React.useRef<Promise<void> | void>(undefined);
   const [setDelayTimeout, clearDelayTimeout] = useTimeout();
   const [setTimeoutTimeout, clearTimeoutTimeout] = useTimeout();
 
@@ -154,7 +153,7 @@ export default function useLoads<R>(
       }
 
       const loadFn = opts && opts.fn ? opts.fn : fn;
-      const promise = loadFn(...args, {
+      return loadFn(...args, {
         cachedRecord,
         setResponse: (
           data: any,
@@ -164,10 +163,13 @@ export default function useLoads<R>(
         setError: (data: any, optsOrCallback: OptimisticOpts<R> | OptimisticCallback, callback?: OptimisticCallback) =>
           handleOptimisticData({ data, optsOrCallback, callback }, STATES.REJECTED, counter.current)
       })
-        .then(response => handleData({ response }, STATES.RESOLVED, counter.current))
-        .catch(err => handleData({ error: err }, STATES.REJECTED, counter.current));
-      loadsPromise.current = promise;
-      return promise;
+        .then(response => {
+          handleData({ response }, STATES.RESOLVED, counter.current);
+          return response;
+        })
+        .catch(err => {
+          handleData({ error: err }, STATES.REJECTED, counter.current);
+        });
     };
   }
 
