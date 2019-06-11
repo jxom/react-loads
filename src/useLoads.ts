@@ -160,8 +160,13 @@ export default function useLoads<R>(
         setError: (data: any, optsOrCallback: OptimisticOpts<R> | OptimisticCallback, callback?: OptimisticCallback) =>
           handleOptimisticData({ data, optsOrCallback, callback }, STATES.REJECTED, counter.current)
       })
-        .then(response => handleData({ response }, STATES.RESOLVED, counter.current))
-        .catch(err => handleData({ error: err }, STATES.REJECTED, counter.current));
+        .then(response => {
+          handleData({ response }, STATES.RESOLVED, counter.current);
+          return response;
+        })
+        .catch(err => {
+          handleData({ error: err }, STATES.REJECTED, counter.current);
+        });
     };
   }
 
