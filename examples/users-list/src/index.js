@@ -27,28 +27,31 @@ async function deleteUser(user, { cachedRecord }) {
 
 export const usersResource = Loads.createResource({
   _key: 'users',
-  load: [getUsers],
+  load: getUsers,
   add: [addUser, { defer: true }],
   delete: [deleteUser, { defer: true }]
 });
 
 function App() {
   const [name, setName] = React.useState();
+  const [deletingUserId, setDeletingUserId] = React.useState();
 
   const getUsersLoader = usersResource.useLoads();
   const users = getUsersLoader.response;
 
-  const addUserLoader = usersResource.useLoads({
-    type: 'add'
-  });
+  const addUserLoader = usersResource.add.useLoads();
 
-  const deleteUserLoader = usersResource.useLoads({
-    type: 'delete'
-  });
+  const deleteUserLoader = usersResource.delete.useLoads();
 
   async function handleAddUser() {
     await addUserLoader.load({ name });
     setName('');
+  }
+
+  async function handleDeleteUser(user) {
+    setDeletingUserId(user.id);
+    await deleteUserLoader.load(user);
+    setDeletingUserId();
   }
 
   return (
@@ -63,10 +66,10 @@ function App() {
                 <List.Item key={user.id}>
                   {user.name}
                   <Button
-                    isLoading={deleteUserLoader.isPending}
+                    isLoading={deleteUserLoader.isPending && deletingUserId === user.id}
                     kind="ghost"
                     marginLeft="major-1"
-                    onClick={() => deleteUserLoader.load(user)}
+                    onClick={() => handleDeleteUser(user)}
                     palette="danger"
                     size="small"
                   >

@@ -23,7 +23,7 @@ export type LoadsContextState = {
 };
 export type LoadFunction<R> = (opts?: any) => Promise<R>;
 export type LoadingState = 'idle' | 'pending' | 'timeout' | 'resolved' | 'rejected';
-export type Loaders<R> = { [loadKey: string]: [LoadFunction<R>, LoadsConfig<R> | undefined] };
+export type Loaders<R> = { [loadKey: string]: LoadFunction<R> | [LoadFunction<R>, LoadsConfig<R> | undefined] };
 export type OptimisticCallback = (newData: any) => void;
 export type OptimisticOpts<R> = {
   context?: LoadsConfig<R>['context'];

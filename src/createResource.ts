@@ -1,19 +1,24 @@
 import { LoadFunction, LoadsConfig, Record } from './types';
 import useLoads from './useLoads';
-import * as utils from './utils';
+import * as constants from './constants';
 
 type LoadsSuspenderOpts = { id?: string; args?: Array<unknown> };
 type ResourceOptions<R> = {
   _key: string;
-  [loadKey: string]: [LoadFunction<R>, LoadsConfig<R> | undefined] | string;
+  [loadKey: string]: LoadFunction<R> | [LoadFunction<R>, LoadsConfig<R> | undefined] | string;
 };
 
-const STATES = utils.STATES;
+/* ====== START: SUSPENDER CREATOR ====== */
+
+const STATES = constants.STATES;
 
 const records = new Map();
 
 function createLoadsSuspender<R>(opts: ResourceOptions<R>, { preload = false }: { preload?: boolean } = {}) {
-  const loader = opts.load[0];
+  let loader = opts.load;
+  if (Array.isArray(opts.load)) {
+    loader = opts.load[0];
+  }
 
   return ({ id, args = [] }: LoadsSuspenderOpts = {}): R | undefined => {
     let key = opts._key;
@@ -65,20 +70,48 @@ function createLoadsSuspender<R>(opts: ResourceOptions<R>, { preload = false }: 
   };
 }
 
-function createLoadsHook<R>(opts: ResourceOptions<R>) {
-  const loaders = Object.entries(opts).reduce((currentLoaders, [loadKey, val]) => {
+/* ====== END: SUSPENDER CREATOR ====== */
+
+/* ====== START: HOOK CREATOR ====== */
+
+function createLoadsHook<R>(loader: LoadFunction<R>, config: LoadsConfig<R>, opts: ResourceOptions<R>) {
+  return (loadsConfig: LoadsConfig<R> | undefined) =>
+    useLoads(loader, { context: opts._key, ...config, ...loadsConfig });
+}
+
+function createLoadsHooks<R>(opts: ResourceOptions<R>) {
+  return Object.entries(opts).reduce((currentLoaders, [loadKey, val]) => {
     if (loadKey[0] === '_' || typeof val === 'string') return currentLoaders;
+
+    let loader = val as LoadFunction<R>;
+    let config = {};
+    if (Array.isArray(val)) {
+      loader = val[0];
+      config = val[1] || {};
+    }
+
+    if (loadKey === 'load') {
+      return {
+        ...currentLoaders,
+        useLoads: createLoadsHook(loader, config, opts)
+      };
+    }
+
+    config = { ...config, enableBackgroundStates: true };
     return {
       ...currentLoaders,
-      [loadKey]: val
+      [loadKey]: {
+        useLoads: createLoadsHook(loader, config, opts)
+      }
     };
   }, {});
-  return (loadsConfig: LoadsConfig<R> | undefined) => useLoads(loaders, { context: opts._key, ...loadsConfig });
 }
+
+/* ====== END: HOOK CREATOR ====== */
 
 export default function createResource<R>(opts: ResourceOptions<R>) {
   return {
-    useLoads: createLoadsHook<R>(opts),
+    ...createLoadsHooks<R>(opts),
     unstable_load: createLoadsSuspender<R>(opts),
     unstable_preload: createLoadsSuspender<R>(opts, { preload: true })
   };

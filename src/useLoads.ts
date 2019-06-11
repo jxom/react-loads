@@ -1,26 +1,14 @@
 import * as React from 'react';
 import useDetectMounted from './hooks/useDetectMounted';
 import useTimeout from './hooks/useTimeout';
-import * as utils from './utils';
+import * as constants from './constants';
 import StateComponent from './StateComponent';
 import { LoadsContext } from './LoadsContext';
-import { LoadsConfig, LoadFunction, LoadingState, Loaders, OptimisticCallback, OptimisticOpts, Record } from './types';
+import { LoadsConfig, LoadFunction, LoadingState, OptimisticCallback, OptimisticOpts, Record } from './types';
 
-const STATES = utils.STATES;
+const STATES = constants.STATES;
 
-export default function useLoads<R>(
-  fnOrLoaders: LoadFunction<R> | Loaders<R>,
-  _config: LoadsConfig<R> = {},
-  inputs: Array<any> = []
-) {
-  const globalContext = React.useContext(LoadsContext);
-  const counter = React.useRef<number>(0);
-  const fn = utils.getLoadFunction(fnOrLoaders, _config);
-  const config = utils.getLoadConfig(fnOrLoaders, _config);
-  const hasMounted = useDetectMounted();
-  const [setDelayTimeout, clearDelayTimeout] = useTimeout();
-  const [setTimeoutTimeout, clearTimeoutTimeout] = useTimeout();
-
+export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> = {}, inputs: Array<any> = []) {
   const {
     cacheProvider,
     context: contextKey,
@@ -32,6 +20,12 @@ export default function useLoads<R>(
     timeout = 0,
     update: updateFn
   } = config;
+
+  const globalContext = React.useContext(LoadsContext);
+  const counter = React.useRef<number>(0);
+  const hasMounted = useDetectMounted();
+  const [setDelayTimeout, clearDelayTimeout] = useTimeout();
+  const [setTimeoutTimeout, clearTimeoutTimeout] = useTimeout();
 
   function reducer(state: Record<R>, action: { type: LoadingState; isCached?: boolean; response?: R; error?: any }) {
     switch (action.type) {

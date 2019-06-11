@@ -12,9 +12,10 @@ const Button = styled(Card)`
   }
 `;
 
-export default function MovieListButton({ movie, isLoading, ...props }) {
+export default function MovieListButton(props) {
+  const { movie, isLoading, ...rest } = props;
   return (
-    <Button key={movie.id} {...props}>
+    <Button key={movie.id} {...rest}>
       <Box lineHeight="1.2">
         <Text fontSize="300" fontWeight="semibold">
           {movie.title}
