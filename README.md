@@ -75,6 +75,8 @@ React Loads comes with a handy set of features to help solve these concerns:
         - [defer](#defer)
         - [delay](#delay)
         - [context](#context)
+        - [id](#id)
+        - [defaultParams](#defaultparams)
         - [timeout](#timeout)
         - [loadPolicy](#loadpolicy)
         - [enableBackgroundStates](#enablebackgroundstates)
@@ -125,6 +127,9 @@ React Loads comes with a handy set of features to help solve these concerns:
     - [isCached](#iscached-1)
   - [`resource = createResource(options)`](#resource--createresourceoptions)
     - [options](#options)
+      - [_namespace](#namespace)
+      - [load](#load-4)
+      - [any key is a loading function!](#any-key-is-a-loading-function)
     - [`resource`](#resource)
   - [`cache = useLoadsCache(context)`](#cache--useloadscachecontext)
     - [context](#context-2)
@@ -450,8 +455,6 @@ function MyComponent(props) {
 }
 ```
 
-
-
 ## Caching response data
 
 ### Basic cache
@@ -750,6 +753,18 @@ Number of milliseconds before the component transitions to the `'pending'` state
 > `string`
 
 Unique identifier for the promise (`load`). Enables the ability to [persist the response data](#caching-response-data). If `context` changes, then `load` will be invoked again.
+
+##### id
+
+> `string` | Used only with [resources](#resources-apiresource--createresourceoptions)
+
+A unique ID to associate with a resource. This ID is used in conjunction with the resource's namespace to set and retrieve the value from the cache.
+
+##### defaultParams
+
+> `Array<any>` | Used only with [resources](#resources-apiresource--createresourceoptions)
+
+The default parameters to supply to the resource's loading function.
 
 ##### timeout
 
