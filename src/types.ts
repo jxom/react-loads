@@ -6,7 +6,6 @@ export type LoadsConfig<R> = {
   context?: string;
   delay?: number;
   enableBackgroundStates?: boolean;
-  unstable_enableSuspense?: boolean;
   defer?: boolean;
   loadPolicy?: 'cache-first' | 'cache-and-load' | 'load-only';
   timeout?: number;
@@ -18,7 +17,6 @@ export type LoadsContextState = {
     get: (key: string, opts: { cacheProvider: CacheProvider | void }) => any;
     set: (key: string, val: Record<any>, opts: { cacheProvider: CacheProvider | void }) => any;
   };
-  unstable_enableSuspense: boolean;
 };
 export type LoadFunction<R> = (opts?: any) => Promise<R>;
 export type LoadingState = 'idle' | 'pending' | 'timeout' | 'resolved' | 'rejected';

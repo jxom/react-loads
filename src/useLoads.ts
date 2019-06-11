@@ -20,7 +20,6 @@ export default function useLoads<R>(
     context: contextKey,
     delay = 300,
     enableBackgroundStates = false,
-    unstable_enableSuspense,
     defer = false,
     loadPolicy = 'cache-and-load',
     timeout = 0,
@@ -31,7 +30,6 @@ export default function useLoads<R>(
   const globalContext = React.useContext(LoadsContext);
   const counter = React.useRef<number>(0);
   const hasMounted = useDetectMounted();
-  const loadsPromise = React.useRef<Promise<void> | void>(undefined);
   const [setDelayTimeout, clearDelayTimeout] = useTimeout();
   const [setTimeoutTimeout, clearTimeoutTimeout] = useTimeout();
 
@@ -152,7 +150,7 @@ export default function useLoads<R>(
       }
 
       const loadFn = opts && opts.fn ? opts.fn : fn;
-      const promise = loadFn(...args, {
+      return loadFn(...args, {
         cachedRecord,
         setResponse: (
           data: any,
@@ -164,8 +162,6 @@ export default function useLoads<R>(
       })
         .then(response => handleData({ response }, STATES.RESOLVED, counter.current))
         .catch(err => handleData({ error: err }, STATES.REJECTED, counter.current));
-      loadsPromise.current = promise;
-      return promise;
     };
   }
 
@@ -206,24 +202,6 @@ export default function useLoads<R>(
     isResolved: record.state === STATES.RESOLVED || Boolean(record.response),
     isRejected: record.state === STATES.REJECTED || Boolean(record.error)
   };
-
-  function isSuspenseEnabled() {
-    if (unstable_enableSuspense === false) {
-      return false;
-    }
-    if (unstable_enableSuspense) {
-      return true;
-    }
-    if (globalContext.unstable_enableSuspense) {
-      return true;
-    }
-    return false;
-  }
-  if (isSuspenseEnabled() && loadsPromise.current) {
-    if (states.isPending) {
-      throw loadsPromise.current;
-    }
-  }
 
   return React.useMemo(
     () => ({
