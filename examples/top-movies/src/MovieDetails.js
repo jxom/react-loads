@@ -14,23 +14,38 @@ import {
   Spinner,
   Text
 } from 'fannypack';
+import * as Loads from 'react-loads';
 
-import { movieResource, movieReviewsResource } from './resources';
+import * as api from './api';
 
 export default function MovieDetails(props) {
   const { movieId, onClickBack } = props;
 
-  const getMoviesLoader = movieResource.useLoads({ defaultArgs: [movieId], id: movieId });
-  const movie = getMoviesLoader.response || {};
+  const getMovie = React.useCallback(
+    async () => {
+      const movies = api.getMovie(movieId);
+      return movies;
+    },
+    [movieId]
+  );
+  const getMovieLoader = Loads.useLoads(getMovie, { context: `movies.${movieId}` });
+  const movie = getMovieLoader.response || {};
 
-  const getReviewsLoader = movieReviewsResource.useLoads({ defaultArgs: [movieId], id: movieId });
+  const getReviews = React.useCallback(
+    async () => {
+      const movies = api.getReviewsByMovieId(movieId);
+      return movies;
+    },
+    [movieId]
+  );
+  const getReviewsLoader = Loads.useLoads(getReviews, { context: `movieReviews.${movieId}` });
   const reviews = getReviewsLoader.response || [];
 
   return (
     <LayoutSet>
       <Button onClick={onClickBack}>Back</Button>
-      {getMoviesLoader.isPending && <Spinner />}
-      {getMoviesLoader.isResolved && (
+      {getMovieLoader.isPending && <Spinner />}
+      {getMovieLoader.isResolved && (
         <LayoutSet>
           <Box>
             <Flex alignItems="center" justifyContent="space-between">

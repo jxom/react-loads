@@ -1,13 +1,18 @@
 import React from 'react';
 import { Box, Heading, LayoutSet, Spinner } from 'fannypack';
+import * as Loads from 'react-loads';
 
+import * as api from './api';
 import MovieListButton from './MovieListButton';
-import { moviesResource } from './resources';
 
 export default function MovieList(props) {
   const { onSelectMovie } = props;
 
-  const getMoviesLoader = moviesResource.useLoads();
+  const getMovies = React.useCallback(async () => {
+    const movies = api.getMovies();
+    return movies;
+  }, []);
+  const getMoviesLoader = Loads.useLoads(getMovies, { context: 'movies' });
   const movies = getMoviesLoader.response || [];
 
   return (
