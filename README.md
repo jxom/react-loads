@@ -204,44 +204,6 @@ export default function DogApp() {
 >
 >If you are using `React.useCallback`, the [`react-hooks` ESLint Plugin](https://www.npmjs.com/package/eslint-plugin-react-hooks) is incredibly handy to ensure your hook dependencies are set up correctly.
 
-### Usage with state components
-
-You can also use state components to conditionally render children. [Learn more](#pending)
-
-```jsx
-import React from 'react';
-import { useLoads } from 'react-loads';
-
-export default function DogApp() {
-  const getRandomDog = React.useCallback(() => {
-    return axios.get('https://dog.ceo/api/breeds/image/random')
-  }, []);
-  const { response, error, load, Pending, Resolved, Rejected } = useLoads(getRandomDog);
-
-  return (
-    <div>
-      <Pending>
-        <div>loading...</div>
-      </Pending>
-      <Resolved>
-        <div>
-          <div>
-            {response && <img src={response.data.message} width="300px" alt="Dog" />}
-          </div>
-          <button onClick={load}>Load another</button>
-        </div>
-      </Resolved>
-      <Rejected>
-        <div type="danger">{error.message}</div>
-      </Rejected>
-      <Resolved or={[Pending, Rejected]}>
-        This will show when the state is pending, resolved or rejected.
-      </Resolved>
-    </div>
-  );
-}
-```
-
 ## With Render Props
 
 [See the `<Loads>` API](#useloadsload-config-inputs)
@@ -278,44 +240,6 @@ class DogApp extends React.Component {
 }
 ```
 
-### Usage with state components
-
-You can also use state components to conditionally render children.
-
-```jsx
-import React from 'react';
-import { useLoads } from 'react-loads';
-
-class DogApp extends React.Component {
-  getRandomDog = () => {
-    return axios.get('https://dog.ceo/api/breeds/image/random');
-  }
-
-  render = () => {
-    return (
-      <Loads load={this.getRandomDog}>
-        <Loads.Pending>Loading...</Loads.Pending>
-        <Loads.Resolved>
-          {({ response, load }) => (
-            <div>
-              <div>
-                <img src={response.data.message} width="300px" alt="Dog" />
-              </div>
-              <button onClick={load}>Load another</button>
-            </div>
-          )}
-        </Loads.Resolved>
-        <Loads.Rejected>
-          {({ error }) => (
-            <div>{error.message}</div>
-          )}
-        </Loads.Rejected>
-      </Loads>
-    )
-  }
-}
-```
-
 ## [See a demo](https://jxom.github.io/react-loads/)
 
 ## More examples
@@ -336,19 +260,24 @@ Below is an example of a resource and it's usage:
 import React from 'react';
 import * as Loads from 'react-loads';
 
+// 1. Define your loading function.
 async function getUsers() {
   const response = await fetch('/users');
   const users = await response.json();
   return users;
 }
 
+// 2. Create your resource, and attach the loading function.
 const usersResource = Loads.createResource({
   _namespace: 'users',
   load: getUsers
 });
 
 function MyComponent() {
+  // 3. Invoke the useLoads function in your resource.
   const getUsersLoader = usersResource.useLoads();
+
+  // 4. Use the loader variables:
   const users = getUsersLoader.response || [];
   return (
     <div>
@@ -471,20 +400,16 @@ export default function DogApp() {
 
   return (
     <div>
-      <Pending>
-        <div>loading...</div>
-      </Pending>
-      <Resolved>
+      {isPending && 'Loading...'}
+      {isResolved && (
         <div>
-          <div>
-            {response && <img src={response.data.message} width="300px" alt="Dog" />}
-          </div>
+          <img src={response.data.message} width="300px" alt="Dog" />
           <button onClick={load}>Load another</button>
         </div>
-      </Resolved>
-      <Rejected>
-        <div type="danger">{error.message}</div>
-      </Rejected>
+      )}
+      {isRejected && (
+        <div>{error.message}</div>
+      )}
     </div>
   );
 }
@@ -540,20 +465,16 @@ export default function DogApp() {
 
   return (
     <div>
-      <Pending>
-        <div>loading...</div>
-      </Pending>
-      <Resolved>
+      {isPending && 'Loading...'}
+      {isResolved && (
         <div>
-          <div>
-            {response && <img src={response.data.message} width="300px" alt="Dog" />}
-          </div>
+          <img src={response.data.message} width="300px" alt="Dog" />
           <button onClick={load}>Load another</button>
         </div>
-      </Resolved>
-      <Error>
-        <div type="danger">{error.message}</div>
-      </Error>
+      )}
+      {isRejected && (
+        <div>{error.message}</div>
+      )}
     </div>
   );
 }
@@ -606,16 +527,16 @@ export default function DogApp() {
 
   return (
     <div>
-      {isPending && <div>loading...</div>}
+      {isPending && 'Loading...'}
       {isResolved && (
         <div>
-          <div>
-            <img src={response.data.message} width="300px" alt="Dog" />
-          </div>
+          <img src={response.data.message} width="300px" alt="Dog" />
           <button onClick={load}>Load another</button>
         </div>
       )}
-      {isRejected && <div type="danger">{error.message}</div>}
+      {isRejected && (
+        <div>{error.message}</div>
+      )}
     </div>
   );
 }
@@ -690,6 +611,55 @@ export default function DogApp() {
 }
 ```
 
+## Concurrent React (super unstable - do not use or I will be sad at you)
+
+React Loads supports the current (at time of writing, lol) implementation of Concurrent React & Suspense. Concurrent features in React Loads are only supported in [resources](#resources-apiresource--createresourceoptions) and can be used with the `unstable_load` function:
+
+```jsx
+import React from 'react';
+import * as Loads from 'react-loads';
+
+// 1. Define your loading function.
+async function getUsers() {
+  const response = await fetch('/users');
+  const users = await response.json();
+  return users;
+}
+
+// 2. Create a resource.
+const usersResource = Loads.createResource({
+  _namespace: 'users',
+  load: getUsers
+});
+
+function UsersList() {
+  // 3. Invoke your loading function.
+  const users = usersResource.unstable_load();
+
+  // 5. Once the loading function has resolved, the list will render.
+  return (
+    <ul>
+      {users.map(user => (
+        <li key={user.id}>
+          {user.name}
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+function App() {
+  // 4. Wrap your UsersList in a <Suspense> to "catch" the loading state.
+  return (
+    <React.Suspense maxDuration={300} fallback={<div>Loading...</div>}>
+      <UsersList />
+    </React.Suspense>
+  )
+}
+```
+
+### [See the example](./examples/with-concurrent-react)
+
 # API
 
 ## `loader = useLoads(load[, config[, inputs]])`
@@ -720,24 +690,29 @@ Example:
 
 ```jsx
 const getRandomDog = React.useCallback(() => axios.get('https://dog.ceo/api/breeds/image/random'), []);
-const { response, error, load, Pending, Resolved, Rejected } = useLoads(getRandomDog, { defer: true });
+const {
+  response,
+  error,
+  load,
+  isIdle,
+  isPending,
+  isResolved,
+  isRejected
+} = useLoads(getRandomDog, { defer: true });
 
 return (
   <div>
-    <Idle>
-      <button onClick={load}>Load dog</button>
-    </Idle>
-    <Pending>
-      <div>loading...</div>
-    </Pending>
-    <Resolved>
+    {isIdle && <button onClick={load}>Load dog</button>}
+    {isPending && 'Loading...'}
+    {isResolved && (
       <div>
-        <div>
-          {response && <img src={response.data.message} width="300px" alt="Dog" />}
-        </div>
+        <img src={response.data.message} width="300px" alt="Dog" />
         <button onClick={load}>Load another</button>
       </div>
-    </Resolved>
+    )}
+    {isRejected && (
+      <div>{error.message}</div>
+    )}
   </div>
 );
 ```
