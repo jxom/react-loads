@@ -362,7 +362,7 @@ function MyComponent() {
 }
 ```
 
-You can attach more than one loading function to a resource. **But it's return value must be the same**.
+You can attach more than one loading function to a resource. **But it's return value must be the same schema, as every response will update the cache.**.
 
 You can also provide an array of 2 items to the resource creator (seen below with `delete`); the first item being the loading function, and the second being the [loading config](#config).
 
