@@ -26,7 +26,7 @@ async function deleteUser(user, { cachedRecord }) {
 }
 
 export const usersResource = Loads.createResource({
-  _key: 'users',
+  _namespace: 'users',
   load: getUsers,
   add: [addUser, { defer: true }],
   delete: [deleteUser, { defer: true }]

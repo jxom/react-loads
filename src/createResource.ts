@@ -4,7 +4,7 @@ import * as constants from './constants';
 
 type LoadsSuspenderOpts = { id?: string; args?: Array<unknown> };
 type ResourceOptions<R> = {
-  _key: string;
+  _namespace: string;
   [loadKey: string]: LoadFunction<R> | [LoadFunction<R>, LoadsConfig<R> | undefined] | string;
 };
 
@@ -21,7 +21,7 @@ function createLoadsSuspender<R>(opts: ResourceOptions<R>, { preload = false }: 
   }
 
   return ({ id, args = [] }: LoadsSuspenderOpts = {}): R | undefined => {
-    let key = opts._key;
+    let key = opts._namespace;
     if (id) {
       key = `${key}.${id}`;
     }
@@ -76,7 +76,7 @@ function createLoadsSuspender<R>(opts: ResourceOptions<R>, { preload = false }: 
 
 function createLoadsHook<R>(loader: LoadFunction<R>, config: LoadsConfig<R>, opts: ResourceOptions<R>) {
   return (loadsConfig: LoadsConfig<R> | undefined) =>
-    useLoads(loader, { context: opts._key, ...config, ...loadsConfig });
+    useLoads(loader, { context: opts._namespace, ...config, ...loadsConfig });
 }
 
 function createLoadsHooks<R>(opts: ResourceOptions<R>) {
