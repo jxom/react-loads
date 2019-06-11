@@ -28,8 +28,8 @@ async function deleteUser(user, { cachedRecord }) {
 export const usersResource = Loads.createResource({
   _key: 'users',
   load: [getUsers],
-  add: [addUser],
-  delete: [deleteUser]
+  add: [addUser, { defer: true }],
+  delete: [deleteUser, { defer: true }]
 });
 
 function App() {
@@ -39,12 +39,10 @@ function App() {
   const users = getUsersLoader.response;
 
   const addUserLoader = usersResource.useLoads({
-    defer: true,
     type: 'add'
   });
 
   const deleteUserLoader = usersResource.useLoads({
-    defer: true,
     type: 'delete'
   });
 

@@ -4,7 +4,7 @@ export type CacheProvider = { get: (key: string) => any; set: (key: string, valu
 export type LoadsConfig<R> = {
   cacheProvider?: CacheProvider;
   context?: string;
-  defaultParams?: Array<unknown>;
+  defaultArgs?: Array<unknown>;
   delay?: number;
   defer?: boolean;
   enableBackgroundStates?: boolean;

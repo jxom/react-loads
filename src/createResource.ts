@@ -2,7 +2,7 @@ import { LoadFunction, LoadsConfig, Record } from './types';
 import useLoads from './useLoads';
 import * as utils from './utils';
 
-type LoadsSuspenderOpts = { id?: string; params?: Array<unknown> };
+type LoadsSuspenderOpts = { id?: string; args?: Array<unknown> };
 type ResourceOptions<R> = {
   _key: string;
   [loadKey: string]: [LoadFunction<R>, LoadsConfig<R> | undefined] | string;
@@ -15,7 +15,7 @@ const records = new Map();
 function createLoadsSuspender<R>(opts: ResourceOptions<R>, { preload = false }: { preload?: boolean } = {}) {
   const loader = opts.load[0];
 
-  return ({ id, params = [] }: LoadsSuspenderOpts = {}): R | undefined => {
+  return ({ id, args = [] }: LoadsSuspenderOpts = {}): R | undefined => {
     let key = opts._key;
     if (id) {
       key = `${key}.${id}`;
@@ -24,7 +24,7 @@ function createLoadsSuspender<R>(opts: ResourceOptions<R>, { preload = false }: 
     let record: Record<R> = records.get(key);
     if (typeof loader !== 'function') throw new Error('TODO');
 
-    const promise = loader(...params);
+    const promise = loader(...args);
 
     if (record === undefined) {
       record = {

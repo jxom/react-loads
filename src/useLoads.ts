@@ -24,7 +24,7 @@ export default function useLoads<R>(
   const {
     cacheProvider,
     context: contextKey,
-    defaultParams,
+    defaultArgs,
     delay = 300,
     enableBackgroundStates = false,
     defer = false,
@@ -130,8 +130,8 @@ export default function useLoads<R>(
   function load(opts?: { fn?: LoadFunction<R> }) {
     return (..._args: any) => {
       let args = _args.filter((arg: any) => arg.constructor.name !== 'Class');
-      if (defaultParams && (!args || args.length === 0)) {
-        args = defaultParams;
+      if (defaultArgs && (!args || args.length === 0)) {
+        args = defaultArgs;
       }
 
       counter.current = counter.current + 1;
