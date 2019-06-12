@@ -1,25 +1,22 @@
 import * as React from 'react';
 import useDetectMounted from './hooks/useDetectMounted';
 import useTimeout from './hooks/useTimeout';
-import * as constants from './constants';
+import { LOAD_POLICIES, STATES } from './constants';
 import StateComponent from './StateComponent';
 import { LoadsContext } from './LoadsContext';
 import { LoadsConfig, LoadFunction, LoadingState, OptimisticCallback, OptimisticOpts, Record } from './types';
 
-const STATES = constants.STATES;
-
 export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> = {}, inputs: Array<any> = []) {
   const {
     cacheProvider,
-    context: contextKey,
-    defaultArgs,
     delay = 300,
     enableBackgroundStates = false,
     defer = false,
-    loadPolicy = 'cache-and-load',
+    loadPolicy = LOAD_POLICIES.CACHE_AND_LOAD,
     timeout = 0,
     update: updateFn
   } = config;
+  const contextKey = config.id ? `${config.context}.${config.id}` : config.context;
 
   const globalContext = React.useContext(LoadsContext);
   const counter = React.useRef<number>(0);
@@ -55,7 +52,7 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
   );
 
   let initialRecord = { state: STATES.IDLE };
-  if (cachedRecord && !defer && loadPolicy !== 'load-only') {
+  if (cachedRecord && !defer && loadPolicy !== LOAD_POLICIES.LOAD_ONLY) {
     initialRecord = cachedRecord;
   }
   const [record, dispatch] = React.useReducer(reducer, initialRecord);
@@ -124,16 +121,16 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
   function load(opts?: { fn?: LoadFunction<R> }) {
     return (..._args: any) => {
       let args = _args.filter((arg: any) => arg.constructor.name !== 'Class');
-      if (defaultArgs && (!args || args.length === 0)) {
-        args = defaultArgs;
+      if (config.args && (!args || args.length === 0)) {
+        args = config.args;
       }
 
       counter.current = counter.current + 1;
 
-      if (contextKey && loadPolicy !== 'load-only') {
+      if (contextKey && loadPolicy !== LOAD_POLICIES.LOAD_ONLY) {
         if (cachedRecord) {
           dispatch({ type: cachedRecord.state, isCached: true, ...cachedRecord });
-          if (loadPolicy === 'cache-first') return;
+          if (loadPolicy === LOAD_POLICIES.CACHE_FIRST) return;
         }
       }
 
@@ -180,7 +177,7 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
 
   React.useEffect(
     () => {
-      if (cachedRecord && loadPolicy !== 'load-only') {
+      if (cachedRecord && loadPolicy !== LOAD_POLICIES.LOAD_ONLY) {
         dispatch({ type: cachedRecord.state, isCached: true, ...cachedRecord });
       }
     },
@@ -192,7 +189,7 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
       if (defer) return;
       load()();
     },
-    [defer, contextKey, !inputs ? fn : undefined, ...inputs] // eslint-disable-line react-hooks/exhaustive-deps
+    [defer, contextKey, !inputs ? fn : undefined, ...inputs, ...(config.args || [])] // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   const states = {

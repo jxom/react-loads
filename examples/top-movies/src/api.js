@@ -206,6 +206,7 @@ export async function getMovies() {
 }
 
 export async function getMovie(movieId) {
+  console.log('test', movieId);
   const movie = movies.find(movie => movie.id === movieId);
   return new Promise(res => setTimeout(() => res(movie), 1000));
 }

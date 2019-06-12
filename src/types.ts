@@ -2,16 +2,15 @@ import * as React from 'react';
 
 export type CacheProvider = { get: (key: string) => any; set: (key: string, value: any) => void };
 export type LoadsConfig<R> = {
+  args?: Array<unknown>;
   cacheProvider?: CacheProvider;
   context?: string;
-  defaultArgs?: Array<unknown>;
   delay?: number;
   defer?: boolean;
   enableBackgroundStates?: boolean;
   id?: string;
   loadPolicy?: 'cache-first' | 'cache-and-load' | 'load-only';
   timeout?: number;
-  type?: string;
   update?: LoadFunction<R>;
 };
 export type LoadsContextState = {

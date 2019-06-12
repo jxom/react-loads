@@ -14,31 +14,16 @@ import {
   Spinner,
   Text
 } from 'fannypack';
-import * as Loads from 'react-loads';
 
-import * as api from './api';
+import { movieResource, movieReviewsResource } from './resources';
 
 export default function MovieDetails(props) {
   const { movieId, onClickBack } = props;
 
-  const getMovie = React.useCallback(
-    async () => {
-      const movies = api.getMovie(movieId);
-      return movies;
-    },
-    [movieId]
-  );
-  const getMovieLoader = Loads.useLoads(getMovie, { context: `movies.${movieId}` });
+  const getMovieLoader = movieResource.useLoads({ args: [movieId], id: movieId });
   const movie = getMovieLoader.response || {};
 
-  const getReviews = React.useCallback(
-    async () => {
-      const movies = api.getReviewsByMovieId(movieId);
-      return movies;
-    },
-    [movieId]
-  );
-  const getReviewsLoader = Loads.useLoads(getReviews, { context: `movieReviews.${movieId}` });
+  const getReviewsLoader = movieReviewsResource.useLoads({ args: [movieId], id: movieId });
   const reviews = getReviewsLoader.response || [];
 
   return (
