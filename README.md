@@ -308,8 +308,8 @@ import * as Loads from 'react-loads';
 
 async function getUser(id) {
   const response = await fetch(`/users/${id}`);
-  const users = await response.json();
-  return users;
+  const user = await response.json();
+  return user;
 }
 
 async function updateUser(id, data, { cachedRecord }) {
