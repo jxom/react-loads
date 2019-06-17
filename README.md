@@ -76,7 +76,7 @@ React Loads comes with a handy set of features to help solve these concerns:
         - [delay](#delay)
         - [context](#context)
         - [id](#id)
-        - [defaultParams](#defaultparams)
+        - [args](#args)
         - [timeout](#timeout)
         - [loadPolicy](#loadpolicy)
         - [enableBackgroundStates](#enablebackgroundstates)
@@ -308,8 +308,8 @@ import * as Loads from 'react-loads';
 
 async function getUser(id) {
   const response = await fetch(`/users/${id}`);
-  const users = await response.json();
-  return users;
+  const user = await response.json();
+  return user;
 }
 
 async function updateUser(id, data, { cachedRecord }) {
@@ -356,13 +356,13 @@ function MyComponent(props) {
    */
   const getUserLoader = usersResource.useLoads({
     id: userId,
-    defaultParams: [userId]
+    args: [userId]
   });
   const user = getUserLoader.response || {};
 
   const updateUserLoader = usersResource.create.useLoads({ id: userId });
 
-  const deleteUserLoader = usersResource.delete.useLoads({ id: userId });
+  const deleteUserLoader = usersResource.delete.useLoads({ id: userId, args: [userId] });
 
   return (
     <div>
@@ -373,10 +373,10 @@ function MyComponent(props) {
 
           <DeleteUserButton
             isLoading={deleteUserLoader.isPending}
-            onClick={id => deleteUserLoader.load(id)}
+            onClick={deleteUserLoader.load}
           />
 
-          <UpdateUserForm onSubmit={data => updateUserLoader.load(data)} />
+          <UpdateUserForm onSubmit={data => updateUserLoader.load(userId, data)} />
         </div>
       )}
     </div>
@@ -735,11 +735,11 @@ Unique identifier for the promise (`load`). Enables the ability to [persist the 
 
 A unique ID to associate with a resource. This ID is used in conjunction with the resource's namespace to set and retrieve the value from the cache.
 
-##### defaultParams
+##### args
 
 > `Array<any>` | Used only with [resources](#resources-apiresource--createresourceoptions)
 
-The default parameters to supply to the resource's loading function.
+The default arguments to supply to the resource's loading function.
 
 ##### timeout
 
