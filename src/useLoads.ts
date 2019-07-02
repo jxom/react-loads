@@ -189,7 +189,7 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
       if (defer) return;
       load()();
     },
-    [defer, contextKey, !inputs ? fn : undefined, ...inputs, ...(config.args || [])] // eslint-disable-line react-hooks/exhaustive-deps
+    [defer, contextKey, !inputs ? fn : undefined, ...inputs] // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   const states = {

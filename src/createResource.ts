@@ -75,8 +75,8 @@ function createLoadsSuspender<R>(opts: ResourceOptions<R>, { preload = false }: 
 /* ====== START: HOOK CREATOR ====== */
 
 function createLoadsHook<R>(loader: LoadFunction<R>, config: LoadsConfig<R>, opts: ResourceOptions<R>) {
-  return (loadsConfig: LoadsConfig<R> | undefined) =>
-    useLoads(loader, { context: opts._namespace, ...config, ...loadsConfig });
+  return (loadsConfig: LoadsConfig<R> | undefined, inputs: Array<any>) =>
+    useLoads(loader, { context: opts._namespace, ...config, ...loadsConfig }, inputs);
 }
 
 function createLoadsHooks<R>(opts: ResourceOptions<R>) {
