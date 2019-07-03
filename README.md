@@ -1092,6 +1092,8 @@ export default function DogApp() {
 - "I'm super excited about this package" - [Michele Bertoli](https://twitter.com/MicheleBertoli)
 - "Love the API! And that nested ternary-boolean example is a perfect example of how messy React code commonly gets without structuring a state machine." - [David K. Piano](https://twitter.com/DavidKPiano)
 - "Using case statements with React components is comparable to getting punched directly in your eyeball by a giraffe. This is a huge step up." - [Will Hackett](https://twitter.com/willhackett)
+- "I used to get the shakes coding data fetch routines with React. Not anymore. Using react loads, I now achieve data fetching zen." - [Claudia Nadalin](https://github.com/thepenskefile)
+- "After seeing https://twitter.com/dan_abramov/status/1039584557702553601?lang=en, we knew we had to change our loading lifecycles; React Loads was our saviour." - [Zhe Wang](https://twitter.com/auzwang)
 
 # License
 
