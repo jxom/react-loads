@@ -10,6 +10,7 @@ export type LoadsConfig<R> = {
   enableBackgroundStates?: boolean;
   id?: string;
   loadPolicy?: 'cache-first' | 'cache-and-load' | 'load-only';
+  throwError?: boolean;
   timeout?: number;
   update?: LoadFunction<R>;
 };

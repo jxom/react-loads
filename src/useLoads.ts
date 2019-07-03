@@ -13,6 +13,7 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
     enableBackgroundStates = false,
     defer = false,
     loadPolicy = LOAD_POLICIES.CACHE_AND_LOAD,
+    throwError = false,
     timeout = 0,
     update: updateFn
   } = config;
@@ -161,6 +162,9 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
         })
         .catch(err => {
           handleData({ error: err }, STATES.REJECTED, counter.current);
+          if (throwError) {
+            throw err;
+          }
         });
     };
   }
