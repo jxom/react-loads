@@ -16,7 +16,8 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
     timeout = 0,
     update: updateFn
   } = config;
-  const contextKey = config.id ? `${config.context}.${config.id}` : config.context;
+  const id = Array.isArray(config.id) ? config.id.join('.') : config.id;
+  const contextKey = config.id ? `${config.context}.${id}` : config.context;
 
   const globalContext = React.useContext(LoadsContext);
   const counter = React.useRef<number>(0);

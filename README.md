@@ -731,9 +731,11 @@ Unique identifier for the promise (`load`). Enables the ability to [persist the 
 
 ##### id
 
-> `string` | Used only with [resources](#resources-apiresource--createresourceoptions)
+> `string | Array<string>` | Used only with [resources](#resources-apiresource--createresourceoptions)
 
 A unique ID to associate with a resource. This ID is used in conjunction with the resource's namespace to set and retrieve the value from the cache.
+
+You can provide a unique string, or an array of unique strings.
 
 ##### args
 
