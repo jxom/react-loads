@@ -14,16 +14,25 @@ export function Provider({ children, cacheProvider }: { children: React.ReactNod
         ...currentRecords,
         [key]: val
       }));
+
       const _cacheProvider = opts && opts.cacheProvider ? opts.cacheProvider : cacheProvider;
       if (_cacheProvider) {
         _cacheProvider.set(key, val);
       }
+
       return;
     },
     [cacheProvider]
   );
   const get = React.useCallback(
     (key: string, opts?: { cacheProvider?: CacheProvider | void }) => {
+      // First, check to see if the record exists in the context cache.
+      const record = records[key];
+      if (record) {
+        return record;
+      }
+
+      // Otherwise, fallback to the cache provider.
       const _cacheProvider = opts && opts.cacheProvider ? opts.cacheProvider : cacheProvider;
       if (_cacheProvider) {
         const value = _cacheProvider.get(key);
@@ -31,7 +40,8 @@ export function Provider({ children, cacheProvider }: { children: React.ReactNod
           return value;
         }
       }
-      return records[key];
+
+      return undefined;
     },
     [cacheProvider, records]
   );
