@@ -198,13 +198,11 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
   );
 
   const states = {
-    isIdle: record.state === STATES.IDLE && Boolean((!record.response && !record.error) || enableBackgroundStates),
-    isPending:
-      record.state === STATES.PENDING && Boolean((!record.response && !record.error) || enableBackgroundStates),
-    isTimeout:
-      record.state === STATES.TIMEOUT && Boolean((!record.response && !record.error) || enableBackgroundStates),
+    isIdle: record.state === STATES.IDLE && Boolean(!record.response || enableBackgroundStates),
+    isPending: record.state === STATES.PENDING && Boolean(!record.response || enableBackgroundStates),
+    isTimeout: record.state === STATES.TIMEOUT && Boolean(!record.response || enableBackgroundStates),
     isResolved: record.state === STATES.RESOLVED || Boolean(record.response),
-    isRejected: record.state === STATES.REJECTED || Boolean(record.error)
+    isRejected: record.state === STATES.REJECTED
   };
 
   return React.useMemo(
