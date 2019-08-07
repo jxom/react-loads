@@ -180,6 +180,10 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
     [updateFn] // eslint-disable-line react-hooks/exhaustive-deps
   );
 
+  const reset = React.useCallback(() => {
+    dispatch({ type: STATES.IDLE });
+  }, []);
+
   React.useEffect(
     () => {
       if (cachedRecord && loadPolicy !== LOAD_POLICIES.LOAD_ONLY) {
@@ -209,6 +213,7 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
     () => ({
       load: load(),
       update,
+      reset,
 
       response: record.response,
       error: record.error,
