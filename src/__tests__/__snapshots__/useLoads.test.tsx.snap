@@ -105,7 +105,7 @@ exports[`states with deferred load renders loading indicator correctly (default 
 </div>
 `;
 
-exports[`states with deferred load renders loading indicator correctly (delay = 0) 1`] = `
+exports[`states with deferred load renders loading indicator correctly (delay = 300) 1`] = `
 <div>
   <button>
     load

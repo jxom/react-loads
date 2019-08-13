@@ -136,10 +136,10 @@ describe('states', () => {
       expect(container).toMatchSnapshot();
     });
 
-    it('renders loading indicator correctly (delay = 0)', async () => {
+    it('renders loading indicator correctly (delay = 300)', async () => {
       const fn = jest.fn().mockReturnValue(new Promise(res => res()));
       const Component = () => {
-        const testLoader = useLoads(fn, { defer: true });
+        const testLoader = useLoads(fn, { delay: 300, defer: true });
         return (
           <React.Fragment>
             <button onClick={testLoader.load}>load</button>
