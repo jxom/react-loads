@@ -9,7 +9,7 @@ import { LoadsConfig, LoadFunction, LoadingState, OptimisticCallback, Optimistic
 export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> = {}, inputs: Array<any> = []) {
   const {
     cacheProvider,
-    delay = 300,
+    delay = 0,
     enableBackgroundStates = false,
     defer = false,
     loadPolicy = LOAD_POLICIES.CACHE_AND_LOAD,
@@ -57,6 +57,7 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
   if (cachedRecord && !defer && loadPolicy !== LOAD_POLICIES.LOAD_ONLY) {
     initialRecord = cachedRecord;
   }
+
   const [record, dispatch] = React.useReducer(reducer, initialRecord);
 
   function handleData(data: { response?: R; error?: any }, state: LoadingState, count: number) {
@@ -183,6 +184,12 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
   const reset = React.useCallback(() => {
     dispatch({ type: STATES.IDLE });
   }, []);
+
+  React.useEffect(() => {
+    if (!cachedRecord && contextKey) {
+      reset();
+    }
+  }, [cachedRecord, contextKey])
 
   React.useEffect(
     () => {

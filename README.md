@@ -719,7 +719,7 @@ return (
 
 ##### delay
 
-> `number` | default: `300`
+> `number` | default: `0`
 
 Number of milliseconds before the component transitions to the `'pending'` state upon invoking `load`.
 
