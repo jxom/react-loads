@@ -129,6 +129,7 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
       }
 
       counter.current = counter.current + 1;
+      const count = counter.current;
 
       if (contextKey && loadPolicy !== LOAD_POLICIES.LOAD_ONLY) {
         if (cachedRecord) {
@@ -153,16 +154,16 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
           data: any,
           optsOrCallback: OptimisticOpts<R> | OptimisticCallback,
           callback?: OptimisticCallback
-        ) => handleOptimisticData({ data, optsOrCallback, callback }, STATES.RESOLVED, counter.current),
+        ) => handleOptimisticData({ data, optsOrCallback, callback }, STATES.RESOLVED, count),
         setError: (data: any, optsOrCallback: OptimisticOpts<R> | OptimisticCallback, callback?: OptimisticCallback) =>
-          handleOptimisticData({ data, optsOrCallback, callback }, STATES.REJECTED, counter.current)
+          handleOptimisticData({ data, optsOrCallback, callback }, STATES.REJECTED, count)
       })
         .then(response => {
-          handleData({ response }, STATES.RESOLVED, counter.current);
+          handleData({ response }, STATES.RESOLVED, count);
           return response;
         })
         .catch(err => {
-          handleData({ error: err }, STATES.REJECTED, counter.current);
+          handleData({ error: err }, STATES.REJECTED, count);
           if (throwError) {
             throw err;
           }
