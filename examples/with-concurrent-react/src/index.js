@@ -2,12 +2,12 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import * as Loads from 'react-loads';
 import { Container, ThemeProvider } from 'fannypack';
-import { unstable_scheduleCallback, unstable_IdlePriority } from 'scheduler';
 
 import MovieDetails from './MovieDetails';
 import MovieList from './MovieList';
 
 function App() {
+  const [startTransition] = React.useTransition({ timeoutMs: 3000 });
   const [showDetails, setShowDetails] = React.useState(false);
   const [currentMovieId, setCurrentMovieId] = React.useState();
 
@@ -19,7 +19,7 @@ function App() {
   function handleSelectMovie(movie) {
     setCurrentMovieId(movie.id);
 
-    unstable_scheduleCallback(unstable_IdlePriority, () => {
+    startTransition(() => {
       setShowDetails(true);
     });
   }
@@ -41,6 +41,4 @@ function App() {
   );
 }
 
-const rootElement = document.getElementById('root');
-const root = ReactDOM.unstable_createRoot(rootElement);
-root.render(<App />);
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);

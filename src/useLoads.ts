@@ -186,11 +186,14 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
     dispatch({ type: STATES.IDLE });
   }, []);
 
-  React.useEffect(() => {
-    if (!cachedRecord && contextKey) {
-      reset();
-    }
-  }, [cachedRecord, contextKey])
+  React.useEffect(
+    () => {
+      if (!cachedRecord && contextKey) {
+        reset();
+      }
+    },
+    [cachedRecord, contextKey] // eslint-disable-line react-hooks/exhaustive-deps
+  );
 
   React.useEffect(
     () => {

@@ -51,13 +51,11 @@ React Loads comes with a handy set of features to help solve these concerns:
 - [Usage](#usage)
   - [FIRSTLY](#firstly)
   - [With Hooks](#with-hooks)
-    - [Usage with state components](#usage-with-state-components)
   - [With Render Props](#with-render-props)
-    - [Usage with state components](#usage-with-state-components-1)
   - [See a demo](#see-a-demo)
   - [More examples](#more-examples)
 - [Guides](#guides)
-  - [Resources](#resources-api)
+  - [Resources (API)](#resources-api)
   - [Caching response data](#caching-response-data)
     - [Basic cache](#basic-cache)
   - [External cache](#external-cache)
@@ -68,6 +66,7 @@ React Loads comes with a handy set of features to help solve these concerns:
     - [Basic example](#basic-example)
     - [Example updating another `useLoads` optimistically](#example-updating-another-useloads-optimistically)
   - [Updating resources](#updating-resources)
+  - [Concurrent React (Experimental)](#concurrent-react-experimental)
 - [API](#api)
   - [`loader = useLoads(load[, config[, inputs]])`](#loader--useloadsload-config-inputs)
     - [load](#load)
@@ -611,9 +610,11 @@ export default function DogApp() {
 }
 ```
 
-## Concurrent React (super unstable - do not use or I will be sad at you)
+## Concurrent React (Experimental)
 
-React Loads supports the current (at time of writing, lol) implementation of Concurrent React & Suspense. Concurrent features in React Loads are only supported in [resources](#resources-apiresource--createresourceoptions) and can be used with the `unstable_load` function:
+React Loads supports [Concurrent React & Suspense](https://reactjs.org/docs/concurrent-mode-intro.html). Concurrent features in React Loads are only supported in [resources](#resources-apiresource--createresourceoptions) and can be used with the `load` function:
+
+> Note: in order to use these features, you must be running [experimental React](https://reactjs.org/docs/concurrent-mode-adoption.html).
 
 ```jsx
 import React from 'react';
@@ -651,7 +652,7 @@ function UsersList() {
 function App() {
   // 4. Wrap your UsersList in a <Suspense> to "catch" the loading state.
   return (
-    <React.Suspense maxDuration={300} fallback={<div>Loading...</div>}>
+    <React.Suspense fallback={<div>Loading...</div>}>
       <UsersList />
     </React.Suspense>
   )
@@ -1050,7 +1051,7 @@ The resource. Inside are the [`useLoads` hooks](#loader--useloadsload-config-inp
   useLoads,
   <custom-type>: { useLoads },
 
-  // Actually really unstable.
+  // You must be running experimental React to use these functions.
   unstable_load,
   unstable_preload
 }

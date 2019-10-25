@@ -63,7 +63,7 @@ function createLoadsSuspender<R>(opts: ResourceOptions<R>, { preload = false }: 
         return record.response;
       }
       if (record.state === STATES.REJECTED) {
-        return record.error;
+        throw record.error;
       }
     }
     return undefined;
