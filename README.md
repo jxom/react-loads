@@ -433,6 +433,7 @@ import { LoadsContext } from 'react-loads';
 const cacheProvider = {
   get: key => store.get(key),
   set: (key, val) => store.set(key, val)
+  reset: () => store.clearAll()
 }
 
 ReactDOM.render(
@@ -452,7 +453,8 @@ import { useLoads } from 'react-loads';
 
 const cacheProvider = {
   get: key => store.get(key),
-  set: (key, val) => store.set(key, val)
+  set: (key, val) => store.set(key, val),
+  reset: () => store.clearAll()
 }
 
 export default function DogApp() {
@@ -772,7 +774,7 @@ If true and the data is in cache, `isIdle`, `isPending` and `isTimeout` will be 
 
 ##### cacheProvider
 
-> `Object({ get: function(key), set: function(key, val) })`
+> `Object({ get: function(key), set: function(key, val), reset: function() })`
 
 Set a custom cache provider (e.g. local storage, session storate, etc). See [external cache](#external-cache) below for an example.
 
