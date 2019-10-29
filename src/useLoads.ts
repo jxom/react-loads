@@ -12,6 +12,7 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
     delay = 0,
     enableBackgroundStates = false,
     defer = false,
+    injectMeta = true,
     loadPolicy = LOAD_POLICIES.CACHE_AND_LOAD,
     throwError = false,
     timeout = 0,
@@ -148,16 +149,24 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
       }
 
       const loadFn = opts && opts.fn ? opts.fn : fn;
-      return loadFn(...args, {
-        cachedRecord,
-        setResponse: (
-          data: any,
-          optsOrCallback: OptimisticOpts<R> | OptimisticCallback,
-          callback?: OptimisticCallback
-        ) => handleOptimisticData({ data, optsOrCallback, callback }, STATES.RESOLVED, count),
-        setError: (data: any, optsOrCallback: OptimisticOpts<R> | OptimisticCallback, callback?: OptimisticCallback) =>
-          handleOptimisticData({ data, optsOrCallback, callback }, STATES.REJECTED, count)
-      })
+      return loadFn(
+        ...args,
+        injectMeta
+          ? {
+              cachedRecord,
+              setResponse: (
+                data: any,
+                optsOrCallback: OptimisticOpts<R> | OptimisticCallback,
+                callback?: OptimisticCallback
+              ) => handleOptimisticData({ data, optsOrCallback, callback }, STATES.RESOLVED, count),
+              setError: (
+                data: any,
+                optsOrCallback: OptimisticOpts<R> | OptimisticCallback,
+                callback?: OptimisticCallback
+              ) => handleOptimisticData({ data, optsOrCallback, callback }, STATES.REJECTED, count)
+            }
+          : undefined
+      )
         .then(response => {
           handleData({ response }, STATES.RESOLVED, count);
           return response;

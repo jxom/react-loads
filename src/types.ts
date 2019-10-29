@@ -9,6 +9,7 @@ export type LoadsConfig<R> = {
   defer?: boolean;
   enableBackgroundStates?: boolean;
   id?: string;
+  injectMeta?: boolean;
   loadPolicy?: 'cache-first' | 'cache-and-load' | 'load-only';
   throwError?: boolean;
   timeout?: number;
