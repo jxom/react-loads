@@ -612,7 +612,7 @@ export default function DogApp() {
 
 ## Concurrent React (Experimental)
 
-React Loads supports [Concurrent React & Suspense](https://reactjs.org/docs/concurrent-mode-intro.html). Concurrent features in React Loads are only supported in [resources](#resources-apiresource--createresourceoptions) and can be used with the `load` function:
+React Loads supports [Concurrent React & Suspense](https://reactjs.org/docs/concurrent-mode-intro.html). Concurrent features in React Loads are only supported in [resources](#resources-apiresource--createresourceoptions) and can be used with the `unstable_load` function:
 
 > Note: in order to use these features, you must be running [experimental React](https://reactjs.org/docs/concurrent-mode-adoption.html).
 
