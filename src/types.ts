@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-export type CacheProvider = { get: (key: string) => any; set: (key: string, value: any) => void };
+export type CacheProvider = { get: (key: string) => any; set: (key: string, value: any) => void; reset: () => void };
 export type LoadsConfig<R> = {
   args?: Array<unknown>;
   cacheProvider?: CacheProvider;
@@ -20,6 +20,7 @@ export type LoadsContextState = {
     records: { [key: string]: any };
     get: (key: string, opts?: { cacheProvider: CacheProvider | void }) => any;
     set: (key: string, val: Record<any>, opts?: { cacheProvider: CacheProvider | void }) => any;
+    reset: (opts?: { cacheProvider: CacheProvider | void }) => any;
   };
 };
 export type LoadFunction<R> = (opts?: any) => Promise<R>;
