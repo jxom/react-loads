@@ -612,6 +612,44 @@ export default function DogApp() {
 }
 ```
 
+## Suspense (Experimental)
+
+React Loads supports [React's Suspense API](https://reactjs.org/docs/concurrent-mode-reference.html#suspense) allowing you to guard your data-fetching component under a `<Suspense>` component, where the `fallback` will be rendered when the data is fetching.
+
+```jsx
+import React from 'react';
+import { useLoads } from 'react-loads';
+
+function RandomDog() {
+  const getRandomDog = React.useCallback(() => {
+    return axios.get('https://dog.ceo/api/breeds/image/random')
+  }, []);
+  const { response, error, load, isRejected, isPending, isResolved } = useLoads(getRandomDog, { suspense: true });
+
+  return (
+    <div>
+      {isResolved && (
+        <div>
+          <div>
+            <img src={response.data.message} width="300px" alt="Dog" />
+          </div>
+          <button onClick={load}>Load another</button>
+        </div>
+      )}
+      {isRejected && <div type="danger">{error.message}</div>}
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <React.Suspense fallback={<div>Loading...</div>}>
+      <RandomDog />
+    </React.Suspense>
+  )
+}
+```
+
 ## Concurrent React (Experimental)
 
 React Loads supports [Concurrent React & Suspense](https://reactjs.org/docs/concurrent-mode-intro.html). Concurrent features in React Loads are only supported in [resources](#resources-apiresource--createresourceoptions) and can be used with the `unstable_load` function:

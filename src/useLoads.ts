@@ -14,6 +14,7 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
     defer = false,
     injectMeta = true,
     loadPolicy = LOAD_POLICIES.CACHE_AND_LOAD,
+    suspense = false,
     throwError = false,
     timeout = 0,
     update: updateFn
@@ -23,6 +24,7 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
 
   const globalContext = React.useContext(LoadsContext);
   const counter = React.useRef<number>(0);
+  const currentPromise = React.useRef<Promise<R>>();
   const hasMounted = useDetectMounted();
   const [setDelayTimeout, clearDelayTimeout] = useTimeout();
   const [setTimeoutTimeout, clearTimeoutTimeout] = useTimeout();
@@ -149,7 +151,7 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
       }
 
       const loadFn = opts && opts.fn ? opts.fn : fn;
-      return loadFn(
+      const promise = loadFn(
         ...args,
         injectMeta
           ? {
@@ -166,14 +168,16 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
               ) => handleOptimisticData({ data, optsOrCallback, callback }, STATES.REJECTED, count)
             }
           : undefined
-      )
+      );
+      currentPromise.current = promise;
+      promise
         .then(response => {
           handleData({ response }, STATES.RESOLVED, count);
           return response;
         })
         .catch(err => {
           handleData({ error: err }, STATES.REJECTED, count);
-          if (throwError) {
+          if (throwError && !suspense) {
             throw err;
           }
         });
@@ -228,6 +232,10 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
     isResolved: record.state === STATES.RESOLVED || Boolean(record.response),
     isRejected: record.state === STATES.REJECTED
   };
+
+  if (suspense && states.isPending && currentPromise.current) {
+    throw currentPromise.current;
+  }
 
   return React.useMemo(
     () => ({

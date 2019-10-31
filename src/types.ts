@@ -11,6 +11,7 @@ export type LoadsConfig<R> = {
   id?: string;
   injectMeta?: boolean;
   loadPolicy?: 'cache-first' | 'cache-and-load' | 'load-only';
+  suspense?: boolean;
   throwError?: boolean;
   timeout?: number;
   update?: LoadFunction<R>;
