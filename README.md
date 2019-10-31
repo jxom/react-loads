@@ -66,6 +66,7 @@ React Loads comes with a handy set of features to help solve these concerns:
     - [Basic example](#basic-example)
     - [Example updating another `useLoads` optimistically](#example-updating-another-useloads-optimistically)
   - [Updating resources](#updating-resources)
+  - [Suspense (Experimental)](#suspense-experimental)
   - [Concurrent React (Experimental)](#concurrent-react-experimental)
 - [API](#api)
   - [`loader = useLoads(load[, config[, inputs]])`](#loader--useloadsload-config-inputs)
@@ -76,6 +77,7 @@ React Loads comes with a handy set of features to help solve these concerns:
         - [context](#context)
         - [id](#id)
         - [args](#args)
+        - [suspense](#suspense)
         - [timeout](#timeout)
         - [loadPolicy](#loadpolicy)
         - [enableBackgroundStates](#enablebackgroundstates)
@@ -103,6 +105,7 @@ React Loads comes with a handy set of features to help solve these concerns:
     - [defer](#defer-1)
     - [delay](#delay-1)
     - [context](#context-1)
+    - [suspense](#suspense-1)
     - [timeout](#timeout-1)
     - [loadPolicy](#loadpolicy-1)
     - [enableBackgroundStates](#enablebackgroundstates-1)
@@ -650,6 +653,8 @@ function App() {
 }
 ```
 
+### [See the example](./examples/with-suspense)
+
 ## Concurrent React (Experimental)
 
 React Loads supports [Concurrent React & Suspense](https://reactjs.org/docs/concurrent-mode-intro.html). Concurrent features in React Loads are only supported in [resources](#resources-apiresource--createresourceoptions) and can be used with the `unstable_load` function:
@@ -783,6 +788,12 @@ You can provide a unique string, or an array of unique strings.
 > `Array<any>` | Used only with [resources](#resources-apiresource--createresourceoptions)
 
 The default arguments to supply to the resource's loading function.
+
+##### suspense
+
+> `boolean`
+
+Enables React's Suspense mode - making `useLoads` essentially throw a promise while loading where a top-level `<Suspense>` can "catch" the promise and render a loading indicator. [See more](#suspense-experimental)
 
 ##### timeout
 
@@ -953,6 +964,10 @@ You can optionally pass an array of `inputs` (or an empty array), which `<Loads>
 ### context
 
 [See here](#context)
+
+##### suspense
+
+[See here](#suspense)
 
 ### timeout
 
