@@ -16,12 +16,12 @@ const records = new Map();
 
 function load<R>({
   config = {},
-  defer,
+  loadPolicy,
   loader,
   key
 }: {
   config: LoadsSuspenderOpts;
-  defer?: boolean;
+  loadPolicy?: LoadsConfig<R>['loadPolicy'];
   loader: LoadFunction<R>;
   key: string;
 }) {
@@ -32,7 +32,7 @@ function load<R>({
 
   let record: Record<R> = records.get(key);
 
-  if (defer) return record;
+  if (loadPolicy === constants.LOAD_POLICIES.CACHE_ONLY) return record;
 
   const promise = loader(...(config.args || []));
 
@@ -77,7 +77,9 @@ function createLoadsSuspender<R>({
   return (config: LoadsSuspenderOpts = {}): R | undefined => {
     const record = load({
       config: globalConfig.args ? globalConfig : config,
-      defer: Boolean(globalConfig.args),
+      loadPolicy: Boolean(globalConfig.args)
+        ? constants.LOAD_POLICIES.CACHE_ONLY
+        : constants.LOAD_POLICIES.CACHE_AND_LOAD,
       loader,
       key
     });

@@ -10,7 +10,7 @@ export type LoadsConfig<R> = {
   enableBackgroundStates?: boolean;
   id?: string;
   injectMeta?: boolean;
-  loadPolicy?: 'cache-first' | 'cache-and-load' | 'load-only';
+  loadPolicy?: 'cache-first' | 'cache-and-load' | 'load-only' | 'cache-only';
   suspense?: boolean;
   throwError?: boolean;
   timeout?: number;
