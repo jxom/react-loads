@@ -25,8 +25,6 @@ function load<R>({
   loader: LoadFunction<R>;
   key: string;
 }) {
-  if (typeof loader !== 'function') throw new Error('TODO');
-
   const id = Array.isArray(config.id) ? config.id.join('.') : config.id;
   if (id) {
     key = `${key}.${id}`;
@@ -65,9 +63,43 @@ function load<R>({
   return record;
 }
 
-function createLoadsSuspender<R>(opts: ResourceOptions<R>, { preload = false }: { preload?: boolean } = {}) {
+function createLoadsSuspender<R>({
+  key,
+  loader,
+  globalConfig,
+  preload
+}: {
+  key: string;
+  loader: LoadFunction<R>;
+  globalConfig: LoadsSuspenderOpts;
+  preload?: boolean;
+}) {
+  return (config: LoadsSuspenderOpts = {}): R | undefined => {
+    const record = load({
+      config: globalConfig.args ? globalConfig : config,
+      defer: Boolean(globalConfig.args),
+      loader,
+      key
+    });
+
+    if (preload) return undefined;
+
+    if (record.state === STATES.PENDING) {
+      throw record.promise;
+    }
+    if (record.state === STATES.RESOLVED && record.response) {
+      return record.response;
+    }
+    if (record.state === STATES.REJECTED) {
+      throw record.error;
+    }
+    return undefined;
+  };
+}
+
+function createLoadsSuspenders<R>(opts: ResourceOptions<R>) {
   const key = opts._namespace;
-  let globalConfig: LoadsSuspenderOpts;
+  let globalConfig: LoadsSuspenderOpts = {};
 
   let loader = opts.load;
   if (Array.isArray(opts.load)) {
@@ -75,26 +107,15 @@ function createLoadsSuspender<R>(opts: ResourceOptions<R>, { preload = false }: 
     globalConfig = opts.load[1] || {};
   }
 
-  let record: Record<R>;
-  if (globalConfig) {
-    record = load({ config: globalConfig, loader, key });
+  if (typeof loader !== 'function') throw new Error('TODO');
+
+  if (globalConfig.args) {
+    load({ config: globalConfig, loader, key });
   }
 
-  return (config: LoadsSuspenderOpts = {}): R | undefined => {
-    record = load({ config: globalConfig || config, defer: Boolean(globalConfig), loader, key });
-
-    if (!preload) {
-      if (record.state === STATES.PENDING) {
-        throw record.promise;
-      }
-      if (record.state === STATES.RESOLVED && record.response) {
-        return record.response;
-      }
-      if (record.state === STATES.REJECTED) {
-        throw record.error;
-      }
-    }
-    return undefined;
+  return {
+    unstable_load: createLoadsSuspender<R>({ key, loader, globalConfig }),
+    unstable_preload: createLoadsSuspender<R>({ key, loader, globalConfig, preload: true })
   };
 }
 
@@ -140,7 +161,6 @@ function createLoadsHooks<R>(opts: ResourceOptions<R>) {
 export default function createResource<R>(opts: ResourceOptions<R>) {
   return {
     ...createLoadsHooks<R>(opts),
-    unstable_load: createLoadsSuspender<R>(opts),
-    unstable_preload: createLoadsSuspender<R>(opts, { preload: true })
+    ...createLoadsSuspenders<R>(opts)
   };
 }

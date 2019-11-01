@@ -5,11 +5,11 @@ import { Container, ThemeProvider } from 'fannypack';
 
 import MovieDetails from './MovieDetails';
 import MovieList from './MovieList';
-import { movieResource } from './resources';
+// import { movieResource } from './resources';
 
 function App() {
-  const [startTransition] = React.useTransition({ timeoutMs: 3000 });
-  const [resource, setResource] = React.useState();
+  const [startTransition] = React.useTransition({ timeoutMs: 1000 });
+  // const [resource, setResource] = React.useState();
   const [showDetails, setShowDetails] = React.useState(false);
   const [currentMovieId, setCurrentMovieId] = React.useState();
 
@@ -22,7 +22,7 @@ function App() {
     setCurrentMovieId(movie.id);
 
     startTransition(() => {
-      setResource(movieResource(movie.id));
+      // setResource(movieResource(movie.id));
       setShowDetails(true);
     });
   }
@@ -33,7 +33,7 @@ function App() {
         <Container breakpoint="mobile" padding="major-2">
           <React.Suspense fallback={<div>loading...</div>}>
             {showDetails ? (
-              <MovieDetails movieId={currentMovieId} movieResource={resource} onClickBack={handleClickBack} />
+              <MovieDetails movieId={currentMovieId} onClickBack={handleClickBack} />
             ) : (
               <MovieList loadingMovieId={currentMovieId} onSelectMovie={handleSelectMovie} />
             )}

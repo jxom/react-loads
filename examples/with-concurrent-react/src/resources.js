@@ -6,11 +6,10 @@ export const moviesResource = Loads.createResource({
   load: api.getMovies
 });
 
-export const movieResource = id =>
-  Loads.createResource({
-    _namespace: 'movie',
-    load: [api.getMovie, { id, args: [id] }]
-  });
+export const movieResource = Loads.createResource({
+  _namespace: 'movie',
+  load: api.getMovie
+});
 
 export const movieReviewsResource = Loads.createResource({
   _namespace: 'movieReviews',
