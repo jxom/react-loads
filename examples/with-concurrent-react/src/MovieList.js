@@ -9,10 +9,10 @@ export default function MovieList(props) {
 
   const movies = moviesResource.unstable_load();
 
-  movies.forEach(movie => {
-    movieResource.unstable_preload({ id: movie.id, args: [movie.id] });
-    movieReviewsResource.unstable_preload({ id: movie.id, args: [movie.id] });
-  });
+  // movies.forEach(movie => {
+  //   movieResource.unstable_preload({ id: movie.id, args: [movie.id] });
+  //   movieReviewsResource.unstable_preload({ id: movie.id, args: [movie.id] });
+  // });
 
   return (
     <Box>

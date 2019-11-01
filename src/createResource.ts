@@ -2,7 +2,7 @@ import { LoadFunction, LoadsConfig, Record } from './types';
 import useLoads from './useLoads';
 import * as constants from './constants';
 
-type LoadsSuspenderOpts = { id?: string; args?: Array<unknown> };
+type LoadsSuspenderOpts = { id?: string | Array<string>; args?: Array<unknown> };
 type ResourceOptions<R> = {
   _namespace: string;
   [loadKey: string]: LoadFunction<R> | [LoadFunction<R>, LoadsConfig<R> | undefined] | string;
@@ -14,46 +14,74 @@ const STATES = constants.STATES;
 
 const records = new Map();
 
+function load<R>({
+  config = {},
+  defer,
+  loader,
+  key
+}: {
+  config: LoadsSuspenderOpts;
+  defer?: boolean;
+  loader: LoadFunction<R>;
+  key: string;
+}) {
+  if (typeof loader !== 'function') throw new Error('TODO');
+
+  const id = Array.isArray(config.id) ? config.id.join('.') : config.id;
+  if (id) {
+    key = `${key}.${id}`;
+  }
+
+  let record: Record<R> = records.get(key);
+
+  if (defer) return record;
+
+  const promise = loader(...(config.args || []));
+
+  if (record === undefined) {
+    record = {
+      state: STATES.PENDING,
+      promise
+    };
+    records.set(key, record);
+  }
+
+  promise
+    .then(response => {
+      record = {
+        state: STATES.RESOLVED,
+        response
+      };
+      records.set(key, record);
+    })
+    .catch(error => {
+      record = {
+        state: STATES.REJECTED,
+        error
+      };
+      records.set(key, record);
+    });
+
+  return record;
+}
+
 function createLoadsSuspender<R>(opts: ResourceOptions<R>, { preload = false }: { preload?: boolean } = {}) {
+  const key = opts._namespace;
+  let globalConfig: LoadsSuspenderOpts;
+
   let loader = opts.load;
   if (Array.isArray(opts.load)) {
     loader = opts.load[0];
+    globalConfig = opts.load[1] || {};
   }
 
-  return ({ id, args = [] }: LoadsSuspenderOpts = {}): R | undefined => {
-    let key = opts._namespace;
-    if (id) {
-      key = `${key}.${id}`;
-    }
+  let record: Record<R>;
+  if (globalConfig) {
+    record = load({ config: globalConfig, loader, key });
+  }
 
-    let record: Record<R> = records.get(key);
-    if (typeof loader !== 'function') throw new Error('TODO');
-
-    const promise = loader(...args);
-
-    if (record === undefined) {
-      record = {
-        state: STATES.PENDING,
-        promise
-      };
-      records.set(key, record);
-    }
-
-    promise
-      .then(response => {
-        record = {
-          state: STATES.RESOLVED,
-          response
-        };
-        records.set(key, record);
-      })
-      .catch(error => {
-        record = {
-          state: STATES.REJECTED,
-          error
-        };
-        records.set(key, record);
-      });
+  return (config: LoadsSuspenderOpts = {}): R | undefined => {
+    record = load({ config: globalConfig || config, defer: Boolean(globalConfig), loader, key });
 
     if (!preload) {
       if (record.state === STATES.PENDING) {

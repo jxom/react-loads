@@ -14,13 +14,15 @@ import {
   Text
 } from 'fannypack';
 
-import { movieResource, movieReviewsResource } from './resources';
+import { movieReviewsResource } from './resources';
 
 export default function MovieDetails(props) {
-  const { movieId, onClickBack } = props;
+  const { movieId, movieResource, onClickBack } = props;
 
-  const movie = movieResource.unstable_load({ id: movieId, args: [movieId] });
+  const movie = movieResource.unstable_load();
   const reviews = movieReviewsResource.unstable_load({ id: movieId, args: [movieId] });
+
+  console.log('test', movie);
 
   return (
     <LayoutSet>
