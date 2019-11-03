@@ -7,13 +7,14 @@ import { moviesResource, movieResource, movieReviewsResource } from './resources
 export default function MovieList(props) {
   const { loadingMovieId, onSelectMovie } = props;
 
-  const movies = moviesResource.unstable_load();
+  const moviesLoader = moviesResource.useLoads({ suspense: true });
+  const movies = moviesLoader.response || [];
 
-  movies.forEach(movie => {
+  // movies.forEach(movie => {
     // console.log(movieResource);
     // movieResource.unstable_preload({ id: movie.id, args: [movie.id] });
     // movieReviewsResource.unstable_preload({ id: movie.id, args: [movie.id] });
-  });
+  // });
 
   return (
     <Box>

@@ -219,7 +219,7 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
 
   React.useEffect(
     () => {
-      if (defer) return;
+      if (defer || suspense) return;
       load()();
     },
     [defer, contextKey, !inputs ? fn : undefined, ...inputs] // eslint-disable-line react-hooks/exhaustive-deps
@@ -233,29 +233,37 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
     isRejected: record.state === STATES.REJECTED
   };
 
-  if (suspense && states.isPending && currentPromise.current) {
-    throw currentPromise.current;
+  if (suspense && !defer) {
+    if (currentPromise.current) {
+      if (states.isPending || states.isTimeout) {
+        throw currentPromise.current;
+      }
+    } else {
+      load()();
+    }
   }
 
   return React.useMemo(
-    () => ({
-      load: load(),
-      update,
-      reset,
+    () => {
+      return {
+        load: load(),
+        update,
+        reset,
 
-      response: record.response,
-      error: record.error,
-      state: record.state,
+        response: record.response,
+        error: record.error,
+        state: record.state,
 
-      ...states,
-      Idle: StateComponent(states.isIdle),
-      Pending: StateComponent(states.isPending),
-      Timeout: StateComponent(states.isTimeout),
-      Resolved: StateComponent(states.isResolved),
-      Rejected: StateComponent(states.isRejected),
+        ...states,
+        Idle: StateComponent(states.isIdle),
+        Pending: StateComponent(states.isPending),
+        Timeout: StateComponent(states.isTimeout),
+        Resolved: StateComponent(states.isResolved),
+        Rejected: StateComponent(states.isRejected),
 
-      isCached: Boolean(record.isCached)
-    }),
+        isCached: Boolean(record.isCached)
+      };
+    },
     [record.response, record.error, record.state, record.isCached, states, update] // eslint-disable-line react-hooks/exhaustive-deps
   );
 }

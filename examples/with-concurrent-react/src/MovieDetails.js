@@ -19,8 +19,11 @@ import { movieResource, movieReviewsResource } from './resources';
 export default function MovieDetails(props) {
   const { movieId, onClickBack } = props;
 
-  const movie = movieResource.unstable_load({ id: movieId, args: [movieId] });
-  const reviews = movieReviewsResource.unstable_load({ id: movieId, args: [movieId] });
+  const movieLoader = movieResource.useLoads({ id: movieId, args: [movieId], defer: true, suspense: true });
+  const movie = movieLoader.response || {};
+
+  const movieReviewsLoader = movieReviewsResource.useLoads({ id: movieId, args: [movieId], suspense: true });
+  const reviews = movieReviewsLoader.response || {};
 
   return (
     <LayoutSet>
