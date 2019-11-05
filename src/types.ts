@@ -10,7 +10,7 @@ export type LoadsConfig<R> = {
   enableBackgroundStates?: boolean;
   id?: string;
   injectMeta?: boolean;
-  loadPolicy?: 'cache-first' | 'cache-and-load' | 'load-only' | 'cache-only';
+  loadPolicy?: LoadPolicy;
   suspense?: boolean;
   throwError?: boolean;
   timeout?: number;
@@ -25,7 +25,15 @@ export type LoadsContextState = {
   };
 };
 export type LoadFunction<R> = (opts?: any) => Promise<R>;
-export type LoadingState = 'idle' | 'pending' | 'timeout' | 'resolved' | 'rejected';
+export type LoadPolicy = 'cache-first' | 'cache-and-load' | 'load-only' | 'cache-only';
+export type LoadingState =
+  | 'idle'
+  | 'pending'
+  | 'pending-slow'
+  | 'resolved'
+  | 'rejected'
+  | 'reloading'
+  | 'reloading-slow';
 export type Loaders<R> = { [loadKey: string]: LoadFunction<R> | [LoadFunction<R>, LoadsConfig<R> | undefined] };
 export type OptimisticCallback = (newData: any) => void;
 export type OptimisticOpts<R> = {
@@ -35,10 +43,5 @@ export type Record<R> = {
   error?: any;
   response?: R;
   isCached?: boolean;
-  promise?: Promise<unknown>;
   state: LoadingState;
-};
-export type StateComponentProps = {
-  children: ((loader: any) => React.ReactNode) | React.ReactNode;
-  or?: Array<any> | any;
 };

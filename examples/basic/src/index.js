@@ -16,6 +16,7 @@ function App() {
     <ThemeProvider>
       <Container breakpoint="mobile" padding="major-1">
         <Heading fontSize="500">Users</Heading>
+        <button onClick={getUsersLoader.load}>Load</button>
         {getUsersLoader.isPending && <Spinner />}
         {getUsersLoader.isResolved && (
           <List listStyleType="disc" listStylePosition="inside">

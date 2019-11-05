@@ -1,8 +1,7 @@
 import * as React from 'react';
 import * as PropTypes from 'prop-types';
-import { LoadsConfig, LoadFunction, StateComponentProps } from './types';
+import { LoadsConfig, LoadFunction } from './types';
 import useLoads from './useLoads';
-import StateComponent from './StateComponent';
 
 export type LoadsProps = LoadsConfig<unknown> & {
   children: (loader: any) => React.ReactNode;
@@ -10,27 +9,9 @@ export type LoadsProps = LoadsConfig<unknown> & {
   inputs?: Array<any>;
 };
 
-const StateContext = React.createContext({
-  isIdle: false,
-  isPending: false,
-  isTimeout: false,
-  isResolved: false,
-  isRejected: false
-});
-
-export const Loads: React.FunctionComponent<LoadsProps> & {
-  Idle: React.FunctionComponent<StateComponentProps>;
-  Pending: React.FunctionComponent<StateComponentProps>;
-  Timeout: React.FunctionComponent<StateComponentProps>;
-  Resolved: React.FunctionComponent<StateComponentProps>;
-  Rejected: React.FunctionComponent<StateComponentProps>;
-} = ({ children, load, inputs, ...props }) => {
+export const Loads = ({ children, load, inputs, ...props }: LoadsProps) => {
   const loader = useLoads(load, props, inputs || []);
-  return (
-    <StateContext.Provider value={loader}>
-      {typeof children === 'function' ? children(loader) : children}
-    </StateContext.Provider>
-  );
+  return children(loader);
 };
 
 Loads.propTypes = {
@@ -42,21 +23,5 @@ Loads.propTypes = {
 Loads.defaultProps = {
   inputs: []
 };
-
-Loads.Idle = props => (
-  <StateContext.Consumer>{loader => StateComponent(loader.isIdle)(props, loader)}</StateContext.Consumer>
-);
-Loads.Pending = (props: StateComponentProps) => (
-  <StateContext.Consumer>{loader => StateComponent(loader.isPending)(props, loader)}</StateContext.Consumer>
-);
-Loads.Timeout = (props: StateComponentProps) => (
-  <StateContext.Consumer>{loader => StateComponent(loader.isTimeout)(props, loader)}</StateContext.Consumer>
-);
-Loads.Resolved = (props: StateComponentProps) => (
-  <StateContext.Consumer>{loader => StateComponent(loader.isResolved)(props, loader)}</StateContext.Consumer>
-);
-Loads.Rejected = (props: StateComponentProps) => (
-  <StateContext.Consumer>{loader => StateComponent(loader.isRejected)(props, loader)}</StateContext.Consumer>
-);
 
 export default Loads;

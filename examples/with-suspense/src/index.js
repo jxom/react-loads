@@ -1,6 +1,5 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import * as Loads from 'react-loads';
 import { Container, Spinner, ThemeProvider } from 'fannypack';
 
 import MovieDetails from './MovieDetails';
@@ -18,19 +17,17 @@ function App() {
   }
 
   return (
-    <Loads.Provider>
-      <ThemeProvider>
-        <Container breakpoint="mobile" padding="major-2">
-          <React.Suspense fallback={<Spinner />}>
-            {currentMovieId ? (
-              <MovieDetails movieId={currentMovieId} onClickBack={handleClickBack} />
-            ) : (
-              <MovieList onSelectMovie={handleSelectMovie} />
-            )}
-          </React.Suspense>
-        </Container>
-      </ThemeProvider>
-    </Loads.Provider>
+    <ThemeProvider>
+      <Container breakpoint="mobile" padding="major-2">
+        <React.Suspense fallback={<Spinner />}>
+          {currentMovieId ? (
+            <MovieDetails movieId={currentMovieId} onClickBack={handleClickBack} />
+          ) : (
+            <MovieList onSelectMovie={handleSelectMovie} />
+          )}
+        </React.Suspense>
+      </Container>
+    </ThemeProvider>
   );
 }
 

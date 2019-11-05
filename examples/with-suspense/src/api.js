@@ -202,6 +202,7 @@ const reviews = [
 ];
 
 export async function getMovies() {
+  console.log('test');
   return new Promise(res => setTimeout(() => res(movies), 1000));
 }
 

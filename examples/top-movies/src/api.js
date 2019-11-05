@@ -207,10 +207,10 @@ export async function getMovies() {
 
 export async function getMovie(movieId) {
   const movie = movies.find(movie => movie.id === movieId);
-  return new Promise(res => setTimeout(() => res(movie), 1000));
+  return new Promise(res => setTimeout(() => res(movie), (movieId * 1000) / 4));
 }
 
 export async function getReviewsByMovieId(movieId) {
   const movieReviews = reviews.filter(review => review.movieId === movieId);
-  return new Promise(res => setTimeout(() => res(movieReviews), 2000));
+  return new Promise(res => setTimeout(() => res(movieReviews), (movieId * 2000) / 4));
 }

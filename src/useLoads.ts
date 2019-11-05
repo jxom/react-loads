@@ -2,29 +2,28 @@ import * as React from 'react';
 import useDetectMounted from './hooks/useDetectMounted';
 import useTimeout from './hooks/useTimeout';
 import { LOAD_POLICIES, STATES } from './constants';
-import StateComponent from './StateComponent';
-import { LoadsContext } from './LoadsContext';
 import { LoadsConfig, LoadFunction, LoadingState, OptimisticCallback, OptimisticOpts, Record } from './types';
 
-export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> = {}, inputs: Array<any> = []) {
+import * as cache from './cache';
+
+export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> = {}, inputs: Array<any>) {
   const {
     cacheProvider,
-    delay = 0,
-    enableBackgroundStates = false,
-    defer = false,
-    injectMeta = true,
-    loadPolicy = LOAD_POLICIES.CACHE_AND_LOAD,
-    suspense = false,
-    throwError = false,
-    timeout = 0,
+    delay,
+    enableBackgroundStates,
+    defer,
+    injectMeta,
+    loadPolicy,
+    suspense,
+    throwError,
+    timeout,
     update: updateFn
-  } = config;
+  } = Object.assign(cache.globalConfig, config);
   const id = Array.isArray(config.id) ? config.id.join('.') : config.id;
   const contextKey = config.id ? `${config.context}.${id}` : config.context;
 
-  const globalContext = React.useContext(LoadsContext);
   const counter = React.useRef<number>(0);
-  const currentPromise = React.useRef<Promise<R>>();
+  const currentPromise = React.useRef<Promise<R | void>>();
   const hasMounted = useDetectMounted();
   const [setDelayTimeout, clearDelayTimeout] = useTimeout();
   const [setTimeoutTimeout, clearTimeoutTimeout] = useTimeout();
@@ -35,12 +34,16 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
         return { state: STATES.IDLE };
       case STATES.PENDING:
         return { ...state, state: STATES.PENDING };
-      case STATES.TIMEOUT:
-        return { ...state, state: STATES.TIMEOUT };
+      case STATES.PENDING_SLOW:
+        return { ...state, state: STATES.PENDING_SLOW };
       case STATES.RESOLVED:
         return { isCached: action.isCached, error: undefined, response: action.response, state: STATES.RESOLVED };
       case STATES.REJECTED:
         return { isCached: action.isCached, error: action.error, response: undefined, state: STATES.REJECTED };
+      case STATES.RELOADING:
+        return { ...state, state: STATES.RELOADING };
+      case STATES.RELOADING_SLOW:
+        return { ...state, state: STATES.RELOADING };
       default:
         return state;
     }
@@ -49,11 +52,11 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
   const cachedRecord = React.useMemo(
     () => {
       if (contextKey) {
-        return globalContext.cache.get(contextKey, { cacheProvider });
+        return cache.records.get<R>(contextKey, { cacheProvider });
       }
       return;
     },
-    [cacheProvider, contextKey, globalContext.cache]
+    [cacheProvider, contextKey]
   );
 
   let initialRecord = { state: STATES.IDLE };
@@ -77,7 +80,7 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
       });
       if (contextKey) {
         const record = { error: data.error, response: data.response, state };
-        globalContext.cache.set(contextKey, record, { cacheProvider });
+        cache.records.set<R>(contextKey, record, { cacheProvider });
       }
     }
   }
@@ -103,7 +106,7 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
       if (record.response) {
         cachedValue = record.response;
       } else if (opts.context) {
-        cachedValue = globalContext.cache.get(opts.context, { cacheProvider }) || {};
+        cachedValue = cache.records.get(opts.context, { cacheProvider }) || {};
       }
       newData = data(cachedValue);
     }
@@ -115,9 +118,7 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
     if (!opts.context || contextKey === opts.context) {
       handleData(value, state, count);
     } else {
-      if (globalContext.cache) {
-        globalContext.cache.set(opts.context, { ...value, state }, { cacheProvider });
-      }
+      cache.records.set<R>(opts.context, { ...value, state }, { cacheProvider });
     }
 
     let newCallback = typeof optsOrCallback === 'function' ? optsOrCallback : callback;
@@ -134,24 +135,27 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
       counter.current = counter.current + 1;
       const count = counter.current;
 
+      let cachedRecord;
       if (contextKey && loadPolicy !== LOAD_POLICIES.LOAD_ONLY) {
+        cachedRecord = cache.records.get<R>(contextKey, { cacheProvider });
         if (cachedRecord) {
           dispatch({ type: cachedRecord.state, isCached: true, ...cachedRecord });
           if (loadPolicy === LOAD_POLICIES.CACHE_FIRST) return;
         }
       }
 
+      const isReloading = count > 1 || cachedRecord;
       if (delay > 0) {
-        setDelayTimeout(() => dispatch({ type: STATES.PENDING }), delay);
+        setDelayTimeout(() => dispatch({ type: isReloading ? STATES.RELOADING : STATES.PENDING }), delay);
       } else {
-        dispatch({ type: STATES.PENDING });
+        dispatch({ type: isReloading ? STATES.RELOADING : STATES.PENDING });
       }
       if (timeout > 0) {
-        setTimeoutTimeout(() => dispatch({ type: STATES.TIMEOUT }), timeout);
+        setTimeoutTimeout(() => dispatch({ type: isReloading ? STATES.RELOADING_SLOW : STATES.PENDING_SLOW }), timeout);
       }
 
       const loadFn = opts && opts.fn ? opts.fn : fn;
-      const promise = loadFn(
+      currentPromise.current = loadFn(
         ...args,
         injectMeta
           ? {
@@ -168,9 +172,7 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
               ) => handleOptimisticData({ data, optsOrCallback, callback }, STATES.REJECTED, count)
             }
           : undefined
-      );
-      currentPromise.current = promise;
-      promise
+      )
         .then(response => {
           handleData({ response }, STATES.RESOLVED, count);
           return response;
@@ -222,20 +224,24 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
       if (defer || suspense) return;
       load()();
     },
-    [defer, contextKey, !inputs ? fn : undefined, ...inputs] // eslint-disable-line react-hooks/exhaustive-deps
+    [defer, contextKey, !inputs ? fn : undefined, ...(inputs || [])] // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   const states = {
     isIdle: record.state === STATES.IDLE && Boolean(!record.response || enableBackgroundStates),
     isPending: record.state === STATES.PENDING && Boolean(!record.response || enableBackgroundStates),
-    isTimeout: record.state === STATES.TIMEOUT && Boolean(!record.response || enableBackgroundStates),
+    isPendingSlow: record.state === STATES.PENDING_SLOW && Boolean(!record.response || enableBackgroundStates),
     isResolved: record.state === STATES.RESOLVED || Boolean(record.response),
-    isRejected: record.state === STATES.REJECTED
+    isRejected: record.state === STATES.REJECTED,
+    isReloading: record.state === STATES.RELOADING,
+    isReloadingSlow: record.state === STATES.RELOADING_SLOW
   };
 
   if (suspense && !defer) {
+    // TODO: Fix dupe requests...
+    // Maybe cache promise?
     if (currentPromise.current) {
-      if (states.isPending || states.isTimeout) {
+      if (states.isPending || states.isPendingSlow) {
         throw currentPromise.current;
       }
     } else {
@@ -255,11 +261,6 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
         state: record.state,
 
         ...states,
-        Idle: StateComponent(states.isIdle),
-        Pending: StateComponent(states.isPending),
-        Timeout: StateComponent(states.isTimeout),
-        Resolved: StateComponent(states.isResolved),
-        Rejected: StateComponent(states.isRejected),
 
         isCached: Boolean(record.isCached)
       };

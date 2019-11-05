@@ -1,10 +1,18 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import * as Loads from 'react-loads';
 import { Container, ThemeProvider } from 'fannypack';
+import store from 'store';
+import * as Loads from 'react-loads';
 
 import MovieDetails from './MovieDetails';
 import MovieList from './MovieList';
+
+Loads.setConfig({
+  cacheProvider: {
+    get: key => store.get(key),
+    set: (key, val) => store.set(key, val)
+  }
+});
 
 function App() {
   const [currentMovieId, setCurrentMovieId] = React.useState();
@@ -18,17 +26,15 @@ function App() {
   }
 
   return (
-    <Loads.Provider>
-      <ThemeProvider>
-        <Container breakpoint="mobile" padding="major-2">
-          {currentMovieId ? (
-            <MovieDetails movieId={currentMovieId} onClickBack={handleClickBack} />
-          ) : (
-            <MovieList onSelectMovie={handleSelectMovie} />
-          )}
-        </Container>
-      </ThemeProvider>
-    </Loads.Provider>
+    <ThemeProvider>
+      <Container breakpoint="mobile" padding="major-2">
+        {currentMovieId ? (
+          <MovieDetails movieId={currentMovieId} onClickBack={handleClickBack} />
+        ) : (
+          <MovieList onSelectMovie={handleSelectMovie} />
+        )}
+      </Container>
+    </ThemeProvider>
   );
 }
 
