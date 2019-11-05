@@ -28,19 +28,17 @@ function App() {
   }
 
   return (
-    <Loads.Provider>
-      <ThemeProvider>
-        <Container breakpoint="mobile" padding="major-2">
-          <React.Suspense fallback={<div>loading...</div>}>
-            {showDetails ? (
-              <MovieDetails movieId={currentMovieId} onClickBack={handleClickBack} />
-            ) : (
-              <MovieList loadingMovieId={currentMovieId} onSelectMovie={handleSelectMovie} />
-            )}
-          </React.Suspense>
-        </Container>
-      </ThemeProvider>
-    </Loads.Provider>
+    <ThemeProvider>
+      <Container breakpoint="mobile" padding="major-2">
+        <React.Suspense fallback={<div>loading...</div>}>
+          {showDetails ? (
+            <MovieDetails movieId={currentMovieId} onClickBack={handleClickBack} />
+          ) : (
+            <MovieList loadingMovieId={currentMovieId} onSelectMovie={handleSelectMovie} />
+          )}
+        </React.Suspense>
+      </Container>
+    </ThemeProvider>
   );
 }
 

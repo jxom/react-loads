@@ -74,7 +74,7 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
         cache.records.set<R>(contextKey, record => ({
           ...record,
           state: isReloading ? STATES.RELOADING : STATES.PENDING,
-          promise
+          promise: isReloading ? undefined : promise
         }));
       }
     },
@@ -147,6 +147,8 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
       if (config.args && (!args || args.length === 0)) {
         args = config.args;
       }
+
+      if (!hasMounted.current) return;
 
       counter.current = counter.current + 1;
       const count = counter.current;
@@ -239,7 +241,7 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
 
   React.useEffect(
     () => {
-      if (defer || suspense) return;
+      if (defer || (suspense && !cachedRecord)) return;
       load()();
     },
     [defer, contextKey, suspense, !inputs ? fn : undefined, ...(inputs || [])] // eslint-disable-line react-hooks/exhaustive-deps

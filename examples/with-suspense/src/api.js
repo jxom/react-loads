@@ -202,11 +202,12 @@ const reviews = [
 ];
 
 export async function getMovies() {
-  console.log('test');
+  console.log('fetchMovies');
   return new Promise(res => setTimeout(() => res(movies), 1000));
 }
 
 export async function getMovie(movieId) {
+  console.log('fetchMovie');
   const movie = movies.find(movie => movie.id === movieId);
   return new Promise(res => setTimeout(() => res(movie), 1000));
 }
