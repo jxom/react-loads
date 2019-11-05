@@ -42,6 +42,7 @@ export type OptimisticOpts<R> = {
 export type Record<R> = {
   error?: any;
   response?: R;
+  promise?: Promise<R>;
   isCached?: boolean;
   state: LoadingState;
 };

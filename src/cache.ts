@@ -23,7 +23,17 @@ export function setConfig(config: LoadsConfig<unknown>) {
 const recordsCache = new Map();
 export const records = {
   ...recordsCache,
-  set<R>(key: string, val: Record<R>, opts?: { cacheProvider?: CacheProvider | void }) {
+  set<R>(
+    key: string,
+    valOrFn: Record<R> | ((record: Record<R>) => Record<R>),
+    opts?: { cacheProvider?: CacheProvider | void }
+  ) {
+    let val = valOrFn;
+    if (typeof val === 'function') {
+      const record = recordsCache.get(key);
+      val = val(record || {});
+    }
+
     recordsCache.set(key, val);
 
     if (opts && opts.cacheProvider) {

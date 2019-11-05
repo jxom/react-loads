@@ -18,12 +18,11 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
     throwError,
     timeout,
     update: updateFn
-  } = Object.assign(cache.globalConfig, config);
+  } = { ...cache.globalConfig, ...config };
   const id = Array.isArray(config.id) ? config.id.join('.') : config.id;
   const contextKey = config.id ? `${config.context}.${id}` : config.context;
 
   const counter = React.useRef<number>(0);
-  const currentPromise = React.useRef<Promise<R | void>>();
   const hasMounted = useDetectMounted();
   const [setDelayTimeout, clearDelayTimeout] = useTimeout();
   const [setTimeoutTimeout, clearTimeoutTimeout] = useTimeout();
@@ -65,6 +64,22 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
   }
 
   const [record, dispatch] = React.useReducer(reducer, initialRecord);
+
+  const handleLoading = React.useCallback(
+    ({ isReloading, isSlow, promise }) => {
+      const reloadingState = isSlow ? STATES.RELOADING_SLOW : STATES.RELOADING;
+      const pendingState = isSlow ? STATES.PENDING_SLOW : STATES.PENDING;
+      dispatch({ type: isReloading ? reloadingState : pendingState });
+      if (contextKey) {
+        cache.records.set<R>(contextKey, record => ({
+          ...record,
+          state: isReloading ? STATES.RELOADING : STATES.PENDING,
+          promise
+        }));
+      }
+    },
+    [contextKey]
+  );
 
   function handleData(data: { response?: R; error?: any }, state: LoadingState, count: number) {
     if (hasMounted.current && count === counter.current) {
@@ -118,7 +133,8 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
     if (!opts.context || contextKey === opts.context) {
       handleData(value, state, count);
     } else {
-      cache.records.set<R>(opts.context, { ...value, state }, { cacheProvider });
+      const record = { ...value, state };
+      cache.records.set<R>(opts.context, prevRecord => ({ ...record, promise: prevRecord.promise }), { cacheProvider });
     }
 
     let newCallback = typeof optsOrCallback === 'function' ? optsOrCallback : callback;
@@ -144,18 +160,8 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
         }
       }
 
-      const isReloading = count > 1 || cachedRecord;
-      if (delay > 0) {
-        setDelayTimeout(() => dispatch({ type: isReloading ? STATES.RELOADING : STATES.PENDING }), delay);
-      } else {
-        dispatch({ type: isReloading ? STATES.RELOADING : STATES.PENDING });
-      }
-      if (timeout > 0) {
-        setTimeoutTimeout(() => dispatch({ type: isReloading ? STATES.RELOADING_SLOW : STATES.PENDING_SLOW }), timeout);
-      }
-
       const loadFn = opts && opts.fn ? opts.fn : fn;
-      currentPromise.current = loadFn(
+      const promise = loadFn(
         ...args,
         injectMeta
           ? {
@@ -172,7 +178,19 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
               ) => handleOptimisticData({ data, optsOrCallback, callback }, STATES.REJECTED, count)
             }
           : undefined
-      )
+      );
+
+      const isReloading = count > 1 || cachedRecord;
+      if (delay > 0) {
+        setDelayTimeout(() => handleLoading({ isReloading, promise }), delay);
+      } else {
+        handleLoading({ isReloading, promise });
+      }
+      if (timeout > 0) {
+        setTimeoutTimeout(() => handleLoading({ isReloading, isSlow: true, promise }), timeout);
+      }
+
+      promise
         .then(response => {
           handleData({ response }, STATES.RESOLVED, count);
           return response;
@@ -224,7 +242,7 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
       if (defer || suspense) return;
       load()();
     },
-    [defer, contextKey, !inputs ? fn : undefined, ...(inputs || [])] // eslint-disable-line react-hooks/exhaustive-deps
+    [defer, contextKey, suspense, !inputs ? fn : undefined, ...(inputs || [])] // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   const states = {
@@ -238,14 +256,14 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
   };
 
   if (suspense && !defer) {
-    // TODO: Fix dupe requests...
-    // Maybe cache promise?
-    if (currentPromise.current) {
-      if (states.isPending || states.isPendingSlow) {
-        throw currentPromise.current;
+    if (contextKey) {
+      const record = cache.records.get(contextKey);
+      if (record && record.promise) {
+        throw record.promise;
       }
-    } else {
-      load()();
+      if (!record) {
+        load()();
+      }
     }
   }
 
