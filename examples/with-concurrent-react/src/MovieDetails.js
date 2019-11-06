@@ -19,7 +19,7 @@ import { movieResource, movieReviewsResource } from './resources';
 export default function MovieDetails(props) {
   const { movieId, onClickBack } = props;
 
-  const movieLoader = movieResource.useLoads({ id: movieId, args: [movieId], defer: true, suspense: true });
+  const movieLoader = movieResource.useLoads({ id: movieId, args: [movieId], suspense: true });
   const movie = movieLoader.response || {};
 
   const movieReviewsLoader = movieReviewsResource.useLoads({ id: movieId, args: [movieId], suspense: true });

@@ -23,7 +23,7 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
   const contextKey = config.id ? `${config.context}.${id}` : config.context;
 
   const counter = React.useRef<number>(0);
-  const hasMounted = useDetectMounted();
+  const [hasMounted, hasRendered] = useDetectMounted();
   const [setDelayTimeout, clearDelayTimeout] = useTimeout();
   const [setTimeoutTimeout, clearTimeoutTimeout] = useTimeout();
 
@@ -74,7 +74,7 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
         cache.records.set<R>(contextKey, record => ({
           ...record,
           state: isReloading ? STATES.RELOADING : STATES.PENDING,
-          promise: isReloading ? undefined : promise
+          promise
         }));
       }
     },
@@ -95,7 +95,16 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
       });
       if (contextKey) {
         const record = { error: data.error, response: data.response, state };
-        cache.records.set<R>(contextKey, record, { cacheProvider });
+        cache.records.set<R>(
+          contextKey,
+          prevRecord => ({
+            ...record,
+            isSuspending: !prevRecord.isSuspending
+          }),
+          {
+            cacheProvider
+          }
+        );
       }
     }
   }
@@ -148,8 +157,6 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
         args = config.args;
       }
 
-      if (!hasMounted.current) return;
-
       counter.current = counter.current + 1;
       const count = counter.current;
 
@@ -158,6 +165,10 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
         cachedRecord = cache.records.get<R>(contextKey, { cacheProvider });
         if (cachedRecord) {
           dispatch({ type: cachedRecord.state, isCached: true, ...cachedRecord });
+          if (suspense && cachedRecord.isSuspending) {
+            cache.records.set<R>(contextKey, prevRecord => ({ ...prevRecord, isSuspending: false }), { cacheProvider });
+            return;
+          }
           if (loadPolicy === LOAD_POLICIES.CACHE_FIRST) return;
         }
       }
@@ -241,7 +252,7 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
 
   React.useEffect(
     () => {
-      if (defer || (suspense && !cachedRecord)) return;
+      if (defer || (suspense && (!hasRendered.current && !cachedRecord))) return;
       load()();
     },
     [defer, contextKey, suspense, !inputs ? fn : undefined, ...(inputs || [])] // eslint-disable-line react-hooks/exhaustive-deps
@@ -260,7 +271,7 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
   if (suspense && !defer) {
     if (contextKey) {
       const record = cache.records.get(contextKey);
-      if (record && record.promise) {
+      if (record && record.promise && (states.isPending || states.isPendingSlow)) {
         throw record.promise;
       }
       if (!record) {

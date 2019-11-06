@@ -44,5 +44,6 @@ export type Record<R> = {
   response?: R;
   promise?: Promise<R>;
   isCached?: boolean;
+  isSuspending?: boolean;
   state: LoadingState;
 };

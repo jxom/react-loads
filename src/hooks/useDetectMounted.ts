@@ -1,13 +1,15 @@
 import * as React from 'react';
 
 export default function useDetectMounted() {
-  const hasMounted = React.useRef<boolean>(false);
+  const hasMounted = React.useRef<boolean>(true);
+  const hasRendered = React.useRef<boolean>(false);
+
   React.useEffect(() => {
-    hasMounted.current = true;
+    hasRendered.current = true;
     return function cleanup() {
       hasMounted.current = false;
     };
   }, []);
 
-  return hasMounted;
+  return [hasMounted, hasRendered];
 }
