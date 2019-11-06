@@ -60,3 +60,8 @@ export const records = {
     return undefined;
   }
 };
+
+////////////////////////////////////////////////////////
+
+export const suspenders = new Map();
+export const promises = new Map();

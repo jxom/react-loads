@@ -1,10 +1,10 @@
 import * as React from 'react';
-import useDetectMounted from './hooks/useDetectMounted';
-import useTimeout from './hooks/useTimeout';
-import { LOAD_POLICIES, STATES } from './constants';
-import { LoadsConfig, LoadFunction, LoadingState, OptimisticCallback, OptimisticOpts, Record } from './types';
 
 import * as cache from './cache';
+import { LOAD_POLICIES, STATES } from './constants';
+import useDetectMounted from './hooks/useDetectMounted';
+import useTimeout from './hooks/useTimeout';
+import { LoadsConfig, LoadFunction, LoadingState, OptimisticCallback, OptimisticOpts, Record } from './types';
 
 export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> = {}, inputs: Array<any>) {
   const {
@@ -73,9 +73,9 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
       if (contextKey) {
         cache.records.set<R>(contextKey, record => ({
           ...record,
-          state: isReloading ? STATES.RELOADING : STATES.PENDING,
-          promise
+          state: isReloading ? STATES.RELOADING : STATES.PENDING
         }));
+        cache.promises.set(contextKey, promise);
       }
     },
     [contextKey]
@@ -95,16 +95,12 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
       });
       if (contextKey) {
         const record = { error: data.error, response: data.response, state };
-        cache.records.set<R>(
-          contextKey,
-          prevRecord => ({
-            ...record,
-            isSuspending: !prevRecord.isSuspending
-          }),
-          {
-            cacheProvider
-          }
-        );
+        cache.records.set<R>(contextKey, record, {
+          cacheProvider
+        });
+
+        const isSuspended = cache.suspenders.get(contextKey);
+        cache.suspenders.set(contextKey, typeof isSuspended === 'undefined');
       }
     }
   }
@@ -143,7 +139,7 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
       handleData(value, state, count);
     } else {
       const record = { ...value, state };
-      cache.records.set<R>(opts.context, prevRecord => ({ ...record, promise: prevRecord.promise }), { cacheProvider });
+      cache.records.set<R>(opts.context, record, { cacheProvider });
     }
 
     let newCallback = typeof optsOrCallback === 'function' ? optsOrCallback : callback;
@@ -160,15 +156,19 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
       counter.current = counter.current + 1;
       const count = counter.current;
 
+      if (contextKey) {
+        const isSuspended = cache.suspenders.get(contextKey);
+        if (suspense && isSuspended) {
+          cache.suspenders.set(contextKey, false);
+          return;
+        }
+      }
+
       let cachedRecord;
       if (contextKey && loadPolicy !== LOAD_POLICIES.LOAD_ONLY) {
         cachedRecord = cache.records.get<R>(contextKey, { cacheProvider });
         if (cachedRecord) {
           dispatch({ type: cachedRecord.state, isCached: true, ...cachedRecord });
-          if (suspense && cachedRecord.isSuspending) {
-            cache.records.set<R>(contextKey, prevRecord => ({ ...prevRecord, isSuspending: false }), { cacheProvider });
-            return;
-          }
           if (loadPolicy === LOAD_POLICIES.CACHE_FIRST) return;
         }
       }
@@ -238,7 +238,7 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
         reset();
       }
     },
-    [cachedRecord, contextKey] // eslint-disable-line react-hooks/exhaustive-deps
+    [cachedRecord, contextKey, reset]
   );
 
   React.useEffect(
@@ -271,8 +271,9 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
   if (suspense && !defer) {
     if (contextKey) {
       const record = cache.records.get(contextKey);
-      if (record && record.promise && (states.isPending || states.isPendingSlow)) {
-        throw record.promise;
+      const promise = cache.promises.get(contextKey);
+      if (record && promise && (states.isPending || states.isPendingSlow)) {
+        throw promise;
       }
       if (!record) {
         load()();
