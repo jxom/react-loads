@@ -65,3 +65,4 @@ export const records = {
 
 export const suspenders = new Map();
 export const promises = new Map();
+export const updaters = new Map();

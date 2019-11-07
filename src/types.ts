@@ -40,8 +40,8 @@ export type OptimisticOpts<R> = {
   context?: LoadsConfig<R>['context'];
 };
 export type Record<R> = {
-  error?: any;
-  response?: R;
+  error: any;
+  response: R | undefined;
   isCached?: boolean;
   state: LoadingState;
 };

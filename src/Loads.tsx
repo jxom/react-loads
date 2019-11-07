@@ -9,8 +9,8 @@ export type LoadsProps = LoadsConfig<unknown> & {
   inputs?: Array<any>;
 };
 
-export const Loads = ({ children, load, inputs, ...props }: LoadsProps) => {
-  const loader = useLoads(load, props, inputs || []);
+export const Loads = ({ children, load, inputs, ...config }: LoadsProps) => {
+  const loader = useLoads(load, config);
   return children(loader);
 };
 
