@@ -6,7 +6,7 @@ import useDetectMounted from './hooks/useDetectMounted';
 import useTimeout from './hooks/useTimeout';
 import { LoadsConfig, LoadFunction, LoadingState, OptimisticCallback, OptimisticOpts, Record } from './types';
 
-export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> = {}, inputs: Array<any>) {
+export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> = {}) {
   const {
     cacheProvider,
     delay,
@@ -81,141 +81,162 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
     [contextKey]
   );
 
-  function handleData(data: { response?: R; error?: any }, state: LoadingState, count: number) {
-    if (hasMounted.current && count === counter.current) {
-      // @ts-ignore
-      clearDelayTimeout();
-      // @ts-ignore
-      clearTimeoutTimeout();
-      dispatch({
-        type: state,
-        isCached: Boolean(contextKey),
-        error: state === STATES.REJECTED ? data.error : undefined,
-        response: state === STATES.RESOLVED ? data.response : undefined
-      });
-      if (contextKey) {
-        const record = { error: data.error, response: data.response, state };
-        cache.records.set<R>(contextKey, record, {
-          cacheProvider
+  const handleData = React.useCallback(
+    (data: { response?: R; error?: any }, state: LoadingState, count: number) => {
+      if (hasMounted.current && count === counter.current) {
+        // @ts-ignore
+        clearDelayTimeout();
+        // @ts-ignore
+        clearTimeoutTimeout();
+        dispatch({
+          type: state,
+          isCached: Boolean(contextKey),
+          error: state === STATES.REJECTED ? data.error : undefined,
+          response: state === STATES.RESOLVED ? data.response : undefined
         });
+        if (contextKey) {
+          const record = { error: data.error, response: data.response, state };
+          cache.records.set<R>(contextKey, record, {
+            cacheProvider
+          });
 
-        const isSuspended = cache.suspenders.get(contextKey);
-        cache.suspenders.set(contextKey, typeof isSuspended === 'undefined');
-      }
-    }
-  }
-
-  function handleOptimisticData(
-    {
-      data,
-      optsOrCallback,
-      callback
-    }: { data: any; optsOrCallback?: OptimisticOpts<R> | OptimisticCallback; callback?: OptimisticCallback },
-    state: LoadingState,
-    count: number
-  ) {
-    let newData = data;
-    let opts: OptimisticOpts<R> = {};
-
-    if (typeof optsOrCallback === 'object') {
-      opts = optsOrCallback;
-    }
-
-    if (typeof data === 'function') {
-      let cachedValue;
-      if (record.response) {
-        cachedValue = record.response;
-      } else if (opts.context) {
-        cachedValue = cache.records.get(opts.context, { cacheProvider }) || {};
-      }
-      newData = data(cachedValue);
-    }
-
-    const value = {
-      error: state === STATES.REJECTED ? newData : undefined,
-      response: state === STATES.RESOLVED ? newData : undefined
-    };
-    if (!opts.context || contextKey === opts.context) {
-      handleData(value, state, count);
-    } else {
-      const record = { ...value, state };
-      cache.records.set<R>(opts.context, record, { cacheProvider });
-    }
-
-    let newCallback = typeof optsOrCallback === 'function' ? optsOrCallback : callback;
-    newCallback && newCallback(newData);
-  }
-
-  function load(opts?: { fn?: LoadFunction<R> }) {
-    return (..._args: any) => {
-      let args = _args.filter((arg: any) => arg.constructor.name !== 'Class');
-      if (config.args && (!args || args.length === 0)) {
-        args = config.args;
-      }
-
-      counter.current = counter.current + 1;
-      const count = counter.current;
-
-      if (contextKey) {
-        const isSuspended = cache.suspenders.get(contextKey);
-        if (suspense && isSuspended) {
-          cache.suspenders.set(contextKey, false);
-          return;
+          const isSuspended = cache.suspenders.get(contextKey);
+          cache.suspenders.set(contextKey, typeof isSuspended === 'undefined');
         }
       }
+    },
+    [cacheProvider, clearDelayTimeout, clearTimeoutTimeout, contextKey, hasMounted]
+  );
 
-      let cachedRecord;
-      if (contextKey && loadPolicy !== LOAD_POLICIES.LOAD_ONLY) {
-        cachedRecord = cache.records.get<R>(contextKey, { cacheProvider });
-        if (cachedRecord) {
-          dispatch({ type: cachedRecord.state, isCached: true, ...cachedRecord });
-          if (loadPolicy === LOAD_POLICIES.CACHE_FIRST) return;
+  // function handleOptimisticData(
+  //   {
+  //     data,
+  //     optsOrCallback,
+  //     callback
+  //   }: { data: any; optsOrCallback?: OptimisticOpts<R> | OptimisticCallback; callback?: OptimisticCallback },
+  //   state: LoadingState,
+  //   count: number
+  // ) {
+  //   let newData = data;
+  //   let opts: OptimisticOpts<R> = {};
+
+  //   if (typeof optsOrCallback === 'object') {
+  //     opts = optsOrCallback;
+  //   }
+
+  //   if (typeof data === 'function') {
+  //     let cachedValue;
+  //     if (record.response) {
+  //       cachedValue = record.response;
+  //     } else if (opts.context) {
+  //       cachedValue = cache.records.get(opts.context, { cacheProvider }) || {};
+  //     }
+  //     newData = data(cachedValue);
+  //   }
+
+  //   const value = {
+  //     error: state === STATES.REJECTED ? newData : undefined,
+  //     response: state === STATES.RESOLVED ? newData : undefined
+  //   };
+  //   if (!opts.context || contextKey === opts.context) {
+  //     handleData(value, state, count);
+  //   } else {
+  //     const record = { ...value, state };
+  //     cache.records.set<R>(opts.context, record, { cacheProvider });
+  //   }
+
+  //   let newCallback = typeof optsOrCallback === 'function' ? optsOrCallback : callback;
+  //   newCallback && newCallback(newData);
+  // }
+
+  const load = React.useCallback(
+    (opts?: { fn?: LoadFunction<R> }) => {
+      return (..._args: any) => {
+        let args = _args.filter((arg: any) => arg.constructor.name !== 'Class');
+        if (config.args && (!args || args.length === 0)) {
+          args = config.args;
         }
-      }
 
-      const loadFn = opts && opts.fn ? opts.fn : fn;
-      const promise = loadFn(
-        ...args,
-        injectMeta
-          ? {
-              cachedRecord,
-              setResponse: (
-                data: any,
-                optsOrCallback: OptimisticOpts<R> | OptimisticCallback,
-                callback?: OptimisticCallback
-              ) => handleOptimisticData({ data, optsOrCallback, callback }, STATES.RESOLVED, count),
-              setError: (
-                data: any,
-                optsOrCallback: OptimisticOpts<R> | OptimisticCallback,
-                callback?: OptimisticCallback
-              ) => handleOptimisticData({ data, optsOrCallback, callback }, STATES.REJECTED, count)
-            }
-          : undefined
-      );
+        counter.current = counter.current + 1;
+        const count = counter.current;
 
-      const isReloading = count > 1 || cachedRecord;
-      if (delay > 0) {
-        setDelayTimeout(() => handleLoading({ isReloading, promise }), delay);
-      } else {
-        handleLoading({ isReloading, promise });
-      }
-      if (timeout > 0) {
-        setTimeoutTimeout(() => handleLoading({ isReloading, isSlow: true, promise }), timeout);
-      }
-
-      promise
-        .then(response => {
-          handleData({ response }, STATES.RESOLVED, count);
-          return response;
-        })
-        .catch(err => {
-          handleData({ error: err }, STATES.REJECTED, count);
-          if (throwError && !suspense) {
-            throw err;
+        if (contextKey) {
+          const isSuspended = cache.suspenders.get(contextKey);
+          if (suspense && isSuspended) {
+            cache.suspenders.set(contextKey, false);
+            return;
           }
-        });
-    };
-  }
+        }
+
+        let cachedRecord;
+        if (contextKey && loadPolicy !== LOAD_POLICIES.LOAD_ONLY) {
+          cachedRecord = cache.records.get<R>(contextKey, { cacheProvider });
+          if (cachedRecord) {
+            dispatch({ type: cachedRecord.state, isCached: true, ...cachedRecord });
+            if (loadPolicy === LOAD_POLICIES.CACHE_FIRST) return;
+          }
+        }
+
+        const loadFn = opts && opts.fn ? opts.fn : fn;
+        const promise = loadFn(
+          ...args,
+          injectMeta
+            ? {
+                cachedRecord
+                // setResponse: (
+                //   data: any,
+                //   optsOrCallback: OptimisticOpts<R> | OptimisticCallback,
+                //   callback?: OptimisticCallback
+                // ) => handleOptimisticData({ data, optsOrCallback, callback }, STATES.RESOLVED, count),
+                // setError: (
+                //   data: any,
+                //   optsOrCallback: OptimisticOpts<R> | OptimisticCallback,
+                //   callback?: OptimisticCallback
+                // ) => handleOptimisticData({ data, optsOrCallback, callback }, STATES.REJECTED, count)
+              }
+            : undefined
+        );
+
+        const isReloading = count > 1 || cachedRecord;
+        if (delay > 0) {
+          setDelayTimeout(() => handleLoading({ isReloading, promise }), delay);
+        } else {
+          handleLoading({ isReloading, promise });
+        }
+        if (timeout > 0) {
+          setTimeoutTimeout(() => handleLoading({ isReloading, isSlow: true, promise }), timeout);
+        }
+
+        promise
+          .then(response => {
+            handleData({ response }, STATES.RESOLVED, count);
+            return response;
+          })
+          .catch(err => {
+            handleData({ error: err }, STATES.REJECTED, count);
+            if (throwError && !suspense) {
+              throw err;
+            }
+          });
+      };
+    },
+    [
+      cacheProvider,
+      config.args,
+      contextKey,
+      delay,
+      fn,
+      handleData,
+      handleLoading,
+      injectMeta,
+      loadPolicy,
+      setDelayTimeout,
+      setTimeoutTimeout,
+      suspense,
+      throwError,
+      timeout
+    ]
+  );
 
   const update = React.useMemo(
     () => {
@@ -255,7 +276,7 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
       if (defer || (suspense && (!hasRendered.current && !cachedRecord))) return;
       load()();
     },
-    [defer, contextKey, suspense, !inputs ? fn : undefined, ...(inputs || [])] // eslint-disable-line react-hooks/exhaustive-deps
+    [defer, contextKey, suspense, hasRendered, cachedRecord, load]
   );
 
   const states = {

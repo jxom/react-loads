@@ -11,6 +11,7 @@ storiesOf('useLoads (Hook)', module)
     function Component() {
       const getRandomDog = React.useCallback(() => axios.get('https://dog.ceo/api/breeds/image/random'), []);
       const randomDogLoader = useLoads(getRandomDog, { context: 'basic' });
+
       return (
         <Box>
           {randomDogLoader.isPending && <Spinner size="large" />}
