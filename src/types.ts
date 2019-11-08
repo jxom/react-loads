@@ -5,7 +5,6 @@ export type LoadsConfig<R> = {
   delay?: number;
   defer?: boolean;
   enableBackgroundStates?: boolean;
-  injectMeta?: boolean;
   loadPolicy?: LoadPolicy;
   suspense?: boolean;
   throwError?: boolean;

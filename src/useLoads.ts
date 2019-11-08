@@ -5,7 +5,6 @@ import { LOAD_POLICIES, STATES } from './constants';
 import useDetectMounted from './hooks/useDetectMounted';
 import usePrevious from './hooks/usePrevious';
 import useTimeout from './hooks/useTimeout';
-import deepEqual from './utils/deepEqual';
 import { LoadsConfig, LoadFunction, LoadingState, OptimisticCallback, OptimisticOpts, Record } from './types';
 
 function broadcastChanges<R>(contextKey: string, record: Record<R>) {
@@ -40,13 +39,16 @@ function reducer<R>(
   }
 }
 
-export default function useLoads<R>(context: string | Array<string>, fn: LoadFunction<R>, config: LoadsConfig<R> = {}) {
+export default function useLoads<R>(
+  context: string | Array<string>,
+  fn: LoadFunction<R> | ((args?: any) => LoadFunction<R>),
+  config: LoadsConfig<R> = {}
+) {
   const {
     cacheProvider,
     delay,
     enableBackgroundStates,
     defer,
-    injectMeta,
     loadPolicy,
     suspense,
     throwError,
@@ -55,20 +57,20 @@ export default function useLoads<R>(context: string | Array<string>, fn: LoadFun
     update: updateFn
   } = { ...cache.globalConfig, ...config };
 
-  const counter = React.useRef<number>(0);
-  const variablesHash = React.useMemo(() => JSON.stringify(config.variables), [config.variables]);
-  const prevVariablesHash = usePrevious(JSON.stringify(variables));
-  const variablesAreEqual = variablesHash === prevVariablesHash;
-  const [hasMounted, hasRendered] = useDetectMounted();
-  const [setDelayTimeout, clearDelayTimeout] = useTimeout();
-  const [setTimeoutTimeout, clearTimeoutTimeout] = useTimeout();
-
   let contextKey = Array.isArray(context) ? context.join('.') : context;
+  const variablesHash = React.useMemo(() => JSON.stringify(config.variables), [config.variables]);
   if (variablesHash) {
     contextKey = `${contextKey}.${variablesHash}`;
   }
 
+  const counter = React.useRef<number>(0);
   const prevContextKey = usePrevious(contextKey);
+  const isSameContext = !prevContextKey || prevContextKey === contextKey;
+  const prevVariablesHash = usePrevious(JSON.stringify(variables));
+  const isSameVariables = variablesHash === prevVariablesHash;
+  const [hasMounted, hasRendered] = useDetectMounted();
+  const [setDelayTimeout, clearDelayTimeout] = useTimeout();
+  const [setTimeoutTimeout, clearTimeoutTimeout] = useTimeout();
 
   const cachedRecord = React.useMemo(
     () => {
@@ -132,51 +134,52 @@ export default function useLoads<R>(context: string | Array<string>, fn: LoadFun
     [cacheProvider, clearDelayTimeout, clearTimeoutTimeout, contextKey, hasMounted]
   );
 
-  // function handleOptimisticData(
-  //   {
-  //     data,
-  //     optsOrCallback,
-  //     callback
-  //   }: { data: any; optsOrCallback?: OptimisticOpts<R> | OptimisticCallback; callback?: OptimisticCallback },
-  //   state: LoadingState,
-  //   count: number
-  // ) {
-  //   let newData = data;
-  //   let opts: OptimisticOpts<R> = {};
+  const handleOptimisticData = React.useCallback(
+    (
+      {
+        data,
+        contextOrCallback,
+        callback
+      }: { data: any; contextOrCallback?: string | OptimisticCallback; callback?: OptimisticCallback },
+      state: LoadingState,
+      count: number
+    ) => {
+      let newData = data;
 
-  //   if (typeof optsOrCallback === 'object') {
-  //     opts = optsOrCallback;
-  //   }
+      let context;
+      if (typeof contextOrCallback === 'string') {
+        context = contextOrCallback;
+      }
 
-  //   if (typeof data === 'function') {
-  //     let cachedValue;
-  //     if (record.response) {
-  //       cachedValue = record.response;
-  //     } else if (opts.context) {
-  //       cachedValue = cache.records.get(opts.context, { cacheProvider }) || {};
-  //     }
-  //     newData = data(cachedValue);
-  //   }
+      if (typeof data === 'function') {
+        let cachedValue = IDLE_RECORD;
+        if (context) {
+          cachedValue = cache.records.get(context, { cacheProvider }) || IDLE_RECORD;
+        }
+        newData = data(state === STATES.RESOLVED ? cachedValue.response : cachedValue.error);
+      }
 
-  //   const value = {
-  //     error: state === STATES.REJECTED ? newData : undefined,
-  //     response: state === STATES.RESOLVED ? newData : undefined
-  //   };
-  //   if (!opts.context || contextKey === opts.context) {
-  //     handleData(value, state, count);
-  //   } else {
-  //     const record = { ...value, state };
-  //     cache.records.set<R>(opts.context, record, { cacheProvider });
-  //   }
+      const newRecord = {
+        error: state === STATES.REJECTED ? newData : undefined,
+        response: state === STATES.RESOLVED ? newData : undefined,
+        state
+      };
+      if (!context || contextKey === context) {
+        handleData({ count, record: newRecord, shouldBroadcast: true });
+      } else {
+        cache.records.set<R>(context, newRecord, { cacheProvider });
+      }
 
-  //   let newCallback = typeof optsOrCallback === 'function' ? optsOrCallback : callback;
-  //   newCallback && newCallback(newData);
-  // }
+      let newCallback = typeof contextOrCallback === 'function' ? contextOrCallback : callback;
+      newCallback && newCallback(newData);
+    },
+    [cacheProvider, contextKey, handleData]
+  );
 
   const load = React.useCallback(
     (opts: { skipVariableCheck?: boolean; fn?: LoadFunction<R> } = {}) => {
       return (..._args: any) => {
-        if (!opts.skipVariableCheck && variables && variablesAreEqual) {
+        if (!opts.skipVariableCheck && variables && isSameVariables) {
           return;
         }
 
@@ -206,26 +209,20 @@ export default function useLoads<R>(context: string | Array<string>, fn: LoadFun
         }
 
         const loadFn = opts.fn ? opts.fn : fn;
-        const promise = loadFn(
-          ...args,
-          injectMeta
-            ? {
-                cachedRecord
-                // setResponse: (
-                //   data: any,
-                //   optsOrCallback: OptimisticOpts<R> | OptimisticCallback,
-                //   callback?: OptimisticCallback
-                // ) => handleOptimisticData({ data, optsOrCallback, callback }, STATES.RESOLVED, count),
-                // setError: (
-                //   data: any,
-                //   optsOrCallback: OptimisticOpts<R> | OptimisticCallback,
-                //   callback?: OptimisticCallback
-                // ) => handleOptimisticData({ data, optsOrCallback, callback }, STATES.REJECTED, count)
-              }
-            : undefined
-        );
+        const promiseOrFn = loadFn(...args);
 
-        const isReloading = contextKey === prevContextKey && (count > 1 || cachedRecord);
+        let promise = promiseOrFn;
+        if (typeof promiseOrFn === 'function') {
+          promise = promiseOrFn({
+            cachedRecord,
+            setResponse: (data: any, contextOrCallback: string | OptimisticCallback, callback?: OptimisticCallback) =>
+              handleOptimisticData({ data, contextOrCallback, callback }, STATES.RESOLVED, count),
+            setError: (data: any, contextOrCallback: string | OptimisticCallback, callback?: OptimisticCallback) =>
+              handleOptimisticData({ data, contextOrCallback, callback }, STATES.REJECTED, count)
+          });
+        }
+
+        const isReloading = isSameContext && (count > 1 || cachedRecord);
         if (delay > 0) {
           setDelayTimeout(() => handleLoading({ isReloading, promise }), delay);
         } else {
@@ -235,6 +232,7 @@ export default function useLoads<R>(context: string | Array<string>, fn: LoadFun
           setTimeoutTimeout(() => handleLoading({ isReloading, isSlow: true, promise }), timeout);
         }
 
+        if (typeof promise === 'function') return;
         promise
           .then(response => {
             handleData({
@@ -264,16 +262,16 @@ export default function useLoads<R>(context: string | Array<string>, fn: LoadFun
       fn,
       handleData,
       handleLoading,
-      injectMeta,
+      handleOptimisticData,
+      isSameContext,
+      isSameVariables,
       loadPolicy,
-      prevContextKey,
       setDelayTimeout,
       setTimeoutTimeout,
       suspense,
       throwError,
       timeout,
-      variables,
-      variablesAreEqual
+      variables
     ]
   );
 

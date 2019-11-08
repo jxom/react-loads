@@ -330,13 +330,18 @@ storiesOf('useLoads (Hook)', module)
       const movieRecord = useLoads('movie', getMovie);
       const movie = movieRecord.response || {};
 
-      const updateMovie = React.useCallback(() => api.updateMovie(movieId, { imdbRating: ratingValue }), [
-        movieId,
-        ratingValue
-      ]);
-      const updateMovieRecord = useLoads(updateMovie, { context: 'movie', enableBackgroundStates: true, defer: true });
-
-      console.log(updateMovieRecord);
+      const updateMovie = React.useCallback(
+        () => meta => {
+          meta.setResponse(movie => ({ ...movie, imdbRating: ratingValue }), 'movie');
+          return api.updateMovie(movieId, { imdbRating: ratingValue });
+        },
+        [movieId, ratingValue]
+      );
+      const updateMovieRecord = useLoads('movie', updateMovie, {
+        enableBackgroundStates: true,
+        defer: true,
+        injectMeta: true
+      });
 
       return (
         <Box>
