@@ -65,6 +65,7 @@
     "eslint-plugin-import": "2.17.2",
     "eslint-plugin-typescript": "0.14.0",
     "fannypack": "4.21.25",
+    "fast-deep-equal": "2.0.1",
     "jest": "24.0.0",
     "jest-dom": "3.0.1",
     "prop-types": "15.6.2",

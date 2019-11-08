@@ -4,13 +4,14 @@ import { LoadsConfig, LoadFunction } from './types';
 import useLoads from './useLoads';
 
 export type LoadsProps = LoadsConfig<unknown> & {
+  context: string;
   children: (loader: any) => React.ReactNode;
   load: LoadFunction<unknown>;
   inputs?: Array<any>;
 };
 
-export const Loads = ({ children, load, inputs, ...config }: LoadsProps) => {
-  const loader = useLoads(load, config);
+export const Loads = ({ children, context, load, inputs, ...config }: LoadsProps) => {
+  const loader = useLoads(context, load, config);
   return children(loader);
 };
 

@@ -1,20 +1,17 @@
-import * as React from 'react';
-
 export type CacheProvider = { get: (key: string) => any; set: (key: string, value: any) => void; reset: () => void };
 export type LoadsConfig<R> = {
-  args?: Array<unknown>;
   cacheProvider?: CacheProvider;
   context?: string;
   delay?: number;
   defer?: boolean;
   enableBackgroundStates?: boolean;
-  id?: string;
   injectMeta?: boolean;
   loadPolicy?: LoadPolicy;
   suspense?: boolean;
   throwError?: boolean;
   timeout?: number;
   update?: LoadFunction<R>;
+  variables?: Array<unknown>;
 };
 export type LoadsContextState = {
   cache: {

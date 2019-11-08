@@ -16,14 +16,12 @@ import {
   Text
 } from 'fannypack';
 
-import * as api from './api';
 import { movieResource, movieReviewsResource } from './resources';
 
 export default function MovieDetails(props) {
   const { movieId, onClickBack } = props;
 
   const getMovieLoader = movieResource.useLoads({ args: [movieId], id: movieId });
-  // const getMovieLoader = Loads.useLoads(api.getMovie, { args: [movieId], id: movieId });
   const movie = getMovieLoader.response || {};
 
   const getReviewsLoader = movieReviewsResource.useLoads({ args: [movieId], id: movieId });

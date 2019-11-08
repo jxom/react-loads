@@ -3,12 +3,16 @@ import * as React from 'react';
 import * as cache from './cache';
 import { LOAD_POLICIES, STATES } from './constants';
 import useDetectMounted from './hooks/useDetectMounted';
+import usePrevious from './hooks/usePrevious';
 import useTimeout from './hooks/useTimeout';
+import deepEqual from './utils/deepEqual';
 import { LoadsConfig, LoadFunction, LoadingState, OptimisticCallback, OptimisticOpts, Record } from './types';
 
 function broadcastChanges<R>(contextKey: string, record: Record<R>) {
   const updaters = cache.updaters.get(contextKey);
-  updaters.forEach((updater: any) => updater({ record, shouldBroadcast: false }));
+  if (updaters) {
+    updaters.forEach((updater: any) => updater({ record, shouldBroadcast: false }));
+  }
 }
 
 const IDLE_RECORD = { error: undefined, response: undefined, state: STATES.IDLE };
@@ -36,7 +40,7 @@ function reducer<R>(
   }
 }
 
-export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> = {}) {
+export default function useLoads<R>(context: string | Array<string>, fn: LoadFunction<R>, config: LoadsConfig<R> = {}) {
   const {
     cacheProvider,
     delay,
@@ -47,15 +51,24 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
     suspense,
     throwError,
     timeout,
+    variables,
     update: updateFn
   } = { ...cache.globalConfig, ...config };
-  const id = Array.isArray(config.id) ? config.id.join('.') : config.id;
-  const contextKey = config.id ? `${config.context}.${id}` : config.context;
 
   const counter = React.useRef<number>(0);
+  const variablesHash = React.useMemo(() => JSON.stringify(config.variables), [config.variables]);
+  const prevVariablesHash = usePrevious(JSON.stringify(variables));
+  const variablesAreEqual = variablesHash === prevVariablesHash;
   const [hasMounted, hasRendered] = useDetectMounted();
   const [setDelayTimeout, clearDelayTimeout] = useTimeout();
   const [setTimeoutTimeout, clearTimeoutTimeout] = useTimeout();
+
+  let contextKey = Array.isArray(context) ? context.join('.') : context;
+  if (variablesHash) {
+    contextKey = `${contextKey}.${variablesHash}`;
+  }
+
+  const prevContextKey = usePrevious(contextKey);
 
   const cachedRecord = React.useMemo(
     () => {
@@ -161,11 +174,15 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
   // }
 
   const load = React.useCallback(
-    (opts?: { fn?: LoadFunction<R> }) => {
+    (opts: { skipVariableCheck?: boolean; fn?: LoadFunction<R> } = {}) => {
       return (..._args: any) => {
+        if (!opts.skipVariableCheck && variables && variablesAreEqual) {
+          return;
+        }
+
         let args = _args.filter((arg: any) => arg.constructor.name !== 'Class');
-        if (config.args && (!args || args.length === 0)) {
-          args = config.args;
+        if (variables && (!args || args.length === 0)) {
+          args = variables;
         }
 
         counter.current = counter.current + 1;
@@ -180,7 +197,7 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
         }
 
         let cachedRecord;
-        if (contextKey && loadPolicy !== LOAD_POLICIES.LOAD_ONLY) {
+        if (contextKey && !defer && loadPolicy !== LOAD_POLICIES.LOAD_ONLY) {
           cachedRecord = cache.records.get<R>(contextKey, { cacheProvider });
           if (cachedRecord) {
             dispatch({ type: cachedRecord.state, isCached: true, ...cachedRecord });
@@ -188,7 +205,7 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
           }
         }
 
-        const loadFn = opts && opts.fn ? opts.fn : fn;
+        const loadFn = opts.fn ? opts.fn : fn;
         const promise = loadFn(
           ...args,
           injectMeta
@@ -208,7 +225,7 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
             : undefined
         );
 
-        const isReloading = count > 1 || cachedRecord;
+        const isReloading = contextKey === prevContextKey && (count > 1 || cachedRecord);
         if (delay > 0) {
           setDelayTimeout(() => handleLoading({ isReloading, promise }), delay);
         } else {
@@ -241,19 +258,22 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
     },
     [
       cacheProvider,
-      config.args,
       contextKey,
+      defer,
       delay,
       fn,
       handleData,
       handleLoading,
       injectMeta,
       loadPolicy,
+      prevContextKey,
       setDelayTimeout,
       setTimeoutTimeout,
       suspense,
       throwError,
-      timeout
+      timeout,
+      variables,
+      variablesAreEqual
     ]
   );
 
@@ -261,11 +281,11 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
     () => {
       if (!updateFn) return;
       if (Array.isArray(updateFn)) {
-        return updateFn.map(fn => load({ fn }));
+        return updateFn.map(fn => load({ fn, skipVariableCheck: true }));
       }
-      return load({ fn: updateFn });
+      return load({ fn: updateFn, skipVariableCheck: true });
     },
-    [updateFn] // eslint-disable-line react-hooks/exhaustive-deps
+    [load, updateFn]
   );
 
   const reset = React.useCallback(() => {
@@ -283,11 +303,11 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
 
   React.useEffect(
     () => {
-      if (cachedRecord && loadPolicy !== LOAD_POLICIES.LOAD_ONLY) {
+      if (cachedRecord && !defer && loadPolicy !== LOAD_POLICIES.LOAD_ONLY) {
         dispatch({ type: cachedRecord.state, isCached: true, ...cachedRecord });
       }
     },
-    [cachedRecord, loadPolicy, dispatch]
+    [cachedRecord, loadPolicy, dispatch, defer]
   );
 
   React.useEffect(
@@ -343,7 +363,7 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
   return React.useMemo(
     () => {
       return {
-        load: load(),
+        load: load({ skipVariableCheck: true }),
         update,
         reset,
 
@@ -356,6 +376,6 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
         isCached: Boolean(record.isCached)
       };
     },
-    [record.response, record.error, record.state, record.isCached, states, update] // eslint-disable-line react-hooks/exhaustive-deps
+    [load, update, reset, record.response, record.error, record.state, record.isCached, states]
   );
 }
