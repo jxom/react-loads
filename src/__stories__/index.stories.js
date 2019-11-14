@@ -225,6 +225,39 @@ storiesOf('useLoads (Hook)', module)
     }
     return <Component />;
   })
+  .add('with dependant useLoads 2', () => {
+    function Component() {
+      const [movieId] = React.useState(1);
+
+      const getMovie = React.useCallback(async movieId => {
+        const movie = await api.getMovie(movieId);
+        return movie;
+      }, []);
+      const movieLoader = useLoads('movie', getMovie, { variables: [movieId] });
+      const movie = movieLoader.response;
+
+      const getReviews = React.useCallback(async movieId => {
+        const reviews = await api.getReviewsByMovieId(movieId);
+        return reviews;
+      }, []);
+      // TODO: Recommendation to use variables over explicit injection?
+      const reviewsLoader = useLoads('reviews', getReviews, { variables: () => [movie.id] });
+      const reviews = reviewsLoader.response;
+
+      return (
+        <Box>
+          {movieLoader.isPending && <Spinner />}
+          {movieLoader.isResolved && (
+            <Box>
+              <Box>Title: {movie.title}</Box>
+              {reviewsLoader.isResolved && reviews.map(review => review.comment)}
+            </Box>
+          )}
+        </Box>
+      );
+    }
+    return <Component />;
+  })
   .add('with inputs', () => {
     function Component() {
       const [breed, setBreed] = useState('dingo');
@@ -379,7 +412,7 @@ storiesOf('useLoads (Hook)', module)
         []
       );
       const randomDogRecord = useLoads('functionVariables', getRandomDogByBreed, {
-        variables: [breed, { a: 'b', b: { c: 'd', aa: 'aa', d: () => {} } }]
+        variables: [breed]
       });
       return (
         <Box>

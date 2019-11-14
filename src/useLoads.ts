@@ -48,17 +48,26 @@ export default function useLoads<R>(
     cacheProvider,
     delay,
     enableBackgroundStates,
-    defer,
     loadPolicy,
     suspense,
     throwError,
     timeout,
-    variables,
     update: updateFn
   } = { ...cache.globalConfig, ...config };
 
+  let defer = config.defer;
+  let variables = config.variables;
+  if (typeof variables === 'function') {
+    try {
+      variables = variables();
+      defer = config.defer;
+    } catch (err) {
+      defer = true;
+    }
+  }
+
   let contextKey = Array.isArray(context) ? context.join('.') : context;
-  const variablesHash = React.useMemo(() => JSON.stringify(config.variables), [config.variables]);
+  const variablesHash = React.useMemo(() => JSON.stringify(variables), [variables]);
   if (variablesHash) {
     contextKey = `${contextKey}.${variablesHash}`;
   }
@@ -337,11 +346,13 @@ export default function useLoads<R>(
 
   const states = {
     isIdle: record.state === STATES.IDLE && Boolean(!record.response || enableBackgroundStates),
-    isPending: record.state === STATES.PENDING && Boolean(!record.response || enableBackgroundStates),
+    isPending:
+      (record.state === STATES.PENDING || record.state === STATES.PENDING_SLOW) &&
+      Boolean(!record.response || enableBackgroundStates),
     isPendingSlow: record.state === STATES.PENDING_SLOW && Boolean(!record.response || enableBackgroundStates),
     isResolved: record.state === STATES.RESOLVED || Boolean(record.response),
     isRejected: record.state === STATES.REJECTED,
-    isReloading: record.state === STATES.RELOADING,
+    isReloading: record.state === STATES.RELOADING || record.state === STATES.RELOADING_SLOW,
     isReloadingSlow: record.state === STATES.RELOADING_SLOW
   };
 
@@ -349,7 +360,7 @@ export default function useLoads<R>(
     if (contextKey) {
       const record = cache.records.get(contextKey);
       const promise = cache.promises.get(contextKey);
-      if (record && promise && (states.isPending || states.isPendingSlow)) {
+      if (record && promise && states.isPending) {
         throw promise;
       }
       if (!record) {

@@ -10,7 +10,7 @@ export type LoadsConfig<R> = {
   throwError?: boolean;
   timeout?: number;
   update?: LoadFunction<R>;
-  variables?: Array<unknown>;
+  variables?: Array<unknown> | (() => Array<unknown>);
 };
 export type LoadsContextState = {
   cache: {
