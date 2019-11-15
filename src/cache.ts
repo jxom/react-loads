@@ -7,14 +7,13 @@ export const globalConfig = {
   delay: 0,
   enableBackgroundStates: false,
   defer: false,
-  injectMeta: false,
   loadPolicy: LOAD_POLICIES.CACHE_AND_LOAD,
   suspense: false,
   throwError: false,
   timeout: 0
 };
 
-export function setConfig(config: LoadsConfig<unknown>) {
+export function setConfig(config: LoadsConfig<unknown, unknown>) {
   Object.assign(globalConfig, config);
 }
 
@@ -23,9 +22,9 @@ export function setConfig(config: LoadsConfig<unknown>) {
 const recordsCache = new Map();
 export const records = {
   ...recordsCache,
-  set<R>(
+  set<Response, Err>(
     key: string,
-    valOrFn: Record<R> | ((record: Record<R>) => Record<R>),
+    valOrFn: Record<Response, Err> | ((record: Record<Response, Err>) => Record<Response, Err>),
     opts?: { cacheProvider?: CacheProvider | void }
   ) {
     let val = valOrFn;
@@ -42,11 +41,11 @@ export const records = {
 
     return;
   },
-  get<R>(key: string, opts?: { cacheProvider?: CacheProvider | void }): Record<R> | undefined {
+  get<Response, Err>(key: string, opts?: { cacheProvider?: CacheProvider | void }): Record<Response, Err> | undefined {
     // First, check to see if the record exists in the cache.
     const record = recordsCache.get(key);
     if (record) {
-      return record as Record<R>;
+      return record as Record<Response, Err>;
     }
 
     // Otherwise, fallback to the cache provider.

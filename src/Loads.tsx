@@ -1,9 +1,9 @@
 import * as React from 'react';
 import * as PropTypes from 'prop-types';
 import { LoadsConfig, LoadFunction } from './types';
-import useLoads from './useLoads';
+import { useLoads } from './useLoads';
 
-export type LoadsProps = LoadsConfig<unknown> & {
+export type LoadsProps = LoadsConfig<unknown, unknown> & {
   context: string;
   children: (loader: any) => React.ReactNode;
   load: LoadFunction<unknown>;
@@ -24,5 +24,3 @@ Loads.propTypes = {
 Loads.defaultProps = {
   inputs: []
 };
-
-export default Loads;

@@ -1,5 +1,5 @@
-import { LoadFunction, LoadsConfig, Record } from './types';
-import useLoads from './useLoads';
+import { LoadFunction, LoadsConfig } from './types';
+import { useLoads } from './useLoads';
 
 type ResourceOptions<R> = {
   _namespace: string;
@@ -36,6 +36,6 @@ function createLoadsHooks<R>(opts: ResourceOptions<R>) {
   }, {});
 }
 
-export default function createResource<R>(opts: ResourceOptions<R>) {
+export function createResource<R>(opts: ResourceOptions<R>) {
   return createLoadsHooks<R>(opts);
 }

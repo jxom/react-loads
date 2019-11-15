@@ -5,9 +5,9 @@ import { LOAD_POLICIES, STATES } from './constants';
 import useDetectMounted from './hooks/useDetectMounted';
 import usePrevious from './hooks/usePrevious';
 import useTimeout from './hooks/useTimeout';
-import { LoadsConfig, LoadFunction, LoadingState, OptimisticCallback, OptimisticOpts, Record } from './types';
+import { ContextArg, ConfigArg, FnArg, LoadFunction, LoadingState, OptimisticCallback, Record } from './types';
 
-function broadcastChanges<R>(contextKey: string, record: Record<R>) {
+function broadcastChanges<Response, Err>(contextKey: string, record: Record<Response, Err>) {
   const updaters = cache.updaters.get(contextKey);
   if (updaters) {
     updaters.forEach((updater: any) => updater({ record, shouldBroadcast: false }));
@@ -15,10 +15,10 @@ function broadcastChanges<R>(contextKey: string, record: Record<R>) {
 }
 
 const IDLE_RECORD = { error: undefined, response: undefined, state: STATES.IDLE };
-function reducer<R>(
-  state: Record<R>,
-  action: { type: LoadingState; isCached?: boolean; response?: R; error?: any }
-): Record<R> {
+function reducer<Response, Err>(
+  state: Record<Response, Err>,
+  action: { type: LoadingState; isCached?: boolean; response?: Response; error?: Err }
+): Record<Response, Err> {
   switch (action.type) {
     case STATES.IDLE:
       return IDLE_RECORD;
@@ -39,21 +39,24 @@ function reducer<R>(
   }
 }
 
-export default function useLoads<R>(
-  context: string | Array<string>,
-  fn: LoadFunction<R> | ((args?: any) => LoadFunction<R>),
-  config: LoadsConfig<R> = {}
+export function useLoads<Response, Err>(
+  context: ContextArg | null,
+  fn: FnArg<Response>,
+  localConfig: ConfigArg<Response, Err> = {}
 ) {
+  const config = { ...cache.globalConfig, ...localConfig };
   const {
     cacheProvider,
     delay,
     enableBackgroundStates,
     loadPolicy,
+    onReject,
+    onResolve,
     suspense,
     throwError,
     timeout,
     update: updateFn
-  } = { ...cache.globalConfig, ...config };
+  } = config;
 
   let defer = config.defer;
   let variables = config.variables;
@@ -84,14 +87,14 @@ export default function useLoads<R>(
   const cachedRecord = React.useMemo(
     () => {
       if (contextKey) {
-        return cache.records.get<R>(contextKey, { cacheProvider });
+        return cache.records.get<Response, Err>(contextKey, { cacheProvider });
       }
       return;
     },
     [cacheProvider, contextKey]
   );
 
-  let initialRecord: Record<R> = IDLE_RECORD;
+  let initialRecord: Record<Response, Err> = IDLE_RECORD;
   if (cachedRecord && !defer && loadPolicy !== LOAD_POLICIES.LOAD_ONLY) {
     initialRecord = cachedRecord;
   }
@@ -104,7 +107,7 @@ export default function useLoads<R>(
       const pendingState = isSlow ? STATES.PENDING_SLOW : STATES.PENDING;
       dispatch({ type: isReloading ? reloadingState : pendingState });
       if (contextKey) {
-        cache.records.set<R>(contextKey, record => ({
+        cache.records.set<Response, Err>(contextKey, record => ({
           ...record,
           state: isReloading ? STATES.RELOADING : STATES.PENDING
         }));
@@ -115,7 +118,15 @@ export default function useLoads<R>(
   );
 
   const handleData = React.useCallback(
-    ({ count, record, shouldBroadcast }: { count?: number; record: Record<R>; shouldBroadcast: boolean }) => {
+    ({
+      count,
+      record,
+      shouldBroadcast
+    }: {
+      count?: number;
+      record: Record<Response, Err>;
+      shouldBroadcast: boolean;
+    }) => {
       if (hasMounted.current && (!count || count === counter.current)) {
         // @ts-ignore
         clearDelayTimeout();
@@ -127,7 +138,7 @@ export default function useLoads<R>(
           ...record
         });
         if (contextKey) {
-          cache.records.set<R>(contextKey, record, {
+          cache.records.set<Response, Err>(contextKey, record, {
             cacheProvider
           });
 
@@ -176,7 +187,7 @@ export default function useLoads<R>(
       if (!context || contextKey === context) {
         handleData({ count, record: newRecord, shouldBroadcast: true });
       } else {
-        cache.records.set<R>(context, newRecord, { cacheProvider });
+        cache.records.set<Response, Err>(context, newRecord, { cacheProvider });
       }
 
       let newCallback = typeof contextOrCallback === 'function' ? contextOrCallback : callback;
@@ -186,7 +197,7 @@ export default function useLoads<R>(
   );
 
   const load = React.useCallback(
-    (opts: { skipVariableCheck?: boolean; fn?: LoadFunction<R> } = {}) => {
+    (opts: { skipVariableCheck?: boolean; fn?: LoadFunction<Response> } = {}) => {
       return (..._args: any) => {
         if (!opts.skipVariableCheck && variables && isSameVariables) {
           return;
@@ -210,7 +221,7 @@ export default function useLoads<R>(
 
         let cachedRecord;
         if (contextKey && !defer && loadPolicy !== LOAD_POLICIES.LOAD_ONLY) {
-          cachedRecord = cache.records.get<R>(contextKey, { cacheProvider });
+          cachedRecord = cache.records.get<Response, Err>(contextKey, { cacheProvider });
           if (cachedRecord) {
             dispatch({ type: cachedRecord.state, isCached: true, ...cachedRecord });
             if (loadPolicy === LOAD_POLICIES.CACHE_FIRST) return;
@@ -249,14 +260,16 @@ export default function useLoads<R>(
               record: { error: undefined, response, state: STATES.RESOLVED },
               shouldBroadcast: true
             });
+            onResolve && onResolve(response);
             return response;
           })
           .catch(error => {
             handleData({
               count,
-              record: { response: undefined, error, state: STATES.RESOLVED },
+              record: { response: undefined, error, state: STATES.REJECTED },
               shouldBroadcast: true
             });
+            onReject && onReject(error);
             if (throwError && !suspense) {
               throw error;
             }

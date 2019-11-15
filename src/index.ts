@@ -1,5 +1,7 @@
-export { default as Loads } from './Loads';
-export { default as useLoads } from './useLoads';
+export * from './Loads';
+export * from './useLoads';
+export * from './useDeferredLoads';
+export * from './useGetStates';
 
-export { default as createResource } from './createResource';
+export { createResource } from './createResource';
 export * from './cache';
