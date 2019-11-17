@@ -203,6 +203,7 @@ export function useLoads<Response, Err>(
           return;
         }
 
+        // Build contextKey based of these args?
         let args = _args.filter((arg: any) => arg.constructor.name !== 'Class');
         if (variables && (!args || args.length === 0)) {
           args = variables;

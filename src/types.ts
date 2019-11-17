@@ -1,4 +1,9 @@
-export type CacheProvider = { get: (key: string) => any; set: (key: string, value: any) => void; reset: () => void };
+export type CacheProvider = {
+  get: (key: string) => any;
+  set: (key: string, value: any) => void;
+  clear: () => void;
+  delete: (key: string) => void;
+};
 export type LoadsConfig<Response, Err> = {
   cacheProvider?: CacheProvider;
   context?: string;
@@ -13,14 +18,6 @@ export type LoadsConfig<Response, Err> = {
   timeout?: number;
   update?: LoadFunction<Response>;
   variables?: Array<unknown> | (() => Array<unknown>);
-};
-export type LoadsContextState = {
-  cache: {
-    records: { [key: string]: any };
-    get: (key: string, opts?: { cacheProvider: CacheProvider | void }) => any;
-    set: (key: string, val: Record<any, any>, opts?: { cacheProvider: CacheProvider | void }) => any;
-    reset: (opts?: { cacheProvider: CacheProvider | void }) => any;
-  };
 };
 export type LoadFunction<Response> = (opts?: any) => Promise<Response>;
 export type LoadPolicy = 'cache-first' | 'cache-and-load' | 'load-only' | 'cache-only';

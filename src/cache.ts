@@ -21,7 +21,24 @@ export function setConfig(config: LoadsConfig<unknown, unknown>) {
 
 const recordsCache = new Map();
 export const records = {
-  ...recordsCache,
+  clear(opts?: { cacheProvider?: CacheProvider | void }) {
+    recordsCache.clear();
+
+    if (opts && opts.cacheProvider) {
+      opts.cacheProvider.clear();
+    }
+
+    return;
+  },
+  delete(key: string, opts?: { cacheProvider?: CacheProvider | void }) {
+    recordsCache.delete(key);
+
+    if (opts && opts.cacheProvider) {
+      opts.cacheProvider.delete(key);
+    }
+
+    return;
+  },
   set<Response, Err>(
     key: string,
     valOrFn: Record<Response, Err> | ((record: Record<Response, Err>) => Record<Response, Err>),
