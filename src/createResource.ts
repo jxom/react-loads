@@ -1,16 +1,16 @@
 import { LoadFunction, LoadsConfig } from './types';
 import { useLoads } from './useLoads';
 
-type ResourceOptions<R> = {
+type ResourceOptions<Response, Err> = {
   _namespace: string;
-  [loadKey: string]: LoadFunction<R> | [LoadFunction<R>, LoadsConfig<R> | undefined] | string;
+  [loadKey: string]: LoadFunction<Response> | [LoadFunction<Response>, LoadsConfig<Response, Err> | undefined] | string;
 };
 
-function createLoadsHooks<R>(opts: ResourceOptions<R>) {
+function createLoadsHooks<Response, Err>(opts: ResourceOptions<Response, Err>) {
   return Object.entries(opts).reduce((currentLoaders, [loadKey, val]) => {
     if (loadKey[0] === '_' || typeof val === 'string') return currentLoaders;
 
-    let loader = val as LoadFunction<R>;
+    let loader = val as LoadFunction<Response>;
     let config = {};
     if (Array.isArray(val)) {
       loader = val[0];
@@ -20,7 +20,7 @@ function createLoadsHooks<R>(opts: ResourceOptions<R>) {
     if (loadKey === 'load') {
       return {
         ...currentLoaders,
-        useLoads: (loadsConfig: LoadsConfig<R> | undefined) =>
+        useLoads: (loadsConfig: LoadsConfig<Response, Err> | undefined) =>
           useLoads(opts._namespace, loader, { ...config, ...loadsConfig })
       };
     }
@@ -29,13 +29,13 @@ function createLoadsHooks<R>(opts: ResourceOptions<R>) {
     return {
       ...currentLoaders,
       [loadKey]: {
-        useLoads: (loadsConfig: LoadsConfig<R> | undefined) =>
+        useLoads: (loadsConfig: LoadsConfig<Response, Err> | undefined) =>
           useLoads(opts._namespace, loader, { ...config, ...loadsConfig })
       }
     };
   }, {});
 }
 
-export function createResource<R>(opts: ResourceOptions<R>) {
-  return createLoadsHooks<R>(opts);
+export function createResource<Response, Err>(opts: ResourceOptions<Response, Err>) {
+  return createLoadsHooks<Response, Err>(opts);
 }
