@@ -5,6 +5,7 @@ import { LOAD_POLICIES, STATES } from './constants';
 import useDetectMounted from './hooks/useDetectMounted';
 import usePrevious from './hooks/usePrevious';
 import useTimeout from './hooks/useTimeout';
+import * as utils from './utils';
 import { ContextArg, ConfigArg, FnArg, LoadFunction, LoadingState, OptimisticCallback, Record } from './types';
 
 function broadcastChanges<Response, Err>(contextKey: string, record: Record<Response, Err>) {
@@ -47,11 +48,15 @@ export function useLoads<Response, Err>(
   const config = { ...cache.globalConfig, ...localConfig };
   const {
     cacheProvider,
+    cacheTime,
+    dedupingInterval,
     delay,
     enableBackgroundStates,
     loadPolicy,
     onReject,
     onResolve,
+    revalidateOnWindowFocus,
+    revalidateTime,
     suspense,
     throwError,
     timeout,
@@ -107,14 +112,18 @@ export function useLoads<Response, Err>(
       const pendingState = isSlow ? STATES.PENDING_SLOW : STATES.PENDING;
       dispatch({ type: isReloading ? reloadingState : pendingState });
       if (contextKey) {
-        cache.records.set<Response, Err>(contextKey, record => ({
-          ...record,
-          state: isReloading ? STATES.RELOADING : STATES.PENDING
-        }));
+        cache.records.set<Response, Err>(
+          contextKey,
+          record => ({
+            ...record,
+            state: isReloading ? STATES.RELOADING : STATES.PENDING
+          }),
+          { cacheTime, cacheProvider }
+        );
         cache.promises.set(contextKey, promise);
       }
     },
-    [contextKey]
+    [cacheProvider, cacheTime, contextKey]
   );
 
   const handleData = React.useCallback(
@@ -139,7 +148,8 @@ export function useLoads<Response, Err>(
         });
         if (contextKey) {
           cache.records.set<Response, Err>(contextKey, record, {
-            cacheProvider
+            cacheProvider,
+            cacheTime
           });
 
           const isSuspended = cache.suspenders.get(contextKey);
@@ -151,7 +161,7 @@ export function useLoads<Response, Err>(
         }
       }
     },
-    [cacheProvider, clearDelayTimeout, clearTimeoutTimeout, contextKey, hasMounted]
+    [cacheProvider, cacheTime, clearDelayTimeout, clearTimeoutTimeout, contextKey, hasMounted]
   );
 
   const handleOptimisticData = React.useCallback(
@@ -187,19 +197,19 @@ export function useLoads<Response, Err>(
       if (!context || contextKey === context) {
         handleData({ count, record: newRecord, shouldBroadcast: true });
       } else {
-        cache.records.set<Response, Err>(context, newRecord, { cacheProvider });
+        cache.records.set<Response, Err>(context, newRecord, { cacheProvider, cacheTime });
       }
 
       let newCallback = typeof contextOrCallback === 'function' ? contextOrCallback : callback;
       newCallback && newCallback(newData);
     },
-    [cacheProvider, contextKey, handleData]
+    [cacheProvider, cacheTime, contextKey, handleData]
   );
 
   const load = React.useCallback(
-    (opts: { skipVariableCheck?: boolean; fn?: LoadFunction<Response> } = {}) => {
+    (opts: { isManualInvoke?: boolean; fn?: LoadFunction<Response> } = {}) => {
       return (..._args: any) => {
-        if (!opts.skipVariableCheck && variables && isSameVariables) {
+        if (!opts.isManualInvoke && variables && isSameVariables) {
           return;
         }
 
@@ -225,7 +235,13 @@ export function useLoads<Response, Err>(
           cachedRecord = cache.records.get<Response, Err>(contextKey, { cacheProvider });
           if (cachedRecord) {
             dispatch({ type: cachedRecord.state, isCached: true, ...cachedRecord });
-            if (loadPolicy === LOAD_POLICIES.CACHE_FIRST) return;
+
+            // @ts-ignore
+            const isStale = Math.abs(new Date() - cachedRecord.updated) >= revalidateTime;
+            // @ts-ignore
+            const isDuplicate = Math.abs(new Date() - cachedRecord.updated) < dedupingInterval && !opts.isManualInvoke;
+            const isCachedWithCacheFirst = !isStale && !opts.isManualInvoke && loadPolicy === LOAD_POLICIES.CACHE_FIRST;
+            if (isDuplicate || isCachedWithCacheFirst) return;
           }
         }
 
@@ -277,34 +293,16 @@ export function useLoads<Response, Err>(
           });
       };
     },
-    [
-      cacheProvider,
-      contextKey,
-      defer,
-      delay,
-      fn,
-      handleData,
-      handleLoading,
-      handleOptimisticData,
-      isSameContext,
-      isSameVariables,
-      loadPolicy,
-      setDelayTimeout,
-      setTimeoutTimeout,
-      suspense,
-      throwError,
-      timeout,
-      variables
-    ]
+    [cacheProvider, contextKey, defer, delay, fn, handleData, handleLoading, handleOptimisticData, isSameContext, isSameVariables, loadPolicy, setDelayTimeout, setTimeoutTimeout, suspense, throwError, timeout, variables] // eslint-disable-line
   );
 
   const update = React.useMemo(
     () => {
       if (!updateFn) return;
       if (Array.isArray(updateFn)) {
-        return updateFn.map(fn => load({ fn, skipVariableCheck: true }));
+        return updateFn.map(fn => load({ fn, isManualInvoke: true }));
       }
-      return load({ fn: updateFn, skipVariableCheck: true });
+      return load({ fn: updateFn, isManualInvoke: true });
     },
     [load, updateFn]
   );
@@ -358,6 +356,20 @@ export function useLoads<Response, Err>(
     [contextKey, handleData]
   );
 
+  React.useEffect(
+    () => {
+      if (!revalidateOnWindowFocus) return;
+
+      const revalidate = load();
+      cache.revalidators.set(contextKey, revalidate);
+
+      return function cleanup() {
+        cache.revalidators.delete(contextKey);
+      };
+    },
+    [contextKey, handleData, load, revalidateOnWindowFocus]
+  );
+
   const states = {
     isIdle: record.state === STATES.IDLE && Boolean(!record.response || enableBackgroundStates),
     isPending:
@@ -386,7 +398,7 @@ export function useLoads<Response, Err>(
   return React.useMemo(
     () => {
       return {
-        load: load({ skipVariableCheck: true }),
+        load: load({ isManualInvoke: true }),
         update,
         reset,
 
@@ -401,4 +413,17 @@ export function useLoads<Response, Err>(
     },
     [load, update, reset, record.response, record.error, record.state, record.isCached, states]
   );
+}
+
+// Background focus revalidation
+let eventsBinded = false;
+if (typeof window !== 'undefined' && window.addEventListener && !eventsBinded) {
+  const revalidate = () => {
+    if (!utils.isDocumentVisible() || !utils.isOnline()) return;
+    cache.revalidators.forEach(revalidator => revalidator && revalidator());
+  };
+  window.addEventListener('visibilitychange', revalidate, false);
+  window.addEventListener('focus', revalidate, false);
+  // only bind the events once
+  eventsBinded = true;
 }

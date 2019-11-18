@@ -6,13 +6,17 @@ export type CacheProvider = {
 };
 export type LoadsConfig<Response, Err> = {
   cacheProvider?: CacheProvider;
+  cacheTime?: number;
   context?: string;
+  dedupingInterval?: number;
   delay?: number;
   defer?: boolean;
   enableBackgroundStates?: boolean;
   loadPolicy?: LoadPolicy;
   onReject?: (error: Err) => void;
   onResolve?: (response: Response) => void;
+  revalidateTime?: boolean;
+  revalidateOnWindowFocus?: boolean;
   suspense?: boolean;
   throwError?: boolean;
   timeout?: number;
@@ -39,8 +43,10 @@ export type OptimisticOpts<Response, Err> = {
 export type Record<Response, Err> = {
   error: Err | undefined;
   response: Response | undefined;
-  isCached?: boolean;
   state: LoadingState;
+  isCached?: boolean;
+  cacheTimeout?: any;
+  updated?: Date;
 };
 export type ResponseRecord<Response, Err> = {
   load: (...args: any) => Promise<Response | void | undefined>;

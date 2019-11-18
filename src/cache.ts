@@ -4,10 +4,14 @@ import { CacheProvider, LoadsConfig, Record } from './types';
 ////////////////////////////////////////////////////////
 
 export const globalConfig = {
+  cacheTime: 0,
+  dedupingInterval: 500,
   delay: 0,
-  enableBackgroundStates: false,
   defer: false,
+  enableBackgroundStates: false,
   loadPolicy: LOAD_POLICIES.CACHE_AND_LOAD,
+  revalidateOnWindowFocus: true,
+  revalidateTime: 300000,
   suspense: false,
   throwError: false,
   timeout: 0
@@ -42,16 +46,29 @@ export const records = {
   set<Response, Err>(
     key: string,
     valOrFn: Record<Response, Err> | ((record: Record<Response, Err>) => Record<Response, Err>),
-    opts?: { cacheProvider?: CacheProvider | void }
+    opts: { cacheTime: number; cacheProvider?: CacheProvider | void }
   ) {
+    const record = recordsCache.get(key);
+    if (record && record.cacheTimeout) {
+      clearTimeout(record.cacheTimeout);
+    }
+
     let val = valOrFn;
     if (typeof val === 'function') {
-      const record = recordsCache.get(key);
       val = val(record || {});
     }
 
-    recordsCache.set(key, val);
+    let cacheTimeout;
+    if (opts && opts.cacheTime) {
+      cacheTimeout = setTimeout(() => {
+        records.delete(key);
+      }, opts.cacheTime);
+    }
 
+    // Set an updated timestamp on the cached record
+    val = { ...val, cacheTimeout, updated: new Date() };
+
+    recordsCache.set(key, val);
     if (opts && opts.cacheProvider) {
       opts.cacheProvider.set(key, val);
     }
@@ -79,6 +96,7 @@ export const records = {
 
 ////////////////////////////////////////////////////////
 
-export const suspenders = new Map();
 export const promises = new Map();
+export const revalidators = new Map();
+export const suspenders = new Map();
 export const updaters = new Map();

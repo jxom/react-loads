@@ -30,7 +30,12 @@ storiesOf('useLoads', module)
         </Box>
       );
     }
-    return <Component />;
+    return (
+      <Box>
+        <Component />
+        <Component />
+      </Box>
+    );
   })
   .add('basic (deferred)', () => {
     function Component() {
@@ -452,7 +457,7 @@ storiesOf('useLoads', module)
     }
     return <Component movieId={4} />;
   })
-  .add('onResolve hook', () => {
+  .add('with onResolve', () => {
     function Component() {
       const getRandomDog = React.useCallback(() => axios.get('https://dog.ceo/api/breeds/image/random'), []);
       const randomDogRecord = useLoads('basic', getRandomDog, { onResolve: record => console.log('success', record) });
@@ -476,7 +481,7 @@ storiesOf('useLoads', module)
     }
     return <Component />;
   })
-  .add('onReject hook', () => {
+  .add('with onReject', () => {
     function Component() {
       const getSomething = React.useCallback(async () => {
         return new Promise((res, rej) => setTimeout(() => rej(new Error('This is an error.')), 1000));
@@ -487,6 +492,85 @@ storiesOf('useLoads', module)
         <Box>
           {somethingLoader.isPending && <Spinner size="large" />}
           {somethingLoader.isRejected && <Alert type="danger">{somethingLoader.error.message}</Alert>}
+        </Box>
+      );
+    }
+    return <Component />;
+  })
+  .add('with revalidateTime', () => {
+    function Component() {
+      const getRandomDog = React.useCallback(() => axios.get('https://dog.ceo/api/breeds/image/random'), []);
+      const randomDogRecord = useLoads('revalidateTime', getRandomDog, {
+        revalidateTime: 5000,
+        loadPolicy: 'cache-first'
+      });
+
+      return (
+        <Box>
+          {randomDogRecord.isPending && <Spinner size="large" />}
+          {randomDogRecord.isResolved && (
+            <Box>
+              <Box>
+                <Image src={randomDogRecord.response.data.message} width="300px" alt="Dog" />
+              </Box>
+              <Button onClick={randomDogRecord.load} isLoading={randomDogRecord.isReloading}>
+                Load another
+              </Button>
+            </Box>
+          )}
+          {randomDogRecord.isRejected && <Alert type="danger">{randomDogRecord.error.message}</Alert>}
+        </Box>
+      );
+    }
+    return <Component />;
+  })
+  .add('with cacheTime', () => {
+    function Component() {
+      const getRandomDog = React.useCallback(() => axios.get('https://dog.ceo/api/breeds/image/random'), []);
+      const randomDogRecord = useLoads('cacheTime', getRandomDog, {
+        cacheTime: 5000
+      });
+
+      return (
+        <Box>
+          {randomDogRecord.isPending && <Spinner size="large" />}
+          {randomDogRecord.isResolved && (
+            <Box>
+              <Box>
+                <Image src={randomDogRecord.response.data.message} width="300px" alt="Dog" />
+              </Box>
+              <Button onClick={randomDogRecord.load} isLoading={randomDogRecord.isReloading}>
+                Load another
+              </Button>
+            </Box>
+          )}
+          {randomDogRecord.isRejected && <Alert type="danger">{randomDogRecord.error.message}</Alert>}
+        </Box>
+      );
+    }
+    return <Component />;
+  })
+  .add('with dedupingInterval', () => {
+    function Component() {
+      const getRandomDog = React.useCallback(() => axios.get('https://dog.ceo/api/breeds/image/random'), []);
+      const randomDogRecord = useLoads('dedupingInterval', getRandomDog, {
+        dedupingInterval: 2000
+      });
+
+      return (
+        <Box>
+          {randomDogRecord.isPending && <Spinner size="large" />}
+          {randomDogRecord.isResolved && (
+            <Box>
+              <Box>
+                <Image src={randomDogRecord.response.data.message} width="300px" alt="Dog" />
+              </Box>
+              <Button onClick={randomDogRecord.load} isLoading={randomDogRecord.isReloading}>
+                Load another
+              </Button>
+            </Box>
+          )}
+          {randomDogRecord.isRejected && <Alert type="danger">{randomDogRecord.error.message}</Alert>}
         </Box>
       );
     }
@@ -565,7 +649,6 @@ storiesOf('useGetStates', module).add('basic', () => {
 
 storiesOf('cache', module).add('cache.clear', () => {
   function Component() {
-    console.log(cache.records);
     return (
       <Box>
         <Button onClick={() => cache.records.clear()}>Clear cache</Button>
