@@ -270,7 +270,7 @@ export function useLoads<Response, Err>(
         }
 
         if (typeof promise === 'function') return;
-        promise
+        return promise
           .then(response => {
             handleData({
               count,
