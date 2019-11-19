@@ -170,7 +170,7 @@ export default function useLoads<R>(fn: LoadFunction<R>, config: LoadsConfig<R> 
           : undefined
       );
       currentPromise.current = promise;
-      promise
+      return promise
         .then(response => {
           handleData({ response }, STATES.RESOLVED, count);
           return response;
