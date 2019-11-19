@@ -2,6 +2,7 @@ import * as cache from './cache';
 
 export { cache };
 
+export * from './cache';
 export * from './createResource';
 export * from './Loads';
 export * from './useCache';

@@ -9,27 +9,31 @@ async function getUsers() {
   return response.data;
 }
 
-async function addUser({ name }, { cachedRecord }) {
-  const response = await axios.post('https://jsonplaceholder.typicode.com/users', {
-    data: { name }
-  });
-  const currentUsers = cachedRecord.response;
-  const newUser = response.data.data;
-  return [...currentUsers, newUser];
+function addUser({ name }) {
+  return async meta => {
+    const response = await axios.post('https://jsonplaceholder.typicode.com/users', {
+      data: { name }
+    });
+    const currentUsers = meta.cachedRecord.response;
+    const newUser = response.data.data;
+    return [...currentUsers, newUser];
+  };
 }
 
-async function deleteUser(user, { cachedRecord }) {
-  await axios.delete(`https://jsonplaceholder.typicode.com/users/${user.id}`);
-  const currentUsers = cachedRecord.response;
-  const newUsers = currentUsers.filter(_user => _user.id !== user.id);
-  return newUsers;
+function deleteUser(user) {
+  return async meta => {
+    await axios.delete(`https://jsonplaceholder.typicode.com/users/${user.id}`);
+    const currentUsers = meta.cachedRecord.response;
+    const newUsers = currentUsers.filter(_user => _user.id !== user.id);
+    return newUsers;
+  };
 }
 
 export const usersResource = Loads.createResource({
   _namespace: 'users',
   load: getUsers,
-  add: [addUser, { defer: true }],
-  delete: [deleteUser, { defer: true }]
+  add: addUser,
+  delete: deleteUser
 });
 
 function App() {
@@ -39,9 +43,9 @@ function App() {
   const getUsersLoader = usersResource.useLoads();
   const users = getUsersLoader.response;
 
-  const addUserLoader = usersResource.add.useLoads();
+  const addUserLoader = usersResource.add.useDeferredLoads();
 
-  const deleteUserLoader = usersResource.delete.useLoads();
+  const deleteUserLoader = usersResource.delete.useDeferredLoads();
 
   async function handleAddUser() {
     await addUserLoader.load({ name });
@@ -66,7 +70,7 @@ function App() {
                 <List.Item key={user.id}>
                   {user.name}
                   <Button
-                    isLoading={deleteUserLoader.isPending && deletingUserId === user.id}
+                    isLoading={deleteUserLoader.isReloading && deletingUserId === user.id}
                     kind="ghost"
                     marginLeft="major-1"
                     onClick={() => handleDeleteUser(user)}
@@ -80,7 +84,7 @@ function App() {
             </List>
             <Group width="300px">
               <Input placeholder="John Smith" onChange={e => setName(e.target.value)} value={name} />
-              <Button isLoading={addUserLoader.isPending} onClick={handleAddUser} palette="primary">
+              <Button isLoading={addUserLoader.isReloading} onClick={handleAddUser} palette="primary">
                 Add
               </Button>
             </Group>
@@ -92,9 +96,4 @@ function App() {
 }
 
 const rootElement = document.getElementById('root');
-ReactDOM.render(
-  <Loads.Provider>
-    <App />
-  </Loads.Provider>,
-  rootElement
-);
+ReactDOM.render(<App />, rootElement);

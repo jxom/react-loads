@@ -9,7 +9,7 @@ function App() {
     const response = await axios.get('https://jsonplaceholder.typicode.com/users');
     return response.data;
   }, []);
-  const getUsersLoader = useLoads(getUsers);
+  const getUsersLoader = useLoads('users', getUsers);
   const users = getUsersLoader.response;
 
   return (

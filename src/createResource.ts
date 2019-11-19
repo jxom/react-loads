@@ -1,5 +1,6 @@
 import { LoadFunction, LoadsConfig } from './types';
 import { useLoads } from './useLoads';
+import { useDeferredLoads } from './useDeferredLoads';
 
 type ResourceOptions<Response, Err> = {
   _namespace: string;
@@ -21,7 +22,9 @@ function createLoadsHooks<Response, Err>(opts: ResourceOptions<Response, Err>) {
       return {
         ...currentLoaders,
         useLoads: (loadsConfig: LoadsConfig<Response, Err> | undefined) =>
-          useLoads(opts._namespace, loader, { ...config, ...loadsConfig })
+          useLoads(opts._namespace, loader, { ...config, ...loadsConfig }),
+        useDeferredLoads: (loadsConfig: LoadsConfig<Response, Err> | undefined) =>
+          useDeferredLoads(opts._namespace, loader, { ...config, ...loadsConfig })
       };
     }
 
@@ -30,7 +33,9 @@ function createLoadsHooks<Response, Err>(opts: ResourceOptions<Response, Err>) {
       ...currentLoaders,
       [loadKey]: {
         useLoads: (loadsConfig: LoadsConfig<Response, Err> | undefined) =>
-          useLoads(opts._namespace, loader, { ...config, ...loadsConfig })
+          useLoads(opts._namespace, loader, { ...config, ...loadsConfig }),
+        useDeferredLoads: (loadsConfig: LoadsConfig<Response, Err> | undefined) =>
+          useDeferredLoads(opts._namespace, loader, { ...config, ...loadsConfig })
       }
     };
   }, {});

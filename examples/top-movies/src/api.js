@@ -202,15 +202,18 @@ const reviews = [
 ];
 
 export async function getMovies() {
+  console.log('fetching movies...');
   return new Promise(res => setTimeout(() => res(movies), 1000));
 }
 
 export async function getMovie(movieId) {
+  console.log(`fetching movie ${movieId}...`);
   const movie = movies.find(movie => movie.id === movieId);
   return new Promise(res => setTimeout(() => res(movie), (movieId * 1000) / 4));
 }
 
 export async function getReviewsByMovieId(movieId) {
+  console.log(`fetching movie review ${movieId}...`);
   const movieReviews = reviews.filter(review => review.movieId === movieId);
   return new Promise(res => setTimeout(() => res(movieReviews), (movieId * 2000) / 4));
 }

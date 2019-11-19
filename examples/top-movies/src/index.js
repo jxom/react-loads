@@ -7,12 +7,12 @@ import * as Loads from 'react-loads';
 import MovieDetails from './MovieDetails';
 import MovieList from './MovieList';
 
-Loads.setConfig({
-  cacheProvider: {
-    get: key => store.get(key),
-    set: (key, val) => store.set(key, val)
-  }
-});
+// Loads.setConfig({
+//   cacheProvider: {
+//     get: key => store.get(key),
+//     set: (key, val) => store.set(key, val)
+//   }
+// });
 
 function App() {
   const [currentMovieId, setCurrentMovieId] = React.useState();

@@ -236,17 +236,21 @@ export function useLoads<Response, Err>(
         }
 
         let cachedRecord;
-        if (contextKey && !defer && loadPolicy !== LOAD_POLICIES.LOAD_ONLY) {
+        if (contextKey) {
           cachedRecord = cache.records.get<Response, Err>(contextKey, { cacheProvider });
-          if (cachedRecord) {
-            dispatch({ type: cachedRecord.state, isCached: true, ...cachedRecord });
+          if (!defer && loadPolicy !== LOAD_POLICIES.LOAD_ONLY) {
+            if (cachedRecord) {
+              dispatch({ type: cachedRecord.state, isCached: true, ...cachedRecord });
 
-            // @ts-ignore
-            const isStale = Math.abs(new Date() - cachedRecord.updated) >= revalidateTime;
-            // @ts-ignore
-            const isDuplicate = Math.abs(new Date() - cachedRecord.updated) < dedupingInterval && !opts.isManualInvoke;
-            const isCachedWithCacheFirst = !isStale && !opts.isManualInvoke && loadPolicy === LOAD_POLICIES.CACHE_FIRST;
-            if (isDuplicate || isCachedWithCacheFirst) return;
+              // @ts-ignore
+              const isStale = Math.abs(new Date() - cachedRecord.updated) >= revalidateTime;
+              const isDuplicate =
+                // @ts-ignore
+                Math.abs(new Date() - cachedRecord.updated) < dedupingInterval && !opts.isManualInvoke;
+              const isCachedWithCacheFirst =
+                !isStale && !opts.isManualInvoke && loadPolicy === LOAD_POLICIES.CACHE_FIRST;
+              if (isDuplicate || isCachedWithCacheFirst) return;
+            }
           }
         }
 
@@ -352,6 +356,8 @@ export function useLoads<Response, Err>(
 
   React.useEffect(
     () => {
+      if (defer) return;
+
       const updaters = cache.updaters.get(contextKey);
       if (updaters) {
         const newUpdaters = [...updaters, handleData];
@@ -366,12 +372,12 @@ export function useLoads<Response, Err>(
         cache.updaters.set(contextKey, newUpdaters);
       };
     },
-    [contextKey, handleData]
+    [contextKey, defer, handleData]
   );
 
   React.useEffect(
     () => {
-      if (!revalidateOnWindowFocus) return;
+      if (!revalidateOnWindowFocus || defer) return;
 
       const revalidate = load();
       cache.revalidators.set(contextKey, revalidate);
@@ -380,7 +386,7 @@ export function useLoads<Response, Err>(
         cache.revalidators.delete(contextKey);
       };
     },
-    [contextKey, handleData, load, revalidateOnWindowFocus]
+    [contextKey, defer, handleData, load, revalidateOnWindowFocus]
   );
 
   useInterval(() => {

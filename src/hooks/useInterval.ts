@@ -1,5 +1,6 @@
 import * as React from 'react';
 
+// @ts-ignore
 const noop = (...args: Array<any>) => {};
 
 export default function useInterval(callback: () => void, delay: number | void) {

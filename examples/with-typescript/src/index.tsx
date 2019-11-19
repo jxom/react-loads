@@ -11,7 +11,7 @@ function App() {
     const response = await axios.get('https://jsonplaceholder.typicode.com/users');
     return response.data;
   }, []);
-  const getUsersLoader = useLoads<Users>(getUsers);
+  const getUsersLoader = useLoads<Users, any>('users', getUsers);
   const users = (getUsersLoader.response || []);
 
   return (
