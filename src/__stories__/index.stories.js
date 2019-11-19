@@ -30,12 +30,7 @@ storiesOf('useLoads', module)
         </Box>
       );
     }
-    return (
-      <Box>
-        <Component />
-        <Component />
-      </Box>
-    );
+    return <Component />;
   })
   .add('basic (deferred)', () => {
     function Component() {
@@ -559,6 +554,84 @@ storiesOf('useLoads', module)
 
       return (
         <Box>
+          {randomDogRecord.isPending && <Spinner size="large" />}
+          {randomDogRecord.isResolved && (
+            <Box>
+              <Box>
+                <Image src={randomDogRecord.response.data.message} width="300px" alt="Dog" />
+              </Box>
+              <Button onClick={randomDogRecord.load} isLoading={randomDogRecord.isReloading}>
+                Load another
+              </Button>
+            </Box>
+          )}
+          {randomDogRecord.isRejected && <Alert type="danger">{randomDogRecord.error.message}</Alert>}
+        </Box>
+      );
+    }
+    return <Component />;
+  })
+  .add('with pollingInterval', () => {
+    function Component() {
+      const getRandomDog = React.useCallback(() => axios.get('https://dog.ceo/api/breeds/image/random'), []);
+      const randomDogRecord = useLoads('pollingInterval', getRandomDog, {
+        pollingInterval: 2000
+      });
+
+      return (
+        <Box>
+          {randomDogRecord.isPending && <Spinner size="large" />}
+          {randomDogRecord.isResolved && (
+            <Box>
+              <Box>
+                <Image src={randomDogRecord.response.data.message} width="300px" alt="Dog" />
+              </Box>
+              <Button onClick={randomDogRecord.load} isLoading={randomDogRecord.isReloading}>
+                Load another
+              </Button>
+            </Box>
+          )}
+          {randomDogRecord.isRejected && <Alert type="danger">{randomDogRecord.error.message}</Alert>}
+        </Box>
+      );
+    }
+    return <Component />;
+  })
+  .add('with rejectRetryInterval', () => {
+    function Component() {
+      const getRandomDog = React.useCallback(() => axios.get('https://dog.ceo/api/breeds/sssss/random'), []);
+      const randomDogRecord = useDeferredLoads(getRandomDog, {
+        rejectRetryInterval: 5000
+      });
+      return (
+        <Box>
+          {randomDogRecord.isIdle && <Button onClick={randomDogRecord.load}>Load dog</Button>}
+          {randomDogRecord.isPending && <Spinner size="large" />}
+          {randomDogRecord.isResolved && (
+            <Box>
+              <Box>
+                <Image src={randomDogRecord.response.data.message} width="300px" alt="Dog" />
+              </Box>
+              <Button onClick={randomDogRecord.load} isLoading={randomDogRecord.isReloading}>
+                Load another
+              </Button>
+            </Box>
+          )}
+          {randomDogRecord.isRejected && <Alert type="danger">{randomDogRecord.error.message}</Alert>}
+        </Box>
+      );
+    }
+    return <Component />;
+  })
+  .add('with rejectRetryInterval (function)', () => {
+    function Component() {
+      const getRandomDog = React.useCallback(() => axios.get('https://dog.ceo/api/breeds/sssss/random'), []);
+      const randomDogRecord = useDeferredLoads(getRandomDog, {
+        rejectRetryInterval: count => count * 5000
+      });
+      return (
+        <Box>
+          {randomDogRecord.isIdle && <Button onClick={randomDogRecord.load}>Load dog</Button>}
           {randomDogRecord.isPending && <Spinner size="large" />}
           {randomDogRecord.isResolved && (
             <Box>

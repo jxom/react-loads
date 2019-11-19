@@ -15,6 +15,9 @@ export type LoadsConfig<Response, Err> = {
   loadPolicy?: LoadPolicy;
   onReject?: (error: Err) => void;
   onResolve?: (response: Response) => void;
+  pollingInterval?: number;
+  pollWhenHidden?: boolean;
+  rejectRetryInterval?: number | ((count: number) => number);
   revalidateTime?: boolean;
   revalidateOnWindowFocus?: boolean;
   suspense?: boolean;

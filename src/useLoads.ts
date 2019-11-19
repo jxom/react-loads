@@ -3,6 +3,7 @@ import * as React from 'react';
 import * as cache from './cache';
 import { LOAD_POLICIES, STATES } from './constants';
 import useDetectMounted from './hooks/useDetectMounted';
+import useInterval from './hooks/useInterval';
 import usePrevious from './hooks/usePrevious';
 import useTimeout from './hooks/useTimeout';
 import * as utils from './utils';
@@ -55,6 +56,9 @@ export function useLoads<Response, Err>(
     loadPolicy,
     onReject,
     onResolve,
+    pollingInterval,
+    pollWhenHidden,
+    rejectRetryInterval,
     revalidateOnWindowFocus,
     revalidateTime,
     suspense,
@@ -87,6 +91,7 @@ export function useLoads<Response, Err>(
   const isSameVariables = variablesHash === prevVariablesHash;
   const [hasMounted, hasRendered] = useDetectMounted();
   const [setDelayTimeout, clearDelayTimeout] = useTimeout();
+  const [setErrorRetryTimeout] = useTimeout();
   const [setTimeoutTimeout, clearTimeoutTimeout] = useTimeout();
 
   const cachedRecord = React.useMemo(
@@ -287,6 +292,14 @@ export function useLoads<Response, Err>(
               shouldBroadcast: true
             });
             onReject && onReject(error);
+            if (rejectRetryInterval) {
+              const count = Math.min(counter.current || 0, 8);
+              const timeout =
+                typeof rejectRetryInterval === 'function'
+                  ? rejectRetryInterval(count)
+                  : ~~((Math.random() + 0.5) * (1 << count)) * rejectRetryInterval;
+              setErrorRetryTimeout(() => load()(args), timeout);
+            }
             if (throwError && !suspense) {
               throw error;
             }
@@ -369,6 +382,11 @@ export function useLoads<Response, Err>(
     },
     [contextKey, handleData, load, revalidateOnWindowFocus]
   );
+
+  useInterval(() => {
+    if (!utils.isDocumentVisible() && !pollWhenHidden) return;
+    load()();
+  }, pollingInterval);
 
   const states = {
     isIdle: record.state === STATES.IDLE && Boolean(!record.response || enableBackgroundStates),
