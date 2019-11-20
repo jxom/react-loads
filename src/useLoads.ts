@@ -17,29 +17,6 @@ function broadcastChanges<Response, Err>(contextKey: string, record: Record<Resp
 }
 
 const IDLE_RECORD = { error: undefined, response: undefined, state: STATES.IDLE };
-function reducer<Response, Err>(
-  state: Record<Response, Err>,
-  action: { type: LoadingState; isCached?: boolean; response?: Response; error?: Err }
-): Record<Response, Err> {
-  switch (action.type) {
-    case STATES.IDLE:
-      return IDLE_RECORD;
-    case STATES.PENDING:
-      return { ...state, state: STATES.PENDING };
-    case STATES.PENDING_SLOW:
-      return { ...state, state: STATES.PENDING_SLOW };
-    case STATES.RESOLVED:
-      return { isCached: action.isCached, error: undefined, response: action.response, state: STATES.RESOLVED };
-    case STATES.REJECTED:
-      return { isCached: action.isCached, error: action.error, response: undefined, state: STATES.REJECTED };
-    case STATES.RELOADING:
-      return { ...state, state: STATES.RELOADING };
-    case STATES.RELOADING_SLOW:
-      return { ...state, state: STATES.RELOADING };
-    default:
-      return state;
-  }
-}
 
 export function useLoads<Response, Err>(
   context: ContextArg | null,
@@ -109,6 +86,32 @@ export function useLoads<Response, Err>(
     initialRecord = cachedRecord;
   }
 
+  const reducer = React.useCallback(
+    (
+      state: Record<Response, Err>,
+      action: { type: LoadingState; isCached?: boolean; response?: Response; error?: Err }
+    ): Record<Response, Err> => {
+      switch (action.type) {
+        case STATES.IDLE:
+          return IDLE_RECORD;
+        case STATES.PENDING:
+          return { ...state, state: STATES.PENDING };
+        case STATES.PENDING_SLOW:
+          return { ...state, state: STATES.PENDING_SLOW };
+        case STATES.RESOLVED:
+          return { isCached: action.isCached, error: undefined, response: action.response, state: STATES.RESOLVED };
+        case STATES.REJECTED:
+          return { isCached: action.isCached, error: action.error, response: undefined, state: STATES.REJECTED };
+        case STATES.RELOADING:
+          return { ...state, state: STATES.RELOADING };
+        case STATES.RELOADING_SLOW:
+          return { ...state, state: STATES.RELOADING };
+        default:
+          return state;
+      }
+    },
+    []
+  );
   const [record, dispatch] = React.useReducer(reducer, initialRecord);
 
   const handleLoading = React.useCallback(
