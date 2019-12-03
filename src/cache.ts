@@ -46,7 +46,7 @@ export const records = {
   set<Response, Err>(
     key: string,
     valOrFn: Record<Response, Err> | ((record: Record<Response, Err>) => Record<Response, Err>),
-    opts: { cacheTime: number; cacheProvider?: CacheProvider | void }
+    opts: { cacheTime?: number; cacheProvider?: CacheProvider | void }
   ) {
     const record = recordsCache.get(key);
     if (record && record.cacheTimeout) {

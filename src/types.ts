@@ -18,7 +18,7 @@ export type LoadsConfig<Response, Err> = {
   pollingInterval?: number;
   pollWhenHidden?: boolean;
   rejectRetryInterval?: number | ((count: number) => number);
-  revalidateTime?: boolean;
+  revalidateTime?: number;
   revalidateOnWindowFocus?: boolean;
   suspense?: boolean;
   throwError?: boolean;

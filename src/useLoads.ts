@@ -17,6 +17,7 @@ function broadcastChanges<Response, Err>(contextKey: string, record: Record<Resp
 }
 
 const IDLE_RECORD = { error: undefined, response: undefined, state: STATES.IDLE };
+const PENDING_RECORD = { error: undefined, response: undefined, state: STATES.PENDING };
 
 export function useLoads<Response, Err>(
   context: ContextArg | null,
@@ -73,16 +74,16 @@ export function useLoads<Response, Err>(
 
   const cachedRecord = React.useMemo(
     () => {
-      if (contextKey) {
+      if (contextKey && loadPolicy !== LOAD_POLICIES.LOAD_ONLY) {
         return cache.records.get<Response, Err>(contextKey, { cacheProvider });
       }
       return;
     },
-    [cacheProvider, contextKey]
+    [cacheProvider, contextKey, loadPolicy]
   );
 
-  let initialRecord: Record<Response, Err> = IDLE_RECORD;
-  if (cachedRecord && !defer && loadPolicy !== LOAD_POLICIES.LOAD_ONLY) {
+  let initialRecord: Record<Response, Err> = defer ? IDLE_RECORD : PENDING_RECORD;
+  if (cachedRecord && !defer) {
     initialRecord = cachedRecord;
   }
 
@@ -128,7 +129,9 @@ export function useLoads<Response, Err>(
           }),
           { cacheTime, cacheProvider }
         );
-        cache.promises.set(contextKey, promise);
+        if (!isReloading) {
+          cache.promises.set(contextKey, promise);
+        }
       }
     },
     [cacheProvider, cacheTime, contextKey]
@@ -162,6 +165,8 @@ export function useLoads<Response, Err>(
 
           const isSuspended = cache.suspenders.get(contextKey);
           cache.suspenders.set(contextKey, typeof isSuspended === 'undefined');
+
+          cache.promises.delete(contextKey);
 
           if (shouldBroadcast) {
             broadcastChanges(contextKey, record);
@@ -239,9 +244,9 @@ export function useLoads<Response, Err>(
         }
 
         let cachedRecord;
-        if (contextKey) {
+        if (contextKey && loadPolicy !== LOAD_POLICIES.LOAD_ONLY) {
           cachedRecord = cache.records.get<Response, Err>(contextKey, { cacheProvider });
-          if (!defer && loadPolicy !== LOAD_POLICIES.LOAD_ONLY) {
+          if (!defer) {
             if (cachedRecord) {
               dispatch({ type: cachedRecord.state, isCached: true, ...cachedRecord });
 
@@ -351,10 +356,11 @@ export function useLoads<Response, Err>(
 
   React.useEffect(
     () => {
-      if (defer || (suspense && (!hasRendered.current && !cachedRecord))) return;
+      if (defer || (suspense && (!hasRendered.current && !cachedRecord)) || loadPolicy === LOAD_POLICIES.CACHE_ONLY)
+        return;
       load()();
     },
-    [defer, contextKey, suspense, hasRendered, cachedRecord, load]
+    [defer, contextKey, suspense, hasRendered, cachedRecord, load, loadPolicy]
   );
 
   React.useEffect(
@@ -413,7 +419,7 @@ export function useLoads<Response, Err>(
     if (contextKey) {
       const record = cache.records.get(contextKey);
       const promise = cache.promises.get(contextKey);
-      if (record && promise && states.isPending) {
+      if (record && promise) {
         throw promise;
       }
       if (!record) {

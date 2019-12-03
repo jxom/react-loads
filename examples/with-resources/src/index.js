@@ -30,7 +30,7 @@ function deleteUser(user) {
 }
 
 export const usersResource = Loads.createResource({
-  _namespace: 'users',
+  key: 'users',
   load: getUsers,
   add: addUser,
   delete: deleteUser

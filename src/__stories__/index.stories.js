@@ -648,6 +648,78 @@ storiesOf('useLoads', module)
       );
     }
     return <Component />;
+  })
+  .add('with load-only loadPolicy', () => {
+    function Component() {
+      const getRandomDog = React.useCallback(() => axios.get('https://dog.ceo/api/breeds/image/random'), []);
+      const randomDogRecord = useLoads('loadOnly', getRandomDog, { loadPolicy: 'load-only' });
+
+      return (
+        <Box>
+          {randomDogRecord.isPending && <Spinner size="large" />}
+          {randomDogRecord.isResolved && (
+            <Box>
+              <Box>
+                <Image src={randomDogRecord.response.data.message} width="300px" alt="Dog" />
+              </Box>
+              <Button onClick={randomDogRecord.load} isLoading={randomDogRecord.isReloading}>
+                Load another
+              </Button>
+            </Box>
+          )}
+          {randomDogRecord.isRejected && <Alert type="danger">{randomDogRecord.error.message}</Alert>}
+        </Box>
+      );
+    }
+    return <Component />;
+  })
+  .add('with cache-and-load loadPolicy', () => {
+    function Component() {
+      const getRandomDog = React.useCallback(() => axios.get('https://dog.ceo/api/breeds/image/random'), []);
+      const randomDogRecord = useLoads('cacheAndLoad', getRandomDog, { loadPolicy: 'cache-and-load' });
+
+      return (
+        <Box>
+          {randomDogRecord.isPending && <Spinner size="large" />}
+          {randomDogRecord.isResolved && (
+            <Box>
+              <Box>
+                <Image src={randomDogRecord.response.data.message} width="300px" alt="Dog" />
+              </Box>
+              <Button onClick={randomDogRecord.load} isLoading={randomDogRecord.isReloading}>
+                Load another
+              </Button>
+            </Box>
+          )}
+          {randomDogRecord.isRejected && <Alert type="danger">{randomDogRecord.error.message}</Alert>}
+        </Box>
+      );
+    }
+    return <Component />;
+  })
+  .add('with cache-first loadPolicy', () => {
+    function Component() {
+      const getRandomDog = React.useCallback(() => axios.get('https://dog.ceo/api/breeds/image/random'), []);
+      const randomDogRecord = useLoads('cacheFirst', getRandomDog, { loadPolicy: 'cache-first' });
+
+      return (
+        <Box>
+          {randomDogRecord.isPending && <Spinner size="large" />}
+          {randomDogRecord.isResolved && (
+            <Box>
+              <Box>
+                <Image src={randomDogRecord.response.data.message} width="300px" alt="Dog" />
+              </Box>
+              <Button onClick={randomDogRecord.load} isLoading={randomDogRecord.isReloading}>
+                Load another
+              </Button>
+            </Box>
+          )}
+          {randomDogRecord.isRejected && <Alert type="danger">{randomDogRecord.error.message}</Alert>}
+        </Box>
+      );
+    }
+    return <Component />;
   });
 
 storiesOf('useCache', module).add('cache', () => {

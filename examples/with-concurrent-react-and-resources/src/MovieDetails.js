@@ -13,17 +13,16 @@ import {
   Rating,
   Text
 } from 'fannypack';
-import * as Loads from 'react-loads';
 
-import * as api from './api';
+import { movieResource, movieReviewsResource } from './resources';
 
 export default function MovieDetails(props) {
-  const { movieResource, onClickBack } = props;
+  const { movieId, onClickBack } = props;
 
-  const movieLoader = movieResource.movie.useLoads({ suspense: true });
+  const movieLoader = movieResource.useLoads({ variables: [movieId], suspense: true });
   const movie = movieLoader.response || {};
 
-  const movieReviewsLoader = movieResource.reviews.useLoads({ suspense: true });
+  const movieReviewsLoader = movieReviewsResource.useLoads({ variables: [movieId], suspense: true });
   const reviews = movieReviewsLoader.response || {};
 
   return (

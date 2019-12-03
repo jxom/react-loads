@@ -207,12 +207,15 @@ export async function getMovies() {
 }
 
 export async function getMovie(movieId) {
-  console.log('fetchmovie');
+  console.log('fetchmovie', movieId);
+
   const movie = movies.find(movie => movie.id === movieId);
-  return new Promise(res => setTimeout(() => res(movie), 1000));
+  return new Promise((res, rej) => setTimeout(() => res(movie), 1000));
 }
 
 export async function getReviewsByMovieId(movieId) {
+  console.log('fetchmoviereview', movieId);
+
   const movieReviews = reviews.filter(review => review.movieId === movieId);
   return new Promise(res => setTimeout(() => res(movieReviews), 2000));
 }
