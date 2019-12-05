@@ -14,15 +14,13 @@ import {
   Text
 } from 'fannypack';
 
-import { movieResource, movieReviewsResource } from './resources';
-
 export default function MovieDetails(props) {
-  const { movieId, onClickBack } = props;
+  const { movieResource, onClickBack } = props;
 
-  const movieLoader = movieResource.useLoads({ variables: [movieId], suspense: true });
+  const movieLoader = movieResource.movie.useLoads();
   const movie = movieLoader.response || {};
 
-  const movieReviewsLoader = movieReviewsResource.useLoads({ variables: [movieId], suspense: true });
+  const movieReviewsLoader = movieResource.reviews.useLoads();
   const reviews = movieReviewsLoader.response || {};
 
   return (

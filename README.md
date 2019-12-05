@@ -129,7 +129,7 @@ React Loads comes with a handy set of features to help solve these concerns:
     - [isCached](#iscached-1)
   - [`resource = createResource(options)`](#resource--createresourceoptions)
     - [options](#options)
-      - [_namespace](#namespace)
+      - [context](#namespace)
       - [load](#load-4)
       - [any key is a loading function!](#any-key-is-a-loading-function)
     - [`resource`](#resource)
@@ -271,7 +271,7 @@ async function getUsers() {
 
 // 2. Create your resource, and attach the loading function.
 const usersResource = Loads.createResource({
-  _namespace: 'users',
+  context: 'users',
   load: getUsers
 });
 
@@ -331,7 +331,7 @@ async function deleteUser(id) {
 }
 
 export default Loads.createResource({
-  _namespace: 'user',
+  context: 'user',
   load: getUser,
   // You can supply either a loading function, or an array of loading function/config pairs.
   create: [updateUser, { defer: true }],
@@ -417,7 +417,7 @@ export default function DogApp() {
 }
 ```
 
-> NOTE: If you are using [resources](#resources), and provide a namespace (`_namespace`). Then caching comes for free.
+> NOTE: If you are using [resources](#resources), and provide a namespace (`context`). Then caching comes for free.
 
 ## External cache
 
@@ -674,7 +674,7 @@ async function getUsers() {
 
 // 2. Create a resource.
 const usersResource = Loads.createResource({
-  _namespace: 'users',
+  context: 'users',
   load: getUsers
 });
 
@@ -1061,7 +1061,7 @@ The `<Loads>` render props mimics the [`useLoads`' `loader`](#loader).
 
 ### options
 
-#### _namespace
+#### context
 
 > string
 
@@ -1083,7 +1083,7 @@ Any key you provide to the resource is a loading function, see the example below
 
 ```jsx
 const dogsResource = createResource({
-  _namespace: 'dogs',
+  context: 'dogs',
   load: getDogs,
   create: createDog,
   foo: getDogFoo,

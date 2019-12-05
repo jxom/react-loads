@@ -30,7 +30,6 @@ export function useLoads<Response, Err>(
     cacheTime,
     dedupingInterval,
     delay,
-    enableBackgroundStates,
     loadPolicy,
     onReject,
     onResolve,
@@ -404,11 +403,9 @@ export function useLoads<Response, Err>(
   }, pollingInterval);
 
   const states = {
-    isIdle: record.state === STATES.IDLE && Boolean(!record.response || enableBackgroundStates),
-    isPending:
-      (record.state === STATES.PENDING || record.state === STATES.PENDING_SLOW) &&
-      Boolean(!record.response || enableBackgroundStates),
-    isPendingSlow: record.state === STATES.PENDING_SLOW && Boolean(!record.response || enableBackgroundStates),
+    isIdle: record.state === STATES.IDLE && Boolean(!record.response),
+    isPending: (record.state === STATES.PENDING || record.state === STATES.PENDING_SLOW) && Boolean(!record.response),
+    isPendingSlow: record.state === STATES.PENDING_SLOW && Boolean(!record.response),
     isResolved: record.state === STATES.RESOLVED || Boolean(record.response),
     isRejected: record.state === STATES.REJECTED,
     isReloading: record.state === STATES.RELOADING || record.state === STATES.RELOADING_SLOW,

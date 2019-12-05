@@ -1,9 +1,10 @@
 import { LoadFunction, LoadsConfig } from './types';
+import { preload } from './preload';
 import { useLoads } from './useLoads';
 import { useDeferredLoads } from './useDeferredLoads';
 
 type ResourceOptions<Response, Err> = {
-  key: string;
+  context: string;
   [loadKey: string]: LoadFunction<Response> | [LoadFunction<Response>, LoadsConfig<Response, Err> | undefined] | string;
 };
 
@@ -21,21 +22,24 @@ function createLoadsHooks<Response, Err>(opts: ResourceOptions<Response, Err>) {
     if (loadKey === 'load') {
       return {
         ...currentLoaders,
+        preload: (loadsConfig: LoadsConfig<Response, Err> | undefined) =>
+          preload(opts.context, loader, { ...config, ...loadsConfig }),
         useLoads: (loadsConfig: LoadsConfig<Response, Err> | undefined) =>
-          useLoads(opts.key, loader, { ...config, ...loadsConfig }),
+          useLoads(opts.context, loader, { ...config, ...loadsConfig }),
         useDeferredLoads: (loadsConfig: LoadsConfig<Response, Err> | undefined) =>
-          useDeferredLoads(opts.key, loader, { ...config, ...loadsConfig })
+          useDeferredLoads(opts.context, loader, { ...config, ...loadsConfig })
       };
     }
 
-    config = { ...config, enableBackgroundStates: true };
     return {
       ...currentLoaders,
       [loadKey]: {
+        preload: (loadsConfig: LoadsConfig<Response, Err> | undefined) =>
+          preload(opts.context, loader, { ...config, ...loadsConfig }),
         useLoads: (loadsConfig: LoadsConfig<Response, Err> | undefined) =>
-          useLoads(opts.key, loader, { ...config, ...loadsConfig }),
+          useLoads(opts.context, loader, { ...config, ...loadsConfig }),
         useDeferredLoads: (loadsConfig: LoadsConfig<Response, Err> | undefined) =>
-          useDeferredLoads(opts.key, loader, { ...config, ...loadsConfig })
+          useDeferredLoads(opts.context, loader, { ...config, ...loadsConfig })
       }
     };
   }, {});

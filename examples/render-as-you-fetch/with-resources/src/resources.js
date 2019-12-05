@@ -2,16 +2,16 @@ import * as Loads from 'react-loads';
 import * as api from './api';
 
 export const moviesResource = Loads.createResource({
-  key: 'movies',
+  context: 'movies',
   load: api.getMovies
 });
 
 export const movieResource = Loads.createResource({
-  key: 'movie',
+  context: 'movie',
   load: api.getMovie
 });
 
 export const movieReviewsResource = Loads.createResource({
-  key: 'movieReviews',
+  context: 'movieReviews',
   load: api.getReviewsByMovieId
 });

@@ -1,5 +1,4 @@
 import React from 'react';
-import * as Loads from 'react-loads';
 import {
   Box,
   Blockquote,
@@ -15,16 +14,17 @@ import {
   Spinner,
   Text
 } from 'fannypack';
+import * as Loads from 'react-loads';
 
-import { movieResource, movieReviewsResource } from './resources';
+import * as api from './api';
 
 export default function MovieDetails(props) {
   const { movieId, onClickBack } = props;
 
-  const getMovieLoader = movieResource.useLoads({ variables: [movieId] });
+  const getMovieLoader = Loads.useLoads('movie', api.getMovie, { variables: [movieId] });
   const movie = getMovieLoader.response || {};
 
-  const getReviewsLoader = movieReviewsResource.useLoads({ variables: [movieId] });
+  const getReviewsLoader = Loads.useLoads('movieReviews', api.getReviewsByMovieId, { variables: [movieId] });
   const reviews = getReviewsLoader.response || [];
 
   return (

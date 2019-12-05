@@ -1,14 +1,13 @@
 import React from 'react';
 import { Box, Heading, LayoutSet } from 'fannypack';
-import * as Loads from 'react-loads';
 
-import * as api from './api';
 import MovieListButton from './MovieListButton';
+import { moviesResource } from './resources';
 
 export default function MovieList(props) {
   const { loadingMovieId, onSelectMovie } = props;
 
-  const moviesLoader = Loads.useLoads('movies', api.getMovies, { suspense: true });
+  const moviesLoader = moviesResource.useLoads({ suspense: true });
   const movies = moviesLoader.response || [];
 
   return (

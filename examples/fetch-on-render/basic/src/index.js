@@ -9,23 +9,22 @@ function App() {
     const response = await axios.get('https://jsonplaceholder.typicode.com/users');
     return response.data;
   }, []);
-  const getUsersLoader = useLoads('users', getUsers);
-  const users = getUsersLoader.response;
+  const usersLoader = useLoads('users', getUsers);
+  const users = usersLoader.response || [];
 
   return (
     <ThemeProvider>
       <Container breakpoint="mobile" padding="major-1">
         <Heading fontSize="500">Users</Heading>
-        <button onClick={getUsersLoader.load}>Load</button>
-        {getUsersLoader.isPending && <Spinner />}
-        {getUsersLoader.isResolved && (
+        {usersLoader.isPending && <Spinner />}
+        {usersLoader.isResolved && (
           <List listStyleType="disc" listStylePosition="inside">
             {users.map(user => (
               <List.Item key={user.id}>{user.name}</List.Item>
             ))}
           </List>
         )}
-        {getUsersLoader.isRejected && <Alert type="danger">Error! {getUsersLoader.error.message}</Alert>}
+        {usersLoader.isRejected && <Alert type="danger">Error! {usersLoader.error.message}</Alert>}
       </Container>
     </ThemeProvider>
   );
