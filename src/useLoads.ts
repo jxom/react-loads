@@ -17,7 +17,6 @@ function broadcastChanges<Response, Err>(contextKey: string, record: Record<Resp
 }
 
 const IDLE_RECORD = { error: undefined, response: undefined, state: STATES.IDLE };
-const PENDING_RECORD = { error: undefined, response: undefined, state: STATES.PENDING };
 
 export function useLoads<Response, Err>(
   context: ContextArg | null,
@@ -82,7 +81,7 @@ export function useLoads<Response, Err>(
     [cacheProvider, contextKey, loadPolicy]
   );
 
-  let initialRecord: Record<Response, Err> = defer ? IDLE_RECORD : PENDING_RECORD;
+  let initialRecord: Record<Response, Err> = { ...IDLE_RECORD, state: defer ? STATES.IDLE : STATES.PENDING };
   if (cachedRecord && !defer) {
     initialRecord = cachedRecord;
   }
@@ -446,7 +445,6 @@ export function useLoads<Response, Err>(
   );
 }
 
-// Background focus revalidation
 let eventsBinded = false;
 if (typeof window !== 'undefined' && window.addEventListener && !eventsBinded) {
   const revalidate = () => {
@@ -455,6 +453,5 @@ if (typeof window !== 'undefined' && window.addEventListener && !eventsBinded) {
   };
   window.addEventListener('visibilitychange', revalidate, false);
   window.addEventListener('focus', revalidate, false);
-  // only bind the events once
   eventsBinded = true;
 }
