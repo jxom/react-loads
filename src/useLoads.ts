@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 import * as cache from './cache';
-import { LOAD_POLICIES, STATES } from './constants';
+import { CACHE_STRATEGIES, LOAD_POLICIES, STATES } from './constants';
 import useDetectMounted from './hooks/useDetectMounted';
 import useInterval from './hooks/useInterval';
 import usePrevious from './hooks/usePrevious';
@@ -27,6 +27,7 @@ export function useLoads<Response, Err>(
   const config = { ...cache.globalConfig, ...localConfig };
   const {
     cacheProvider,
+    cacheStrategy,
     cacheTime,
     dedupingInterval,
     delay,
@@ -57,7 +58,7 @@ export function useLoads<Response, Err>(
 
   let contextKey = Array.isArray(context) ? context.join('.') : context;
   const variablesHash = React.useMemo(() => JSON.stringify(variables), [variables]);
-  if (variablesHash) {
+  if (variablesHash && cacheStrategy === CACHE_STRATEGIES.KEY_AND_VARIABLES) {
     contextKey = `${contextKey}.${variablesHash}`;
   }
 

@@ -254,7 +254,6 @@ storiesOf('useLoads', module)
         const reviews = await api.getReviewsByMovieId(movieId);
         return reviews;
       }, []);
-      // TODO: Recommendation to use variables over explicit injection?
       const reviewsLoader = useLoads('reviews', getReviews, { variables: () => [movie.id] });
       const reviews = reviewsLoader.response;
 
@@ -713,6 +712,41 @@ storiesOf('useLoads', module)
               <Button onClick={randomDogRecord.load} isLoading={randomDogRecord.isReloading}>
                 Load another
               </Button>
+            </Box>
+          )}
+          {randomDogRecord.isRejected && <Alert type="danger">{randomDogRecord.error.message}</Alert>}
+        </Box>
+      );
+    }
+    return <Component />;
+  })
+  .add('with key-only cacheStrategy', () => {
+    function Component() {
+      const [breed, setBreed] = React.useState('beagle');
+
+      const getRandomDogByBreed = React.useCallback(
+        breed => axios.get(`https://dog.ceo/api/breed/${breed}/images/random`),
+        []
+      );
+      const randomDogRecord = useLoads('functionVariables', getRandomDogByBreed, {
+        cacheStrategy: 'key-only',
+        variables: [breed]
+      });
+
+      return (
+        <Box>
+          {randomDogRecord.isPending && <Spinner size="large" />}
+          {randomDogRecord.isResolved && (
+            <Box>
+              <Box>
+                <Image src={randomDogRecord.response.data.message} width="300px" alt="Dog" />
+              </Box>
+              <Button onClick={randomDogRecord.load} isLoading={randomDogRecord.isReloading}>
+                Load another
+              </Button>
+              <Box>
+                <Button onClick={() => setBreed('doberman')}>Set to doberman</Button>
+              </Box>
             </Box>
           )}
           {randomDogRecord.isRejected && <Alert type="danger">{randomDogRecord.error.message}</Alert>}

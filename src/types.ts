@@ -4,8 +4,10 @@ export type CacheProvider = {
   clear: () => void;
   delete: (key: string) => void;
 };
+export type CacheStrategy = 'key-and-variables' | 'key-only';
 export type LoadsConfig<Response, Err> = {
   cacheProvider?: CacheProvider;
+  cacheStrategy?: CacheStrategy;
   cacheTime?: number;
   context?: string;
   dedupingInterval?: number;

@@ -1,5 +1,10 @@
 import { LoadPolicy, LoadingState } from './types';
 
+export const CACHE_STRATEGIES = {
+  KEY_ONLY: 'key-only',
+  KEY_AND_VARIABLES: 'key-and-variables'
+};
+
 export const LOAD_POLICIES: { [key: string]: LoadPolicy } = {
   CACHE_FIRST: 'cache-first',
   CACHE_AND_LOAD: 'cache-and-load',

@@ -1,10 +1,11 @@
-import { LOAD_POLICIES } from './constants';
+import { LOAD_POLICIES, CACHE_STRATEGIES } from './constants';
 import { CacheProvider, LoadsConfig, Record } from './types';
 
 ////////////////////////////////////////////////////////
 
 export const globalConfig = {
   cacheTime: 0,
+  cacheStrategy: CACHE_STRATEGIES.KEY_AND_VARIABLES,
   dedupingInterval: 500,
   delay: 0,
   defer: false,
