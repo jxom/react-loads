@@ -15,12 +15,12 @@ import {
 } from 'fannypack';
 
 export default function MovieDetails(props) {
-  const { movieResource, onClickBack } = props;
+  const { movieLoaders, onClickBack } = props;
 
-  const movieLoader = movieResource.movie.useLoads();
+  const movieLoader = movieLoaders.movie.useLoads();
   const movie = movieLoader.response || {};
 
-  const movieReviewsLoader = movieResource.reviews.useLoads();
+  const movieReviewsLoader = movieLoaders.reviews.useLoads();
   const reviews = movieReviewsLoader.response || {};
 
   return (

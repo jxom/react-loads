@@ -20,20 +20,20 @@ function getMovieLoaders(movieId) {
 
 function App() {
   const [startTransition] = React.useTransition({ timeoutMs: 1000 });
-  const [movieResource, setMovieResource] = React.useState();
+  const [movieLoaders, setMovieLoaders] = React.useState();
   const [currentMovieId, setCurrentMovieId] = React.useState();
 
   function handleClickBack() {
     setCurrentMovieId();
-    setMovieResource();
+    setMovieLoaders();
   }
 
   function handleSelectMovie(movie) {
     setCurrentMovieId(movie.id);
 
     startTransition(() => {
-      const movieResource = getMovieLoaders(movie.id);
-      setMovieResource(movieResource);
+      const movieLoaders = getMovieLoaders(movie.id);
+      setMovieLoaders(movieLoaders);
     });
   }
 
@@ -41,8 +41,8 @@ function App() {
     <ThemeProvider>
       <Container breakpoint="mobile" padding="major-2">
         <React.Suspense fallback={<div>loading...</div>}>
-          {movieResource ? (
-            <MovieDetails movieResource={movieResource} onClickBack={handleClickBack} />
+          {movieLoaders ? (
+            <MovieDetails movieLoaders={movieLoaders} onClickBack={handleClickBack} />
           ) : (
             <MovieList loadingMovieId={currentMovieId} onSelectMovie={handleSelectMovie} />
           )}
