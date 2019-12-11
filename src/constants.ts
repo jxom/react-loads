@@ -1,6 +1,6 @@
-import { LoadPolicy, LoadingState } from './types';
+import { LoadPolicy, LoadingState, CacheStrategy } from './types';
 
-export const CACHE_STRATEGIES = {
+export const CACHE_STRATEGIES: { [key: string]: CacheStrategy } = {
   KEY_ONLY: 'key-only',
   KEY_AND_VARIABLES: 'key-and-variables'
 };
