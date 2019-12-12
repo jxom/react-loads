@@ -402,15 +402,18 @@ export function useLoads<Response, Err>(
     load()();
   }, pollingInterval);
 
-  const states = {
-    isIdle: record.state === STATES.IDLE && Boolean(!record.response),
-    isPending: (record.state === STATES.PENDING || record.state === STATES.PENDING_SLOW) && Boolean(!record.response),
-    isPendingSlow: record.state === STATES.PENDING_SLOW && Boolean(!record.response),
-    isResolved: record.state === STATES.RESOLVED || Boolean(record.response),
-    isRejected: record.state === STATES.REJECTED,
-    isReloading: record.state === STATES.RELOADING || record.state === STATES.RELOADING_SLOW,
-    isReloadingSlow: record.state === STATES.RELOADING_SLOW
-  };
+  const states = React.useMemo(
+    () => ({
+      isIdle: record.state === STATES.IDLE && Boolean(!record.response),
+      isPending: (record.state === STATES.PENDING || record.state === STATES.PENDING_SLOW) && Boolean(!record.response),
+      isPendingSlow: record.state === STATES.PENDING_SLOW && Boolean(!record.response),
+      isResolved: record.state === STATES.RESOLVED || Boolean(record.response),
+      isRejected: record.state === STATES.REJECTED,
+      isReloading: record.state === STATES.RELOADING || record.state === STATES.RELOADING_SLOW,
+      isReloadingSlow: record.state === STATES.RELOADING_SLOW
+    }),
+    [record.response, record.state]
+  );
 
   if (suspense && !defer) {
     if (contextKey) {
