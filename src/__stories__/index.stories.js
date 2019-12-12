@@ -754,6 +754,32 @@ storiesOf('useLoads', module)
       );
     }
     return <Component />;
+  })
+  .add('with initialResponse', () => {
+    function Component() {
+      const getRandomDog = React.useCallback(() => axios.get('https://dog.ceo/api/breeds/image/random'), []);
+      const randomDogRecord = useLoads('basic', getRandomDog, {
+        initialResponse: { data: { message: 'https://images.dog.ceo/breeds/schnauzer-miniature/n02097047_2002.jpg' } }
+      });
+
+      return (
+        <Box>
+          {randomDogRecord.isPending && <Spinner size="large" />}
+          {randomDogRecord.isResolved && (
+            <Box>
+              <Box>
+                <Image src={randomDogRecord.response.data.message} width="300px" alt="Dog" />
+              </Box>
+              <Button onClick={randomDogRecord.load} isLoading={randomDogRecord.isReloading}>
+                Load another
+              </Button>
+            </Box>
+          )}
+          {randomDogRecord.isRejected && <Alert type="danger">{randomDogRecord.error.message}</Alert>}
+        </Box>
+      );
+    }
+    return <Component />;
   });
 
 storiesOf('useCache', module).add('cache', () => {

@@ -30,6 +30,7 @@ export function useLoads<Response, Err>(
     cacheTime,
     dedupingInterval,
     delay,
+    initialResponse,
     loadPolicy,
     onReject,
     onResolve,
@@ -81,7 +82,9 @@ export function useLoads<Response, Err>(
     [cacheProvider, contextKey, loadPolicy]
   );
 
-  let initialRecord: Record<Response, Err> = { ...IDLE_RECORD, state: defer ? STATES.IDLE : STATES.PENDING };
+  let initialRecord: Record<Response, Err> = initialResponse
+    ? { response: initialResponse, error: undefined, state: STATES.RESOLVED }
+    : { ...IDLE_RECORD, state: defer ? STATES.IDLE : STATES.PENDING };
   if (cachedRecord && !defer) {
     initialRecord = cachedRecord;
   }
@@ -275,7 +278,7 @@ export function useLoads<Response, Err>(
           });
         }
 
-        const isReloading = isSameContext && (count > 1 || cachedRecord);
+        const isReloading = isSameContext && (count > 1 || cachedRecord || initialResponse);
         if (delay > 0) {
           setDelayTimeout(() => handleLoading({ isReloading, promise }), delay);
         } else {
@@ -337,11 +340,11 @@ export function useLoads<Response, Err>(
 
   React.useEffect(
     () => {
-      if (!cachedRecord && contextKey) {
+      if (!cachedRecord && contextKey && !initialResponse) {
         reset();
       }
     },
-    [cachedRecord, contextKey, reset]
+    [cachedRecord, contextKey, initialResponse, reset]
   );
 
   React.useEffect(

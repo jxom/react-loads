@@ -14,6 +14,7 @@ export type LoadsConfig<Response, Err> = {
   delay?: number;
   defer?: boolean;
   enableBackgroundStates?: boolean;
+  initialResponse?: Response;
   loadPolicy?: LoadPolicy;
   onReject?: (error: Err) => void;
   onResolve?: (response: Response) => void;
