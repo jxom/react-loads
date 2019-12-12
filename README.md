@@ -4,18 +4,19 @@
 
 ## Features
 
-- **Hooks** and **Render Props** to manage your async states & response data.
-- **Backend agnostic.** Use React Loads with REST, GraphQL, or Web SDKs.
-- **Renderer agnostic.** Use React Loads with React DOM, React Native, React VR, etc.
-- **Automated caching & revalidation** to maximise user experience between page transitions.
-- **React Suspense** support.
-- **Preload** support to [implement the "render-as-you-fetch" pattern](#TODO).
-- **Polling** support to load data every x seconds.
-- **Request deduping** to minimise over-fetching of your data.
-- **Focus revalidation** to re-fetch your data when the browser window is focused.
-- **Resources** to allow your to hoist common loading functions for built-in caching & reusability.
-- **Finite set of state variables** to avoid cryptic ternaries and impossible states.
-- **External cache support**
+- **Hooks** and **Render Props** to manage your async states & response data
+- **Backend agnostic.** Use React Loads with REST, GraphQL, or Web SDKs
+- **Renderer agnostic.** Use React Loads with React DOM, React Native, React VR, etc
+- **Automated caching & revalidation** to maximise user experience between page transitions
+- **React Suspense** support
+- **SSR** support
+- **Preload** support to [implement the "render-as-you-fetch" pattern](#TODO)
+- **Polling** support to load data every x seconds
+- **Request deduping** to minimise over-fetching of your data
+- **Focus revalidation** to re-fetch your data when the browser window is focused
+- **Resources** to allow your to hoist common loading functions for built-in caching & reusability
+- **Finite set of state variables** to avoid cryptic ternaries and impossible states
+- **External cache** support
 - **Optimistic responses**
 
 ## Installation
@@ -119,6 +120,8 @@ class RandomDog extends React.Component {
 ### Dependant loaders
 
 ### Caching & revalidation
+
+### SSR & Initial data
 
 ### Polling
 
