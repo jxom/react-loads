@@ -30,7 +30,7 @@ export function useLoads<Response, Err>(
     cacheTime,
     dedupingInterval,
     delay,
-    initialResponse,
+    initialResponse: _initialResponse,
     loadPolicy,
     onReject,
     onResolve,
@@ -82,6 +82,7 @@ export function useLoads<Response, Err>(
     [cacheProvider, contextKey, loadPolicy]
   );
 
+  const initialResponse = React.useMemo(() => _initialResponse, []); // eslint-disable-line
   let initialRecord: Record<Response, Err> = initialResponse
     ? { response: initialResponse, error: undefined, state: STATES.RESOLVED }
     : { ...IDLE_RECORD, state: defer ? STATES.IDLE : STATES.PENDING };
@@ -224,6 +225,7 @@ export function useLoads<Response, Err>(
   const load = React.useCallback(
     (opts: { isManualInvoke?: boolean; fn?: LoadFunction<Response> } = {}) => {
       return (..._args: any) => {
+        console.log('test');
         if (!opts.isManualInvoke && variables && isSameVariables) {
           return;
         }
@@ -325,7 +327,32 @@ export function useLoads<Response, Err>(
           });
       };
     },
-    [cacheProvider, contextKey, defer, delay, fn, handleData, handleLoading, handleOptimisticData, isSameContext, isSameVariables, loadPolicy, setDelayTimeout, setTimeoutTimeout, suspense, throwError, timeout, variables] // eslint-disable-line
+    [
+      cacheProvider,
+      contextKey,
+      dedupingInterval,
+      defer,
+      delay,
+      fn,
+      handleData,
+      handleLoading,
+      handleOptimisticData,
+      initialResponse,
+      isSameContext,
+      isSameVariables,
+      loadPolicy,
+      onReject,
+      onResolve,
+      rejectRetryInterval,
+      revalidateTime,
+      setDelayTimeout,
+      setErrorRetryTimeout,
+      setTimeoutTimeout,
+      suspense,
+      throwError,
+      timeout,
+      variables
+    ]
   );
 
   const update = React.useMemo(

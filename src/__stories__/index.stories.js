@@ -454,7 +454,8 @@ storiesOf('useLoads', module)
   .add('with onResolve', () => {
     function Component() {
       const getRandomDog = React.useCallback(() => axios.get('https://dog.ceo/api/breeds/image/random'), []);
-      const randomDogRecord = useLoads('basic', getRandomDog, { onResolve: record => console.log('success', record) });
+      const onResolve = React.useCallback(record => console.log('success', record), []);
+      const randomDogRecord = useLoads('basic', getRandomDog, { onResolve });
 
       return (
         <Box>
@@ -480,7 +481,8 @@ storiesOf('useLoads', module)
       const getSomething = React.useCallback(async () => {
         return new Promise((res, rej) => setTimeout(() => rej(new Error('This is an error.')), 1000));
       }, []);
-      const somethingLoader = useLoads('rejectHook', getSomething, { onReject: error => console.log('error', error) });
+      const onReject = React.useCallback(error => console.log('error', error), []);
+      const somethingLoader = useLoads('rejectHook', getSomething, { onReject });
 
       return (
         <Box>
