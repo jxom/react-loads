@@ -225,7 +225,6 @@ export function useLoads<Response, Err>(
   const load = React.useCallback(
     (opts: { isManualInvoke?: boolean; fn?: LoadFunction<Response> } = {}) => {
       return (..._args: any) => {
-        console.log('test');
         if (!opts.isManualInvoke && variables && isSameVariables) {
           return;
         }
@@ -351,7 +350,7 @@ export function useLoads<Response, Err>(
       suspense,
       throwError,
       timeout,
-      variables
+      variablesHash
     ]
   );
 
