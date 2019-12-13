@@ -296,7 +296,9 @@ export function useLoads<Response, Err>(
               record: { error: undefined, response, state: STATES.RESOLVED },
               shouldBroadcast: true
             });
+
             onResolve && onResolve(response);
+
             return response;
           })
           .catch(error => {
@@ -305,7 +307,9 @@ export function useLoads<Response, Err>(
               record: { response: undefined, error, state: STATES.REJECTED },
               shouldBroadcast: true
             });
+
             onReject && onReject(error);
+
             if (rejectRetryInterval) {
               const count = Math.min(counter.current || 0, 8);
               const timeout =
@@ -314,6 +318,7 @@ export function useLoads<Response, Err>(
                   : ~~((Math.random() + 0.5) * (1 << count)) * rejectRetryInterval;
               setErrorRetryTimeout(() => load()(args), timeout);
             }
+
             if (throwError && !suspense) {
               throw error;
             }
