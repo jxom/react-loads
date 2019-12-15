@@ -284,7 +284,7 @@ export default function RandomDog(props) {
 
 There may be a case where one `useLoads` depends on the data of another `useLoads`, where you don't want subsequent `useLoads` to invoke the async function until the first `useLoads` resolves.
 
-If you pass a function to `variables`, if the function throws (due to `dog` being undefined), then the async function will be deferred while it is undefined. As soon as `dog` is defined, then the async function will be invoked.
+If you pass a function to `variables` and the function throws (due to `dog` being undefined), then the async function will be deferred while it is undefined. As soon as `dog` is defined, then the async function will be invoked.
 
 ```jsx
 export default function RandomDog(props) {
