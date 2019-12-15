@@ -119,7 +119,7 @@ Let's focus on the `useLoads` hook for now, we will explain `useDeferredLoads` i
 The `useLoads` hook accepts 3 parameters:
 
 - A [**"context key"**](#TODO) in the form of a **string**.
-  - It will help us with identifying/storing data & deduping your requests
+  - It will help us with identifying/storing data, deduping your requests & updating other `useLoad`'s sharing the same context
   - Think of it as the namespace for your data
 - An [**"async function"**](#TODO) in the form of a **function that returns a promise**
   - This will be the function to resolve the data
@@ -220,11 +220,80 @@ There are also some cases where including a **context key** may not make sense. 
 const { ... } = useDeferredLoads(fetchRandomDog);
 ```
 
-### Context
-
 ### Variables
 
+If your async function needs some dependant variables (such as an ID or query parameters), use the `variables` attribute in the `useLoads` config:
+
+```jsx
+async function fetchDog(id) {
+  return axios.get(`https://dog.api/${id}`);
+}
+
+export default function DogImage(props) {
+  const { ... } = useLoads('dog', fetchDog, { variables: [props.id] });
+}
+```
+
+The `variables` attribute accepts an array of values. If your async function accepts more than one argument, you can pass through just as many values to `variables` as the function accepts:
+
+```jsx
+async function fetchDog(id, foo, bar) {
+  // id = props.id
+  // foo = { hello: 'world' }
+  // bar = true
+  return axios.get(`https://dog.api/${id}`);
+}
+
+export default function DogImage(props) {
+  const { ... } = useLoads('dog', fetchDog, {
+    variables: [props.id, { hello: 'world' }, true]
+  });
+}
+```
+
+#### WARNING!
+
+It may be tempting to not use the `variables` attribute at all, and just use the dependencies outside the scope of the function itself. While this works, it will probably produce unexpected results as the cache looks up the record against the **context key (`'dog'`)** and the set of **`variables`**. However, in this case, it will only look up the record against the `'dog'` context key meaning that every response will be stored against that key.
+
+```jsx
+// DON'T DO THIS! IT WILL CAUSE UNEXPECTED RESULTS!
+
+export default function DogImage(props) {
+  const id = props.id;
+  const fetchDog = React.useCallback(() => {
+    return axios.get(`https://dog.api/${id}`);
+  })
+  const { ... } = useLoads('dog', fetchDog);
+}
+```
+
+### Conditional loaders
+
+If you want to control when `useLoads` invokes it's async function via a variable, you can use the `defer` attribute in the config.
+
+```jsx
+export default function RandomDog(props) {
+  // Don't fetch until shouldFetch is truthy.
+  const { ... } = useLoads('randomDog', fetchRandomDog, {
+    defer: !props.shouldFetch
+  });
+}
+```
+
 ### Dependant loaders
+
+There may be a case where one `useLoads` depends on the data of another `useLoads`, where you don't want subsequent `useLoads` to invoke the async function until the first `useLoads` resolves.
+
+If you pass a function to `variables`, if the function throws (due to `dog` being undefined), then the async function will be deferred while it is undefined. As soon as `dog` is defined, then the async function will be invoked.
+
+```jsx
+export default function RandomDog(props) {
+  const { response: dog } = useLoads('dog', fetchDog);
+  const { response: friends } = useLoads('dogFriends', fetchDogFriends, {
+    variables: () => [dog.id]
+  })
+}
+```
 
 ### Caching & revalidation
 
