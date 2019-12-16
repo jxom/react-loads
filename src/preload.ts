@@ -1,6 +1,7 @@
 import * as cache from './cache';
 import { STATES, LOAD_POLICIES } from './constants';
 import { useLoads } from './useLoads';
+import * as utils from './utils';
 import { ContextArg, ConfigArg, FnArg, LoadFunction, LoadingState, OptimisticCallback, Record } from './types';
 
 export function preload<Response, Err>(
@@ -12,6 +13,7 @@ export function preload<Response, Err>(
   const {
     cacheTime,
     cacheProvider,
+    cacheStrategy,
     loadPolicy,
     onResolve,
     onReject,
@@ -42,11 +44,10 @@ export function preload<Response, Err>(
       }
     }
 
-    let contextKey = Array.isArray(context) ? context.join('.') : context;
     const variablesHash = JSON.stringify(args);
-    if (variablesHash) {
-      contextKey = `${contextKey}.${variablesHash}`;
-    }
+    const contextKey = utils.getContextKey({ context, variablesHash, cacheStrategy });
+
+    if (!contextKey) throw new Error('preload() must have a context');
 
     let cachedRecord: any;
     if (loadPolicy !== LOAD_POLICIES.LOAD_ONLY) {

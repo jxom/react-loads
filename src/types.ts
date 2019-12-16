@@ -43,6 +43,7 @@ export type Loaders<Response, Err> = {
   [loadKey: string]: LoadFunction<Response> | [LoadFunction<Response>, LoadsConfig<Response, Err> | undefined];
 };
 export type OptimisticCallback = (newData: any) => void;
+export type OptimisticContext = { context: string; variables?: Array<any> };
 export type OptimisticOpts<Response, Err> = {
   context?: LoadsConfig<Response, Err>['context'];
 };

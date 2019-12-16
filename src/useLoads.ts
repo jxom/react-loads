@@ -7,7 +7,16 @@ import useInterval from './hooks/useInterval';
 import usePrevious from './hooks/usePrevious';
 import useTimeout from './hooks/useTimeout';
 import * as utils from './utils';
-import { ContextArg, ConfigArg, FnArg, LoadFunction, LoadingState, OptimisticCallback, Record } from './types';
+import {
+  ContextArg,
+  ConfigArg,
+  FnArg,
+  LoadFunction,
+  LoadingState,
+  OptimisticCallback,
+  Record,
+  OptimisticContext
+} from './types';
 
 function broadcastChanges<Response, Err>(contextKey: string, record: Record<Response, Err>) {
   const updaters = cache.updaters.get(contextKey);
@@ -56,11 +65,8 @@ export function useLoads<Response, Err>(
     }
   }
 
-  let contextKey = Array.isArray(context) ? context.join('.') : context;
   const variablesHash = React.useMemo(() => JSON.stringify(variables), [variables]);
-  if (variablesHash && cacheStrategy === CACHE_STRATEGIES.KEY_AND_VARIABLES) {
-    contextKey = `${contextKey}.${variablesHash}`;
-  }
+  const contextKey = utils.getContextKey({ context, variablesHash, cacheStrategy });
 
   const counter = React.useRef<number>(0);
   const prevContextKey = usePrevious(contextKey);
@@ -186,15 +192,20 @@ export function useLoads<Response, Err>(
         data,
         contextOrCallback,
         callback
-      }: { data: any; contextOrCallback?: string | OptimisticCallback; callback?: OptimisticCallback },
+      }: {
+        data: any;
+        contextOrCallback?: OptimisticContext | OptimisticCallback;
+        callback?: OptimisticCallback;
+      },
       state: LoadingState,
       count: number
     ) => {
       let newData = data;
 
       let context;
-      if (typeof contextOrCallback === 'string') {
-        context = contextOrCallback;
+      if (typeof contextOrCallback === 'object') {
+        const variablesHash = JSON.stringify(contextOrCallback.variables);
+        context = utils.getContextKey({ context: contextOrCallback.context, variablesHash, cacheStrategy });
       }
 
       if (typeof data === 'function') {
@@ -219,7 +230,7 @@ export function useLoads<Response, Err>(
       let newCallback = typeof contextOrCallback === 'function' ? contextOrCallback : callback;
       newCallback && newCallback(newData);
     },
-    [cacheProvider, cacheTime, contextKey, handleData]
+    [cacheProvider, cacheStrategy, cacheTime, contextKey, handleData]
   );
 
   const load = React.useCallback(
@@ -249,10 +260,10 @@ export function useLoads<Response, Err>(
         let cachedRecord;
         if (contextKey && loadPolicy !== LOAD_POLICIES.LOAD_ONLY) {
           cachedRecord = cache.records.get<Response, Err>(contextKey, { cacheProvider });
-          if (!defer) {
-            if (cachedRecord) {
-              dispatch({ type: cachedRecord.state, isCached: true, ...cachedRecord });
+          if (!defer && cachedRecord) {
+            dispatch({ type: cachedRecord.state, isCached: true, ...cachedRecord });
 
+            if (cachedRecord.state === STATES.RESOLVED || cachedRecord.state === STATES.REJECTED) {
               // @ts-ignore
               const isStale = Math.abs(new Date() - cachedRecord.updated) >= revalidateTime;
               const isDuplicate =
@@ -272,10 +283,16 @@ export function useLoads<Response, Err>(
         if (typeof promiseOrFn === 'function') {
           promise = promiseOrFn({
             cachedRecord,
-            setResponse: (data: any, contextOrCallback: string | OptimisticCallback, callback?: OptimisticCallback) =>
-              handleOptimisticData({ data, contextOrCallback, callback }, STATES.RESOLVED, count),
-            setError: (data: any, contextOrCallback: string | OptimisticCallback, callback?: OptimisticCallback) =>
-              handleOptimisticData({ data, contextOrCallback, callback }, STATES.REJECTED, count)
+            setResponse: (
+              data: any,
+              contextOrCallback: OptimisticContext | OptimisticCallback,
+              callback?: OptimisticCallback
+            ) => handleOptimisticData({ data, contextOrCallback, callback }, STATES.RESOLVED, count),
+            setError: (
+              data: any,
+              contextOrCallback: OptimisticContext | OptimisticCallback,
+              callback?: OptimisticCallback
+            ) => handleOptimisticData({ data, contextOrCallback, callback }, STATES.REJECTED, count)
           });
         }
 
