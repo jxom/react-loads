@@ -297,11 +297,52 @@ export default function RandomDog(props) {
 
 ### Caching & revalidation
 
-### SSR & Initial data
+Caching in React Loads comes for free with no initial configuration. React Loads uses the "stale while revalidate" strategy, meaning that `useLoads` will serve you with cached (stale) data, while it loads new data (revalidates) in the background, and then show the new data (and update the cache) to the user.
+
+React Loads uses the `context` argument given to `useLoads` to store the data in-memory against a **"cache key"**. If `variables` are present, then React Loads will generate a hash and attach it to the **cache key**. In a nutshell, **`cache key = context + variables`**.
+
+```jsx
+export default function DogImage() {
+  // The response of this will be stored against a "cache key" of `dog.1`
+  const { ... } = useLoads('dog', fetchDog, { variables: [1] });
+}
+```
+
+By default, React Loads automatically revalidates data in the cache after **5 minutes**. That is, when the `useLoads` is invoked and React Loads detects that the data is stale (hasn't been updated for 5 minutes), then `useLoads` will invoke the async function and update the cache with new data. You can change the revalidation time using the `revalidateTime` config option.
+
+```jsx
+// Set it globally:
+import { setConfig } from 'react-loads';
+setConfig({
+  revalidateTime: 600000
+});
+
+// Or, set it locally:
+export default function RandomDog() {
+  const { ... } = useLoads('randomDog', fetchRandomDog, { revalidateTime: 600000 });
+}
+```
+
+React Loads doesn't set a cache expiration by default. If you would like to set one, you can use the `cacheTime` config option.
+
+```jsx
+// Set it globally:
+import { setConfig } from 'react-loads';
+setConfig({
+  cacheTime: 600000
+});
+
+// Or, set it locally:
+export default function RandomDog() {
+  const { ... } = useLoads('randomDog', fetchRandomDog, { cacheTime: 600000 });
+}
+```
 
 ### Slow connections
 
 ### Polling
+
+### Deduping
 
 ### Retries
 

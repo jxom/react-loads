@@ -18,8 +18,8 @@ import {
   OptimisticContext
 } from './types';
 
-function broadcastChanges<Response, Err>(contextKey: string, record: Record<Response, Err>) {
-  const updaters = cache.updaters.get(contextKey);
+function broadcastChanges<Response, Err>(cacheKey: string, record: Record<Response, Err>) {
+  const updaters = cache.updaters.get(cacheKey);
   if (updaters) {
     updaters.forEach((updater: any) => updater({ record, shouldBroadcast: false }));
   }
@@ -66,11 +66,11 @@ export function useLoads<Response, Err>(
   }
 
   const variablesHash = React.useMemo(() => JSON.stringify(variables), [variables]);
-  const contextKey = utils.getContextKey({ context, variablesHash, cacheStrategy });
+  const cacheKey = utils.getCacheKey({ context, variablesHash, cacheStrategy });
 
   const counter = React.useRef<number>(0);
-  const prevContextKey = usePrevious(contextKey);
-  const isSameContext = !prevContextKey || prevContextKey === contextKey;
+  const prevCacheKey = usePrevious(cacheKey);
+  const isSameContext = !prevCacheKey || prevCacheKey === cacheKey;
   const prevVariablesHash = usePrevious(JSON.stringify(variables));
   const isSameVariables = variablesHash === prevVariablesHash;
   const [hasMounted, hasRendered] = useDetectMounted();
@@ -80,12 +80,12 @@ export function useLoads<Response, Err>(
 
   const cachedRecord = React.useMemo(
     () => {
-      if (contextKey && loadPolicy !== LOAD_POLICIES.LOAD_ONLY) {
-        return cache.records.get<Response, Err>(contextKey, { cacheProvider });
+      if (cacheKey && loadPolicy !== LOAD_POLICIES.LOAD_ONLY) {
+        return cache.records.get<Response, Err>(cacheKey, { cacheProvider });
       }
       return;
     },
-    [cacheProvider, contextKey, loadPolicy]
+    [cacheProvider, cacheKey, loadPolicy]
   );
 
   const initialResponse = React.useMemo(() => _initialResponse, []); // eslint-disable-line
@@ -129,9 +129,9 @@ export function useLoads<Response, Err>(
       const reloadingState = isSlow ? STATES.RELOADING_SLOW : STATES.RELOADING;
       const pendingState = isSlow ? STATES.PENDING_SLOW : STATES.PENDING;
       dispatch({ type: isReloading ? reloadingState : pendingState });
-      if (contextKey) {
+      if (cacheKey) {
         cache.records.set<Response, Err>(
-          contextKey,
+          cacheKey,
           record => ({
             ...record,
             state: isReloading ? STATES.RELOADING : STATES.PENDING
@@ -139,11 +139,11 @@ export function useLoads<Response, Err>(
           { cacheTime, cacheProvider }
         );
         if (!isReloading) {
-          cache.promises.set(contextKey, promise);
+          cache.promises.set(cacheKey, promise);
         }
       }
     },
-    [cacheProvider, cacheTime, contextKey]
+    [cacheProvider, cacheTime, cacheKey]
   );
 
   const handleData = React.useCallback(
@@ -163,27 +163,27 @@ export function useLoads<Response, Err>(
         clearTimeoutTimeout();
         dispatch({
           type: record.state,
-          isCached: Boolean(contextKey),
+          isCached: Boolean(cacheKey),
           ...record
         });
-        if (contextKey) {
-          cache.records.set<Response, Err>(contextKey, record, {
+        if (cacheKey) {
+          cache.records.set<Response, Err>(cacheKey, record, {
             cacheProvider,
             cacheTime
           });
 
-          const isSuspended = cache.suspenders.get(contextKey);
-          cache.suspenders.set(contextKey, typeof isSuspended === 'undefined');
+          const isSuspended = cache.suspenders.get(cacheKey);
+          cache.suspenders.set(cacheKey, typeof isSuspended === 'undefined');
 
-          cache.promises.delete(contextKey);
+          cache.promises.delete(cacheKey);
 
           if (shouldBroadcast) {
-            broadcastChanges(contextKey, record);
+            broadcastChanges(cacheKey, record);
           }
         }
       }
     },
-    [cacheProvider, cacheTime, clearDelayTimeout, clearTimeoutTimeout, contextKey, hasMounted]
+    [cacheProvider, cacheTime, clearDelayTimeout, clearTimeoutTimeout, cacheKey, hasMounted]
   );
 
   const handleOptimisticData = React.useCallback(
@@ -205,7 +205,7 @@ export function useLoads<Response, Err>(
       let context;
       if (typeof contextOrCallback === 'object') {
         const variablesHash = JSON.stringify(contextOrCallback.variables);
-        context = utils.getContextKey({ context: contextOrCallback.context, variablesHash, cacheStrategy });
+        context = utils.getCacheKey({ context: contextOrCallback.context, variablesHash, cacheStrategy });
       }
 
       if (typeof data === 'function') {
@@ -221,7 +221,7 @@ export function useLoads<Response, Err>(
         response: state === STATES.RESOLVED ? newData : undefined,
         state
       };
-      if (!context || contextKey === context) {
+      if (!context || cacheKey === context) {
         handleData({ count, record: newRecord, shouldBroadcast: true });
       } else {
         cache.records.set<Response, Err>(context, newRecord, { cacheProvider, cacheTime });
@@ -230,7 +230,7 @@ export function useLoads<Response, Err>(
       let newCallback = typeof contextOrCallback === 'function' ? contextOrCallback : callback;
       newCallback && newCallback(newData);
     },
-    [cacheProvider, cacheStrategy, cacheTime, contextKey, handleData]
+    [cacheProvider, cacheStrategy, cacheTime, cacheKey, handleData]
   );
 
   const load = React.useCallback(
@@ -240,7 +240,7 @@ export function useLoads<Response, Err>(
           return;
         }
 
-        // Build contextKey based of these args?
+        // Build cacheKey based of these args?
         let args = _args.filter((arg: any) => arg.constructor.name !== 'Class');
         if (variables && (!args || args.length === 0)) {
           args = variables;
@@ -249,17 +249,17 @@ export function useLoads<Response, Err>(
         counter.current = counter.current + 1;
         const count = counter.current;
 
-        if (contextKey) {
-          const isSuspended = cache.suspenders.get(contextKey);
+        if (cacheKey) {
+          const isSuspended = cache.suspenders.get(cacheKey);
           if (suspense && isSuspended) {
-            cache.suspenders.set(contextKey, false);
+            cache.suspenders.set(cacheKey, false);
             return;
           }
         }
 
         let cachedRecord;
-        if (contextKey && loadPolicy !== LOAD_POLICIES.LOAD_ONLY) {
-          cachedRecord = cache.records.get<Response, Err>(contextKey, { cacheProvider });
+        if (cacheKey && loadPolicy !== LOAD_POLICIES.LOAD_ONLY) {
+          cachedRecord = cache.records.get<Response, Err>(cacheKey, { cacheProvider });
           if (!defer && cachedRecord) {
             dispatch({ type: cachedRecord.state, isCached: true, ...cachedRecord });
 
@@ -345,7 +345,7 @@ export function useLoads<Response, Err>(
     },
     [
       cacheProvider,
-      contextKey,
+      cacheKey,
       dedupingInterval,
       defer,
       delay,
@@ -388,11 +388,11 @@ export function useLoads<Response, Err>(
 
   React.useEffect(
     () => {
-      if (!cachedRecord && contextKey && !initialResponse) {
+      if (!cachedRecord && cacheKey && !initialResponse) {
         reset();
       }
     },
-    [cachedRecord, contextKey, initialResponse, reset]
+    [cachedRecord, cacheKey, initialResponse, reset]
   );
 
   React.useEffect(
@@ -410,28 +410,28 @@ export function useLoads<Response, Err>(
         return;
       load()();
     },
-    [defer, contextKey, suspense, hasRendered, cachedRecord, load, loadPolicy]
+    [defer, cacheKey, suspense, hasRendered, cachedRecord, load, loadPolicy]
   );
 
   React.useEffect(
     () => {
       if (defer) return;
 
-      const updaters = cache.updaters.get(contextKey);
+      const updaters = cache.updaters.get(cacheKey);
       if (updaters) {
         const newUpdaters = [...updaters, handleData];
-        cache.updaters.set(contextKey, newUpdaters);
+        cache.updaters.set(cacheKey, newUpdaters);
       } else {
-        cache.updaters.set(contextKey, [handleData]);
+        cache.updaters.set(cacheKey, [handleData]);
       }
 
       return function cleanup() {
-        const updaters = cache.updaters.get(contextKey);
+        const updaters = cache.updaters.get(cacheKey);
         const newUpdaters = updaters.filter((updater: any) => updater !== handleData);
-        cache.updaters.set(contextKey, newUpdaters);
+        cache.updaters.set(cacheKey, newUpdaters);
       };
     },
-    [contextKey, defer, handleData]
+    [cacheKey, defer, handleData]
   );
 
   React.useEffect(
@@ -439,13 +439,13 @@ export function useLoads<Response, Err>(
       if (!revalidateOnWindowFocus || defer) return;
 
       const revalidate = load();
-      cache.revalidators.set(contextKey, revalidate);
+      cache.revalidators.set(cacheKey, revalidate);
 
       return function cleanup() {
-        cache.revalidators.delete(contextKey);
+        cache.revalidators.delete(cacheKey);
       };
     },
-    [contextKey, defer, handleData, load, revalidateOnWindowFocus]
+    [cacheKey, defer, handleData, load, revalidateOnWindowFocus]
   );
 
   useInterval(() => {
@@ -467,9 +467,9 @@ export function useLoads<Response, Err>(
   );
 
   if (suspense && !defer) {
-    if (contextKey) {
-      const record = cache.records.get(contextKey);
-      const promise = cache.promises.get(contextKey);
+    if (cacheKey) {
+      const record = cache.records.get(cacheKey);
+      const promise = cache.promises.get(cacheKey);
       if (record && promise) {
         throw promise;
       }

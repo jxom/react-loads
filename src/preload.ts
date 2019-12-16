@@ -23,12 +23,12 @@ export function preload<Response, Err>(
     variables
   } = config;
 
-  function setData({ contextKey, record }: { contextKey: string; record: Record<Response, Err> }) {
+  function setData({ cacheKey, record }: { cacheKey: string; record: Record<Response, Err> }) {
     const config = {
       cacheProvider,
       cacheTime
     };
-    cache.records.set<Response, Err>(contextKey, record, config);
+    cache.records.set<Response, Err>(cacheKey, record, config);
   }
 
   let count = 0;
@@ -45,13 +45,13 @@ export function preload<Response, Err>(
     }
 
     const variablesHash = JSON.stringify(args);
-    const contextKey = utils.getContextKey({ context, variablesHash, cacheStrategy });
+    const cacheKey = utils.getCacheKey({ context, variablesHash, cacheStrategy });
 
-    if (!contextKey) throw new Error('preload() must have a context');
+    if (!cacheKey) throw new Error('preload() must have a context');
 
     let cachedRecord: any;
     if (loadPolicy !== LOAD_POLICIES.LOAD_ONLY) {
-      cachedRecord = cache.records.get(contextKey);
+      cachedRecord = cache.records.get(cacheKey);
     }
 
     if (cachedRecord && loadPolicy === LOAD_POLICIES.CACHE_FIRST) return;
@@ -63,7 +63,7 @@ export function preload<Response, Err>(
 
     const isReloading = Boolean(cachedRecord);
     cache.records.set<Response, Err>(
-      contextKey,
+      cacheKey,
       record => ({
         ...record,
         state: cachedRecord ? STATES.RELOADING : STATES.PENDING
@@ -71,20 +71,20 @@ export function preload<Response, Err>(
       { cacheTime, cacheProvider }
     );
     if (!isReloading) {
-      cache.promises.set(contextKey, promise);
+      cache.promises.set(cacheKey, promise);
     }
 
     if (typeof promise === 'function') return;
     promise
       .then(response => {
         const record = { error: undefined, response, state: STATES.RESOLVED };
-        setData({ contextKey, record });
+        setData({ cacheKey, record });
 
         onResolve && onResolve(response);
       })
       .catch(error => {
         const record = { response: undefined, error, state: STATES.REJECTED };
-        setData({ contextKey, record });
+        setData({ cacheKey, record });
 
         onReject && onReject(error);
 
@@ -102,7 +102,7 @@ export function preload<Response, Err>(
         }
       })
       .finally(() => {
-        cache.promises.delete(contextKey);
+        cache.promises.delete(cacheKey);
       });
   }
   load();

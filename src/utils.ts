@@ -15,7 +15,7 @@ export function isOnline() {
   return true;
 }
 
-export function getContextKey({
+export function getCacheKey({
   context,
   variablesHash,
   cacheStrategy
@@ -24,9 +24,9 @@ export function getContextKey({
   variablesHash: string;
   cacheStrategy: CacheStrategy;
 }) {
-  let contextKey = Array.isArray(context) ? context.join('.') : context;
+  let cacheKey = Array.isArray(context) ? context.join('.') : context;
   if (variablesHash && cacheStrategy === CACHE_STRATEGIES.KEY_AND_VARIABLES) {
-    contextKey = `${contextKey}.${variablesHash}`;
+    cacheKey = `${cacheKey}.${variablesHash}`;
   }
-  return contextKey;
+  return cacheKey;
 }
