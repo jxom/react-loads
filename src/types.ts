@@ -13,7 +13,6 @@ export type LoadsConfig<Response, Err> = {
   dedupingInterval?: number;
   delay?: number;
   defer?: boolean;
-  enableBackgroundStates?: boolean;
   initialResponse?: Response;
   loadPolicy?: LoadPolicy;
   onReject?: (error: Err) => void;

@@ -5,6 +5,7 @@ export { cache };
 export * from './cache';
 export * from './createResource';
 export * from './Loads';
+export * from './LoadsConfig';
 export * from './preload';
 export * from './useCache';
 export * from './useLoads';

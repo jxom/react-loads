@@ -1,7 +1,8 @@
 import * as React from 'react';
 
+import { Context as LoadsConfigContext } from './LoadsConfig';
 import * as cache from './cache';
-import { CACHE_STRATEGIES, LOAD_POLICIES, STATES } from './constants';
+import { LOAD_POLICIES, STATES } from './constants';
 import useDetectMounted from './hooks/useDetectMounted';
 import useInterval from './hooks/useInterval';
 import usePrevious from './hooks/usePrevious';
@@ -32,7 +33,8 @@ export function useLoads<Response, Err>(
   fn: FnArg<Response>,
   localConfig: ConfigArg<Response, Err> = {}
 ) {
-  const config = { ...cache.globalConfig, ...localConfig };
+  const globalConfig = React.useContext(LoadsConfigContext);
+  const config = { ...globalConfig, ...localConfig };
   const {
     cacheProvider,
     cacheStrategy,

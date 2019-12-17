@@ -333,10 +333,19 @@ By default, React Loads automatically revalidates data in the cache after **5 mi
 
 ```jsx
 // Set it globally:
-import { setConfig } from 'react-loads';
-setConfig({
+import * as Loads from 'react-loads';
+
+const config = {
   revalidateTime: 600000
-});
+}
+
+export default function App() {
+  return (
+    <Loads.Provider config={config}>
+      ...
+    </Loads.Provider>
+  )
+}
 
 // Or, set it locally:
 export default function RandomDog() {
@@ -350,10 +359,19 @@ React Loads doesn't set a cache expiration by default. If you would like to set 
 
 ```jsx
 // Set it globally:
-import { setConfig } from 'react-loads';
-setConfig({
+import * as Loads from 'react-loads';
+
+const config = {
   cacheTime: 600000
-});
+}
+
+export default function App() {
+  return (
+    <Loads.Provider config={config}>
+      ...
+    </Loads.Provider>
+  )
+}
 
 // Or, set it locally:
 export default function RandomDog() {
@@ -397,10 +415,19 @@ To use React Loads with Suspense, you can set the [`suspense` config option](#TO
 
 ```jsx
 // Set it globally:
-import { setConfig } from 'react-loads';
-setConfig({
+import * as Loads from 'react-loads';
+
+const config = {
   suspense: true
-});
+}
+
+export default function App() {
+  return (
+    <Loads.Provider config={config}>
+      ...
+    </Loads.Provider>
+  )
+}
 
 // Or, set it locally:
 export default function RandomDog() {
@@ -599,10 +626,6 @@ function MyComponent(props) {
 
 Check out a [full example here](#TODO)
 
-### Preloading
-
-TODO
-
 ### External cache providers
 
 If you would like the ability to persist response data upon unmounting the application (e.g. page refresh or closing window), a cache provider can also be utilised to cache response data.
@@ -612,18 +635,24 @@ Here is an example using [Store.js](https://github.com/marcuswestin/store.js/). 
 #### On a global level
 
 ```jsx
-import { setConfig } from 'react-loads';
+import * as Loads from 'react-loads';
 import store from 'store';
 
-const cacheProvider = {
-  get: key => store.get(key),
-  set: (key, val) => store.set(key, val),
-  reset: () => store.clearAll()
+const config = {
+  cacheProvider: {
+    get: key => store.get(key),
+    set: (key, val) => store.set(key, val),
+    reset: () => store.clearAll()
+  }
 }
 
-setConfig({
-  cacheProvider
-});
+export default function App() {
+  return (
+    <Loads.Provider config={config}>
+      ...
+    </Loads.Provider>
+  )
+}
 ```
 
 #### On a `useLoads` level
@@ -642,6 +671,10 @@ export default function RandomDog() {
   const { ... } = useLoads('randomDog', fetchRandomDog, { cacheProvider });
 }
 ```
+
+### Preloading (experimental )
+
+TODO
 
 ## API
 

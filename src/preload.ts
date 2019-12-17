@@ -1,5 +1,6 @@
 import * as cache from './cache';
 import { STATES, LOAD_POLICIES } from './constants';
+import { defaultConfig } from './LoadsConfig';
 import { useLoads } from './useLoads';
 import * as utils from './utils';
 import { ContextArg, ConfigArg, FnArg, LoadFunction, LoadingState, OptimisticCallback, Record } from './types';
@@ -9,7 +10,7 @@ export function preload<Response, Err>(
   promiseOrFn: FnArg<Response>,
   localConfig: ConfigArg<Response, Err> = {}
 ) {
-  const config = { ...cache.globalConfig, ...localConfig };
+  const config = { ...defaultConfig, ...localConfig };
   const {
     cacheTime,
     cacheProvider,

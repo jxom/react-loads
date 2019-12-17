@@ -7,9 +7,9 @@ import { movieResource, movieReviewsResource } from './resources';
 import MovieDetails from './MovieDetails';
 import MovieList from './MovieList';
 
-Loads.setConfig({
+const loadsConfig = {
   suspense: true
-});
+};
 
 function getMovieLoaders(movieId) {
   return {
@@ -38,17 +38,19 @@ function App() {
   }
 
   return (
-    <ThemeProvider>
-      <Container breakpoint="mobile" padding="major-2">
-        <React.Suspense fallback={<div>loading...</div>}>
-          {movieLoaders ? (
-            <MovieDetails movieLoaders={movieLoaders} onClickBack={handleClickBack} />
-          ) : (
-            <MovieList loadingMovieId={currentMovieId} onSelectMovie={handleSelectMovie} />
-          )}
-        </React.Suspense>
-      </Container>
-    </ThemeProvider>
+    <Loads.Provider config={loadsConfig}>
+      <ThemeProvider>
+        <Container breakpoint="mobile" padding="major-2">
+          <React.Suspense fallback={<div>loading...</div>}>
+            {movieLoaders ? (
+              <MovieDetails movieLoaders={movieLoaders} onClickBack={handleClickBack} />
+            ) : (
+              <MovieList loadingMovieId={currentMovieId} onSelectMovie={handleSelectMovie} />
+            )}
+          </React.Suspense>
+        </Container>
+      </ThemeProvider>
+    </Loads.Provider>
   );
 }
 

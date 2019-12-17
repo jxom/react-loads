@@ -3,27 +3,6 @@ import { CacheProvider, LoadsConfig, Record } from './types';
 
 ////////////////////////////////////////////////////////
 
-export const globalConfig = {
-  cacheTime: 0,
-  cacheStrategy: CACHE_STRATEGIES.CONTEXT_AND_VARIABLES,
-  dedupingInterval: 500,
-  delay: 0,
-  defer: false,
-  enableBackgroundStates: false,
-  loadPolicy: LOAD_POLICIES.CACHE_AND_LOAD,
-  revalidateOnWindowFocus: false,
-  revalidateTime: 300000,
-  suspense: false,
-  throwError: false,
-  timeout: 5000
-};
-
-export function setConfig(config: LoadsConfig<unknown, unknown>) {
-  Object.assign(globalConfig, config);
-}
-
-////////////////////////////////////////////////////////
-
 const recordsCache = new Map();
 export const records = {
   clear(opts?: { cacheProvider?: CacheProvider | void }) {
