@@ -222,7 +222,42 @@ const { ... } = useDeferredLoads(fetchRandomDog);
 
 ### Configuration
 
-TODO
+You can set configuration on either a global level, or a local `useLoads` level.
+
+#### On a global level
+
+By setting configuration on a global level, you are setting defaults for all instances of `useLoads`.
+
+```jsx
+import * as Loads from 'react-loads';
+
+const config = {
+  dedupingInterval: 1000,
+  timeout: 3000
+};
+
+export default function App() {
+  return (
+    <Loads.Provider config={config}>
+      ...
+    <Loads.Provider>
+  )
+}
+```
+
+> Warning: The `config` prop must be memoized. Either memoize it using `React.useMemo` or put it outside of the function component.
+
+[See the full set of configuration options here](#TODO)
+
+#### On a `useLoads` level
+
+By setting configuration on a `useLoads` level, you are overriding any defaults set by `Loads.Provider`.
+
+```jsx
+const { ... } = useLoads('randomDog', fetchRandomDog, { dedupingInterval: 1000, timeout: 3000 });
+```
+
+[See the full set of configuration options here](#TODO)
 
 ### Variables
 
@@ -671,10 +706,6 @@ export default function RandomDog() {
   const { ... } = useLoads('randomDog', fetchRandomDog, { cacheProvider });
 }
 ```
-
-### Preloading (experimental )
-
-TODO
 
 ## API
 
