@@ -735,10 +735,97 @@ export default function RandomDog() {
 
 ## API
 
+### `useLoads`
+
+```jsx
+const record = useLoads(context, fn, config);
+```
+
+#### Parameters
+
+`context`
+
+> `string`
+
+A unique identifier for the request.
+
+`fn`
+
+> `function`
+
+A function that returns a promise to retrieve your data.
+
+`config`
+
+> `object`
+
+A set of [configuration options](#TODO)
+
+#### Returns
+
+##### `response`
+##### `error`
+##### `load`
+##### `isIdle`
+##### `isPending`
+##### `isPendingSlow`
+##### `isReloading`
+##### `isReloadingSlow`
+##### `isResolved`
+##### `isRejected`
+##### `reset`
+##### `state`
+##### `isCached`
+##### `update`
+
+### Config
+
+#### `cacheProvider`
+
+> `{ get: function(key), set: function(key, val), reset: function() }`
+
+Set a custom cache provider (e.g. local storage, session storate, etc). See [external cache providers](#external-cache-providers) for an example.
+
+#### `cacheStrategy`
+
+> `string` | Default: `"context-and-variables"`
+
+The caching strategy for your loader to determine the cache key.
+
+#### `cacheTime`
+#### `dedupingInterval`
+#### `delay`
+#### `defer`
+#### `initialResponse`
+#### `loadPolicy`
+#### `onReject`
+#### `onResolve`
+#### `pollingInterval`
+#### `pollWhenHidden`
+#### `rejectRetryInterval`
+#### `revalidateTime`
+#### `revalidateOnWindowFocus`
+#### `suspense`
+#### `throwError`
+#### `timeout`
+#### `update`
+#### `variables`
+
+#### Returns
+
 ## Happy customers
+
+- "I'm super excited about this package" - [Michele Bertoli](https://twitter.com/MicheleBertoli)
+- "Love the API! And that nested ternary-boolean example is a perfect example of how messy React code commonly gets without structuring a state machine." - [David K. Piano](https://twitter.com/DavidKPiano)
+- "Using case statements with React components is comparable to getting punched directly in your eyeball by a giraffe. This is a huge step up." - [Will Hackett](https://twitter.com/willhackett)
+- "I used to get the shakes coding data fetch routines with React. Not anymore. Using react loads, I now achieve data fetching zen." - [Claudia Nadalin](https://github.com/thepenskefile)
+- "After seeing https://twitter.com/dan_abramov/status/1039584557702553601?lang=en, we knew we had to change our loading lifecycles; React Loads was our saviour." - [Zhe Wang](https://twitter.com/auzwang)
 
 ## Acknowledgments
 
+- [David K. Piano](https://twitter.com/DavidKPiano) for state machine inspiration
+- [React Query](https://github.com/tannerlinsley/react-query) & [Zeit's SWR](https://github.com/zeit/swr) for design inspiration & ideas
+
 ## License
 
-MIT
+MIT © [jxom](http://jxom.io)
