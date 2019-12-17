@@ -247,23 +247,23 @@ storiesOf('useLoads', module)
         const movie = await api.getMovie(movieId);
         return movie;
       }, []);
-      const movieLoader = useLoads('movie', getMovie, { variables: [movieId] });
-      const movie = movieLoader.response;
+      const movieRecord = useLoads('movie', getMovie, { variables: [movieId] });
+      const movie = movieRecord.response;
 
       const getReviews = React.useCallback(async movieId => {
         const reviews = await api.getReviewsByMovieId(movieId);
         return reviews;
       }, []);
-      const reviewsLoader = useLoads('reviews', getReviews, { variables: () => [movie.id] });
-      const reviews = reviewsLoader.response;
+      const reviewsRecord = useLoads('reviews', getReviews, { variables: () => [movie.id] });
+      const reviews = reviewsRecord.response;
 
       return (
         <Box>
-          {movieLoader.isPending && <Spinner />}
-          {movieLoader.isResolved && (
+          {movieRecord.isPending && <Spinner />}
+          {movieRecord.isResolved && (
             <Box>
               <Box>Title: {movie.title}</Box>
-              {reviewsLoader.isResolved && reviews.map(review => review.comment)}
+              {reviewsRecord.isResolved && reviews.map(review => review.comment)}
             </Box>
           )}
         </Box>
@@ -277,7 +277,7 @@ storiesOf('useLoads', module)
       const randomDogRecord = useLoads('dependant', getRandomDog, { defer: true });
 
       const saveDog = React.useCallback(async imageSrc => new Promise(res => res(`Saved. Image: ${imageSrc}`)), []);
-      const saveDogLoader = useDeferredLoads(saveDog, {
+      const saveDogRecord = useDeferredLoads(saveDog, {
         variables: () => [randomDogRecord.response.data.message]
       });
 
@@ -296,13 +296,13 @@ storiesOf('useLoads', module)
                 <Button onClick={randomDogRecord.load} isLoading={randomDogRecord.isReloading}>
                   Load another
                 </Button>
-                {saveDogLoader.isIdle && (
-                  <Button isPending={saveDogLoader.isPending} onClick={saveDogLoader.load}>
+                {saveDogRecord.isIdle && (
+                  <Button isPending={saveDogRecord.isPending} onClick={saveDogRecord.load}>
                     Save dog
                   </Button>
                 )}
               </Set>
-              {saveDogLoader.isResolved && <Box>{saveDogLoader.response}</Box>}
+              {saveDogRecord.isResolved && <Box>{saveDogRecord.response}</Box>}
             </Box>
           )}
           {randomDogRecord.isRejected && <Alert type="danger">{randomDogRecord.error.message}</Alert>}
@@ -482,12 +482,12 @@ storiesOf('useLoads', module)
         return new Promise((res, rej) => setTimeout(() => rej(new Error('This is an error.')), 1000));
       }, []);
       const onReject = React.useCallback(error => console.log('error', error), []);
-      const somethingLoader = useLoads('rejectHook', getSomething, { onReject });
+      const somethingRecord = useLoads('rejectHook', getSomething, { onReject });
 
       return (
         <Box>
-          {somethingLoader.isPending && <Spinner size="large" />}
-          {somethingLoader.isRejected && <Alert type="danger">{somethingLoader.error.message}</Alert>}
+          {somethingRecord.isPending && <Spinner size="large" />}
+          {somethingRecord.isRejected && <Alert type="danger">{somethingRecord.error.message}</Alert>}
         </Box>
       );
     }
@@ -834,20 +834,20 @@ storiesOf('useGetStates', module).add('basic', () => {
     const getSomething = React.useCallback(async () => {
       return new Promise(res => setTimeout(() => res('This is something.'), 1000));
     }, []);
-    const somethingLoader = useLoads('something', getSomething);
+    const somethingRecord = useLoads('something', getSomething);
 
     const getAnother = React.useCallback(async () => {
       return new Promise(res => setTimeout(() => res('This is another.'), 5000));
     }, []);
-    const anotherLoader = useLoads('another', getAnother, { timeout: 3000 });
+    const anotherRecord = useLoads('another', getAnother, { timeout: 3000 });
 
-    const states = useGetStates(somethingLoader, anotherLoader);
+    const states = useGetStates(somethingRecord, anotherRecord);
 
     return (
       <Box>
         {states.isPending && 'Pending...'}
         {states.isPendingSlow && ' Taking a while...'}
-        {states.isResolved && `Both records have resolved. ${somethingLoader.response} ${anotherLoader.response}`}
+        {states.isResolved && `Both records have resolved. ${somethingRecord.response} ${anotherRecord.response}`}
       </Box>
     );
   }

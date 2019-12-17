@@ -21,20 +21,20 @@ import * as api from './api';
 export default function MovieDetails(props) {
   const { movieId, onClickBack } = props;
 
-  const getMovieLoader = Loads.useLoads('movie', api.getMovie, { variables: [movieId] });
-  const movie = getMovieLoader.response || {};
+  const getMovieRecord = Loads.useLoads('movie', api.getMovie, { variables: [movieId] });
+  const movie = getMovieRecord.response || {};
 
-  const getReviewsLoader = Loads.useLoads('movieReviews', api.getReviewsByMovieId, { variables: [movieId] });
-  const reviews = getReviewsLoader.response || [];
+  const getReviewsRecord = Loads.useLoads('movieReviews', api.getReviewsByMovieId, { variables: [movieId] });
+  const reviews = getReviewsRecord.response || [];
 
   return (
     <LayoutSet>
       <Button onClick={onClickBack}>Back</Button>
-      <Button onClick={getMovieLoader.load} isLoading={getMovieLoader.isReloading}>
+      <Button onClick={getMovieRecord.load} isLoading={getMovieRecord.isReloading}>
         Reload
       </Button>
-      {getMovieLoader.isPending && <Spinner />}
-      {getMovieLoader.isResolved && (
+      {getMovieRecord.isPending && <Spinner />}
+      {getMovieRecord.isResolved && (
         <LayoutSet>
           <Box>
             <Flex alignItems="center" justifyContent="space-between">
@@ -67,8 +67,8 @@ export default function MovieDetails(props) {
           </Columns>
           <Box>
             <Heading use="h2">Reviews</Heading>
-            {getReviewsLoader.isPending && <Spinner />}
-            {getReviewsLoader.isResolved && (
+            {getReviewsRecord.isPending && <Spinner />}
+            {getReviewsRecord.isResolved && (
               <LayoutSet spacing="major-2">
                 {reviews.length === 0 && <Box>No reviews.</Box>}
                 {reviews.length > 0 &&

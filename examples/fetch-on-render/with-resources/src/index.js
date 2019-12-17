@@ -40,21 +40,21 @@ function App() {
   const [name, setName] = React.useState();
   const [deletingUserId, setDeletingUserId] = React.useState();
 
-  const getUsersLoader = usersResource.useLoads();
-  const users = getUsersLoader.response;
+  const getUsersRecord = usersResource.useLoads();
+  const users = getUsersRecord.response;
 
-  const addUserLoader = usersResource.add.useDeferredLoads();
+  const addUserRecord = usersResource.add.useDeferredLoads();
 
-  const deleteUserLoader = usersResource.delete.useDeferredLoads();
+  const deleteUserRecord = usersResource.delete.useDeferredLoads();
 
   async function handleAddUser() {
-    await addUserLoader.load({ name });
+    await addUserRecord.load({ name });
     setName('');
   }
 
   async function handleDeleteUser(user) {
     setDeletingUserId(user.id);
-    await deleteUserLoader.load(user);
+    await deleteUserRecord.load(user);
     setDeletingUserId();
   }
 
@@ -62,15 +62,15 @@ function App() {
     <ThemeProvider>
       <Container breakpoint="mobile" padding="major-2">
         <Heading fontSize="500">Users</Heading>
-        {getUsersLoader.isPending && <Spinner />}
-        {getUsersLoader.isResolved && (
+        {getUsersRecord.isPending && <Spinner />}
+        {getUsersRecord.isResolved && (
           <LayoutSet>
             <List listStyleType="disc" listStylePosition="inside">
               {users.map(user => (
                 <List.Item key={user.id}>
                   {user.name}
                   <Button
-                    isLoading={deleteUserLoader.isReloading && deletingUserId === user.id}
+                    isLoading={deleteUserRecord.isReloading && deletingUserId === user.id}
                     kind="ghost"
                     marginLeft="major-1"
                     onClick={() => handleDeleteUser(user)}
@@ -84,7 +84,7 @@ function App() {
             </List>
             <Group width="300px">
               <Input placeholder="John Smith" onChange={e => setName(e.target.value)} value={name} />
-              <Button isLoading={addUserLoader.isReloading} onClick={handleAddUser} palette="primary">
+              <Button isLoading={addUserRecord.isReloading} onClick={handleAddUser} palette="primary">
                 Add
               </Button>
             </Group>

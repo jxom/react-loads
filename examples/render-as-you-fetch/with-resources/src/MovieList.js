@@ -7,8 +7,8 @@ import { moviesResource } from './resources';
 export default function MovieList(props) {
   const { loadingMovieId, onSelectMovie } = props;
 
-  const moviesLoader = moviesResource.useLoads({ suspense: true });
-  const movies = moviesLoader.response || [];
+  const moviesRecord = moviesResource.useLoads({ suspense: true });
+  const movies = moviesRecord.response || [];
 
   return (
     <Box>

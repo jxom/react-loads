@@ -17,11 +17,11 @@ import {
 export default function MovieDetails(props) {
   const { movieLoaders, onClickBack } = props;
 
-  const movieLoader = movieLoaders.movie.useLoads();
-  const movie = movieLoader.response || {};
+  const movieRecord = movieLoaders.movie.useLoads();
+  const movie = movieRecord.response || {};
 
-  const movieReviewsLoader = movieLoaders.reviews.useLoads();
-  const reviews = movieReviewsLoader.response || {};
+  const movieReviewsRecord = movieLoaders.reviews.useLoads();
+  const reviews = movieReviewsRecord.response || {};
 
   return (
     <LayoutSet>

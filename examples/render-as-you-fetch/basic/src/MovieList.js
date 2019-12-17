@@ -8,8 +8,8 @@ import MovieListButton from './MovieListButton';
 export default function MovieList(props) {
   const { loadingMovieId, onSelectMovie } = props;
 
-  const moviesLoader = Loads.useLoads('movies', api.getMovies);
-  const movies = moviesLoader.response || [];
+  const moviesRecord = Loads.useLoads('movies', api.getMovies);
+  const movies = moviesRecord.response || [];
 
   return (
     <Box>

@@ -1,6 +1,6 @@
 # React Loads
 
-#### **React Loads is a backend agnostic library to help with external data fetching in your UI components.**
+> React Loads is a backend agnostic library to help with external data fetching & caching in your UI components.
 
 ## Features
 
@@ -18,6 +18,32 @@
 - **Finite set of state variables** to avoid cryptic ternaries and impossible states
 - **External cache** support
 - **Optimistic responses**
+
+## Table of Contents
+
+- [Installation](#installation)
+- [Quick start](#quick-start)
+  - [With Hooks](#with-hooks)
+  - [With Render Props](#with-render-props)
+- [Guides](#guides)
+  - [Starting out](#starting-out)
+  - [Deferring](#deferring)
+  - [Configuration](#configuration)
+  - [Variables](#variables)
+  - [Conditional loaders](#conditional-loaders)
+  - [Dependant loaders](#dependant-loaders)
+  - [Caching](#caching)
+  - [Slow connections](#slow-connections)
+  - [Polling](#polling)
+  - [Deduping](#deduping)
+  - [Suspense](#suspense)
+  - [Optimistic responses](#optimistic-responses)
+  - [Resources](#resources)
+  - [External cache providers](#external-cache-providers)
+- [API](#api)
+- [Happy customers](#happy-customers)
+- [Acknowledgments](#acknowledgments)
+- [License](#license)
 
 ## Installation
 
@@ -37,7 +63,7 @@ npm install react-loads
 
 ```jsx
 import React from 'react';
-import { useLoads } from 'react-loads';
+import * as Loads from 'react-loads';
 
 async function fetchRandomDog() {
   // Dog fetcher logic here!
@@ -45,7 +71,7 @@ async function fetchRandomDog() {
 }
 
 export default function RandomDog() {
-  const { response, error, isPending, isResolved, isRejected } = useLoads('randomDog', fetchRandomDog);
+  const { response, error, isPending, isResolved, isRejected } = Loads.useLoads('randomDog', fetchRandomDog);
   return (
     <div>
       {isPending && 'Loading...'}
@@ -127,7 +153,7 @@ The `useLoads` hook accepts 3 parameters:
 
 ```jsx
 import React from 'react';
-import { useLoads } from 'react-loads';
+import * as Loads from 'react-loads';
 
 async function fetchRandomDog() {
   // Dog fetcher logic here!
@@ -143,7 +169,7 @@ export default function RandomDog() {
     isReloading,
     isResolved,
     isRejected
-  } = useLoads('randomDog', fetchRandomDog);
+  } = Loads.useLoads('randomDog', fetchRandomDog);
   return (
     <div>
       {isPending && 'Loading...'}
@@ -179,7 +205,7 @@ Sometimes you don't want your async function to be invoked straight away. This i
 
 ```jsx
 import React from 'react';
-import { useLoads } from 'react-loads';
+import * as Loads from 'react-loads';
 
 async function fetchRandomDog() {
   // Dog fetcher logic here!
@@ -195,7 +221,7 @@ export default function RandomDog() {
     isReloading,
     isResolved,
     isRejected
-  } = useDeferredLoads('randomDog', fetchRandomDog);
+  } = Loads.useDeferredLoads('randomDog', fetchRandomDog);
   return (
     <div>
       {isIdle && <button onClick={load}>Load a dog</button>}
@@ -509,9 +535,9 @@ function updateDog(id, data) {
 }
 
 export default function RandomDog(props) {
-  const dogLoader = Loads.useLoads('dog', fetchDog, { variables: [props.id] });
+  const dogRecord = Loads.useLoads('dog', fetchDog, { variables: [props.id] });
 
-  const updateDogLoader = Loads.useDeferredLoads('dog', updateDog);
+  const updateDogRecord = Loads.useDeferredLoads('dog', updateDog);
 
   return (
     <div>
@@ -519,7 +545,7 @@ export default function RandomDog(props) {
       {isResolved && <img src={response.imgSrc} />}
       {isRejected && `Oh no! ${error.message}`}
       <button
-        onClick={() => updateDogLoader.load(props.id, { imgSrc: 'cooldog.png' })}
+        onClick={() => updateDogRecord.load(props.id, { imgSrc: 'cooldog.png' })}
       >
         Update dog
       </button>
@@ -554,15 +580,15 @@ const usersResource = Loads.createResource({
 
 function MyComponent() {
   // 3. Invoke the useLoads function in your resource.
-  const getUsersLoader = usersResource.useLoads();
+  const getUsersRecord = usersResource.useLoads();
 
-  // 4. Use the loader variables:
-  const users = getUsersLoader.response || [];
+  // 4. Use the record variables:
+  const users = getUsersRecord.response || [];
 
   return (
     <div>
-      {getUsersLoader.isPending && 'loading...'}
-      {getUsersLoader.isResolved && (
+      {getUsersRecord.isPending && 'loading...'}
+      {getUsersRecord.isResolved && (
         <ul>
           {users.map(user => (
             <li key={user.id}>
@@ -631,27 +657,27 @@ import usersResource from './resources/users';
 function MyComponent(props) {
   const { userId } = props;
 
-  const getUserLoader = usersResource.useLoads({
+  const getUserRecord = usersResource.useLoads({
     variables: [userId]
   });
-  const user = getUserLoader.response || {};
+  const user = getUserRecord.response || {};
 
-  const updateUserLoader = usersResource.update.useDeferredLoads({ variables: [userId] });
-  const deleteUserLoader = usersResource.delete.useDeferredLoads({ variables: [userId] });
+  const updateUserRecord = usersResource.update.useDeferredLoads({ variables: [userId] });
+  const deleteUserRecord = usersResource.delete.useDeferredLoads({ variables: [userId] });
 
   return (
     <div>
-      {getUserLoader.isPending && 'loading...'}
-      {getUserLoader.isResolved && (
+      {getUserRecord.isPending && 'loading...'}
+      {getUserRecord.isResolved && (
         <div>
           Username: {user.name}
 
           <DeleteUserButton
-            isLoading={deleteUserLoader.isPending}
-            onClick={deleteUserLoader.load}
+            isLoading={deleteUserRecord.isPending}
+            onClick={deleteUserRecord.load}
           />
 
-          <UpdateUserForm onSubmit={data => updateUserLoader.load(userId, data)} />
+          <UpdateUserForm onSubmit={data => updateUserRecord.load(userId, data)} />
         </div>
       )}
     </div>
@@ -693,7 +719,7 @@ export default function App() {
 #### On a `useLoads` level
 
 ```jsx
-import { useLoads } from 'react-loads';
+import * as Loads from 'react-loads';
 import store from 'store';
 
 const cacheProvider = {
@@ -703,7 +729,7 @@ const cacheProvider = {
 }
 
 export default function RandomDog() {
-  const { ... } = useLoads('randomDog', fetchRandomDog, { cacheProvider });
+  const { ... } = Loads.useLoads('randomDog', fetchRandomDog, { cacheProvider });
 }
 ```
 
