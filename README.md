@@ -733,6 +733,10 @@ export default function RandomDog() {
 }
 ```
 
+### Preloading (experimental)
+
+TODO
+
 ## API
 
 ### `useLoads`
@@ -812,16 +816,73 @@ Returns `true` if the state is pending (`fn` is in a pending state).
 
 > `boolean`
 
-Returns `true` if the state is timeout (`load` is in a pending state for longer than `delay` milliseconds).
+Returns `true` if the state is pending for longer than `timeout` milliseconds.
 
 ##### `isReloading`
+
+> `boolean`
+
+Returns `true` if the state is reloading (`fn` is in a pending state & `fn` has already been invoked or cached).
+
 ##### `isReloadingSlow`
+
+> `boolean`
+
+Returns `true` if the state is reloading for longer than `timeout` milliseconds.
+
 ##### `isResolved`
+
+> `boolean`
+
+Returns `true` if the state is resolved (`fn` has been resolved).
+
 ##### `isRejected`
+
+> `boolean`
+
+Returns `true` if the state is rejected (`fn` has been rejected).
+
 ##### `reset`
+
+> `function`
+
+Function to reset the state & response back to an idle state.
+
 ##### `state`
+
+> `string`
+
+State of the promise (`fn`).
+
 ##### `isCached`
-##### `update`
+
+> `boolean`
+
+Returns `true` if data exists in the cache.
+
+### `useDeferredLoads`
+
+TODO
+
+### `useCache`
+
+TODO
+
+### `useGetStates`
+
+TODO
+
+### `<Provider>`
+
+TODO
+
+### `createResource`
+
+TODO
+
+### `preload`
+
+TODO
 
 ### Config
 
@@ -881,8 +942,6 @@ The caching strategy for your loader to determine the cache key.
 #### `timeout`
 #### `update`
 #### `variables`
-
-#### Returns
 
 ## Happy customers
 
