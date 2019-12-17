@@ -25,6 +25,7 @@
 - [Quick start](#quick-start)
   - [With Hooks](#with-hooks)
   - [With Render Props](#with-render-props)
+  - [More examples](#more-examples)
 - [Guides](#guides)
   - [Starting out](#starting-out)
   - [Deferring](#deferring)
@@ -40,7 +41,16 @@
   - [Optimistic responses](#optimistic-responses)
   - [Resources](#resources)
   - [External cache providers](#external-cache-providers)
+  - [Preloading (experimental)](#preloading-experimental)
 - [API](#api)
+  - [useLoads](#useloads)
+  - [useDeferredLoads](#usedeferredloads)
+  - [useCache](#usecache)
+  - [useGetStates](#usegetstates)
+  - [&lt;Provider&gt;](#ltprovidergt)
+  - [createResource](#createresource)
+  - [preload](#preload)
+  - [Config](#config)
 - [Happy customers](#happy-customers)
 - [Acknowledgments](#acknowledgments)
 - [License](#license)
@@ -776,7 +786,7 @@ A function that returns a promise to retrieve your data.
 
 `config`
 
-> `object`
+> `object` | optional
 
 A set of [configuration options](#TODO)
 
@@ -862,7 +872,50 @@ Returns `true` if data exists in the cache.
 
 ### `useDeferredLoads`
 
-TODO
+```jsx
+const {
+  response,
+  error,
+  load,
+  isIdle,
+  isPending,
+  isPendingSlow,
+  isReloading,
+  isReloadingSlow,
+  isResolved,
+  isRejected,
+  reset,
+  state,
+  isCached,
+  update
+} = useDeferredLoads(context, fn, config);
+// OR
+} = useDeferredLoads(fn, config);
+```
+
+#### Parameters
+
+`context`
+
+> `string` | optional
+
+A unique identifier for the request.
+
+`fn`
+
+> `function`
+
+A function that returns a promise to retrieve your data.
+
+`config`
+
+> `object` | optional
+
+A set of [configuration options](#TODO)
+
+#### Returns
+
+[Same as `useLoads`](#useloads)
 
 ### `useCache`
 
