@@ -25,7 +25,7 @@ export function getCacheKey({
   cacheStrategy: CacheStrategy;
 }) {
   let cacheKey = Array.isArray(context) ? context.join('.') : context;
-  if (variablesHash && cacheStrategy === CACHE_STRATEGIES.KEY_AND_VARIABLES) {
+  if (variablesHash && cacheStrategy === CACHE_STRATEGIES.CONTEXT_AND_VARIABLES) {
     cacheKey = `${cacheKey}.${variablesHash}`;
   }
   return cacheKey;

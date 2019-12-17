@@ -417,7 +417,7 @@ storiesOf('useLoads', module)
 
       const updateMovie = React.useCallback(
         () => meta => {
-          meta.setResponse(movie => ({ ...movie, imdbRating: ratingValue }), 'movie');
+          meta.setResponse(movie => ({ ...movie, imdbRating: ratingValue }));
           return api.updateMovie(movieId, { imdbRating: ratingValue });
         },
         [movieId, ratingValue]

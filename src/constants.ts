@@ -1,8 +1,8 @@
 import { LoadPolicy, LoadingState, CacheStrategy } from './types';
 
 export const CACHE_STRATEGIES: { [key: string]: CacheStrategy } = {
-  KEY_ONLY: 'key-only',
-  KEY_AND_VARIABLES: 'key-and-variables'
+  CONTEXT_ONLY: 'context-only',
+  CONTEXT_AND_VARIABLES: 'context-and-variables'
 };
 
 export const LOAD_POLICIES: { [key: string]: LoadPolicy } = {

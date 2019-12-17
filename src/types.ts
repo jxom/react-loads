@@ -4,7 +4,7 @@ export type CacheProvider = {
   clear: () => void;
   delete: (key: string) => void;
 };
-export type CacheStrategy = 'key-and-variables' | 'key-only';
+export type CacheStrategy = 'context-and-variables' | 'context-only';
 export type LoadsConfig<Response, Err> = {
   cacheProvider?: CacheProvider;
   cacheStrategy?: CacheStrategy;

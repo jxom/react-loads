@@ -202,16 +202,16 @@ export function useLoads<Response, Err>(
     ) => {
       let newData = data;
 
-      let context;
+      let optimisticCacheKey = cacheKey;
       if (typeof contextOrCallback === 'object') {
         const variablesHash = JSON.stringify(contextOrCallback.variables);
-        context = utils.getCacheKey({ context: contextOrCallback.context, variablesHash, cacheStrategy });
+        optimisticCacheKey = utils.getCacheKey({ context: contextOrCallback.context, variablesHash, cacheStrategy });
       }
 
       if (typeof data === 'function') {
         let cachedValue = IDLE_RECORD;
-        if (context) {
-          cachedValue = cache.records.get(context, { cacheProvider }) || IDLE_RECORD;
+        if (optimisticCacheKey) {
+          cachedValue = cache.records.get(optimisticCacheKey, { cacheProvider }) || IDLE_RECORD;
         }
         newData = data(state === STATES.RESOLVED ? cachedValue.response : cachedValue.error);
       }
@@ -221,16 +221,16 @@ export function useLoads<Response, Err>(
         response: state === STATES.RESOLVED ? newData : undefined,
         state
       };
-      if (!context || cacheKey === context) {
+      if (!optimisticCacheKey || cacheKey === optimisticCacheKey) {
         handleData({ count, record: newRecord, shouldBroadcast: true });
       } else {
-        cache.records.set<Response, Err>(context, newRecord, { cacheProvider, cacheTime });
+        cache.records.set<Response, Err>(optimisticCacheKey, newRecord, { cacheProvider, cacheTime });
       }
 
       let newCallback = typeof contextOrCallback === 'function' ? contextOrCallback : callback;
       newCallback && newCallback(newData);
     },
-    [cacheProvider, cacheStrategy, cacheTime, cacheKey, handleData]
+    [cacheStrategy, cacheKey, cacheProvider, handleData, cacheTime]
   );
 
   const load = React.useCallback(
@@ -344,30 +344,30 @@ export function useLoads<Response, Err>(
       };
     },
     [
-      cacheProvider,
-      cacheKey,
-      dedupingInterval,
-      defer,
-      delay,
-      fn,
-      handleData,
-      handleLoading,
-      handleOptimisticData,
-      initialResponse,
-      isSameContext,
+      variables,
       isSameVariables,
+      cacheKey,
       loadPolicy,
-      onReject,
-      onResolve,
-      rejectRetryInterval,
-      revalidateTime,
-      setDelayTimeout,
-      setErrorRetryTimeout,
-      setTimeoutTimeout,
-      suspense,
-      throwError,
+      fn,
+      isSameContext,
+      initialResponse,
+      delay,
       timeout,
-      variablesHash
+      suspense,
+      cacheProvider,
+      defer,
+      revalidateTime,
+      dedupingInterval,
+      handleOptimisticData,
+      setDelayTimeout,
+      handleLoading,
+      setTimeoutTimeout,
+      handleData,
+      onResolve,
+      onReject,
+      rejectRetryInterval,
+      throwError,
+      setErrorRetryTimeout
     ]
   );
 

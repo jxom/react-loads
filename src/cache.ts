@@ -5,7 +5,7 @@ import { CacheProvider, LoadsConfig, Record } from './types';
 
 export const globalConfig = {
   cacheTime: 0,
-  cacheStrategy: CACHE_STRATEGIES.KEY_AND_VARIABLES,
+  cacheStrategy: CACHE_STRATEGIES.CONTEXT_AND_VARIABLES,
   dedupingInterval: 500,
   delay: 0,
   defer: false,
@@ -15,7 +15,7 @@ export const globalConfig = {
   revalidateTime: 300000,
   suspense: false,
   throwError: false,
-  timeout: 0
+  timeout: 5000
 };
 
 export function setConfig(config: LoadsConfig<unknown, unknown>) {
