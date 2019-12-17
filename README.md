@@ -308,6 +308,8 @@ export default function DogImage() {
 }
 ```
 
+> Note: React Loads will automatically revalidate (reload) whenever the context or variables change.
+
 By default, React Loads automatically revalidates data in the cache after **5 minutes**. That is, when the `useLoads` is invoked and React Loads detects that the data is stale (hasn't been updated for 5 minutes), then `useLoads` will invoke the async function and update the cache with new data. You can change the revalidation time using the `revalidateTime` config option.
 
 ```jsx

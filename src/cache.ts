@@ -11,7 +11,7 @@ export const globalConfig = {
   defer: false,
   enableBackgroundStates: false,
   loadPolicy: LOAD_POLICIES.CACHE_AND_LOAD,
-  revalidateOnWindowFocus: true,
+  revalidateOnWindowFocus: false,
   revalidateTime: 300000,
   suspense: false,
   throwError: false,
