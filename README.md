@@ -738,7 +738,22 @@ export default function RandomDog() {
 ### `useLoads`
 
 ```jsx
-const record = useLoads(context, fn, config);
+const {
+  response,
+  error,
+  load,
+  isIdle,
+  isPending,
+  isPendingSlow,
+  isReloading,
+  isReloadingSlow,
+  isResolved,
+  isRejected,
+  reset,
+  state,
+  isCached,
+  update
+} = useLoads(context, fn, config);
 ```
 
 #### Parameters
@@ -779,6 +794,32 @@ A set of [configuration options](#TODO)
 ##### `update`
 
 ### Config
+
+```jsx
+config = {
+  cacheProvider,
+  cacheStrategy,
+  cacheTime,
+  context,
+  dedupingInterval,
+  delay,
+  defer,
+  initialResponse,
+  loadPolicy,
+  onReject,
+  onResolve,
+  pollingInterval,
+  pollWhenHidden,
+  rejectRetryInterval,
+  revalidateTime,
+  revalidateOnWindowFocus,
+  suspense,
+  throwError,
+  timeout,
+  update,
+  variables
+}
+```
 
 #### `cacheProvider`
 
