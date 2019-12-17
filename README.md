@@ -779,11 +779,41 @@ A set of [configuration options](#TODO)
 #### Returns
 
 ##### `response`
+
+> `any`
+
+Response from the resolved promise (`fn`).
+
 ##### `error`
+
+> `any`
+
+Error from the rejected promise (`fn`).
+
 ##### `load`
+
+> `function`
+
+Trigger to invoke [`fn`](#fn).
+
 ##### `isIdle`
+
+> `boolean`
+
+Returns `true` if the state is idle (`fn` has not been invoked).
+
 ##### `isPending`
+
+> `boolean`
+
+Returns `true` if the state is pending (`fn` is in a pending state).
+
 ##### `isPendingSlow`
+
+> `boolean`
+
+Returns `true` if the state is timeout (`load` is in a pending state for longer than `delay` milliseconds).
+
 ##### `isReloading`
 ##### `isReloadingSlow`
 ##### `isResolved`
