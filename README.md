@@ -627,6 +627,8 @@ function MyComponent() {
 }
 ```
 
+[See the CodeSandbox example](https://codesandbox.io/s/react-loads-resources-dg9xo)
+
 You can attach more than one loading function to a resource. **But it's return value must be the same schema, as every response will update the cache.**
 
 You can also provide an array of 2 items to the resource creator (seen below with `delete`); the first item being the async function, and the second being the [config](#TODO).
@@ -1033,15 +1035,39 @@ const { isPending, isResolved, isRejected } = useGetStates(randomDogRecord, dogF
 
 ### `<Provider>`
 
-TODO
+Set global configuration with the `<Provider>` component.
+
+```jsx
+import * as Loads from 'react-loads';
+
+const config = {
+  cacheTime: 600000
+}
+
+export default function App() {
+  return (
+    <Loads.Provider config={config}>
+      {/* ... */}
+    </Loads.Provider>
+  )
+}
+```
+
+#### Props
+
+##### `config`
+
+> `Object`
+
+An object of [configuration options](#TODO)
 
 ### `createResource`
 
-TODO
+> TODO
 
 ### `preload` (experimental)
 
-TODO
+> TODO
 
 ### Config
 
