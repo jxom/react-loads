@@ -298,7 +298,7 @@ export function useLoads<Response, Err>(
           });
         }
 
-        const isReloading = isSameContext && (count > 1 || cachedRecord || initialResponse);
+        const isReloading = isSameContext && (count > 1 || (cachedRecord && !defer) || initialResponse);
         if (delay > 0) {
           setDelayTimeout(() => handleLoading({ isReloading, promise }), delay);
         } else {

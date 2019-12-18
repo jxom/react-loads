@@ -204,7 +204,7 @@ The `useLoads` hook represents a finite state machine and returns a set of state
 
 - `isIdle` if the async function hasn't been invoked yet (relevant for `useDeferredLoads`)
 - `isPending` for when the async function is loading
-- `isReloading` for when the async function is reloading (typically when `load` is manually invoked, or data exists in the cache)
+- `isReloading` for when the async function is reloading (typically when `fn` is manually invoked, or data exists in the cache)
 - `isResolved` for when the async function has resolved
 - `isRejected` for when the async function has errored
 
