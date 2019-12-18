@@ -1,20 +1,21 @@
 import React from 'react';
 import { Box, Heading, LayoutSet, Spinner } from 'fannypack';
+import * as Loads from 'react-loads';
 
+import * as api from './api';
 import MovieListButton from './MovieListButton';
-import { moviesResource } from './resources';
 
 export default function MovieList(props) {
   const { onSelectMovie } = props;
 
-  const getMoviesLoader = moviesResource.useLoads();
-  const movies = getMoviesLoader.response || [];
+  const getMoviesRecord = Loads.useLoads('movies', api.getMovies);
+  const movies = getMoviesRecord.response || [];
 
   return (
     <Box>
       <Heading>Jake's Top Movies</Heading>
-      {getMoviesLoader.isPending && <Spinner />}
-      {getMoviesLoader.isResolved && (
+      {getMoviesRecord.isPending && <Spinner />}
+      {getMoviesRecord.isResolved && (
         <LayoutSet spacing="major-2">
           {movies.map(movie => (
             <MovieListButton key={movie.id} movie={movie} onClick={() => onSelectMovie(movie)} />

@@ -11,22 +11,22 @@ function App() {
     const response = await axios.get('https://jsonplaceholder.typicode.com/users');
     return response.data;
   }, []);
-  const getUsersLoader = useLoads<Users>(getUsers);
-  const users = (getUsersLoader.response || []);
+  const getUsersRecord = useLoads<Users, any>('users', getUsers);
+  const users = (getUsersRecord.response || []);
 
   return (
     <ThemeProvider>
       <Container breakpoint="mobile" padding="major-1">
         <Heading fontSize="500">Users</Heading>
-        {getUsersLoader.isPending && <Spinner />}
-        {getUsersLoader.isResolved && (
+        {getUsersRecord.isPending && <Spinner />}
+        {getUsersRecord.isResolved && (
           <List listStyleType="disc" listStylePosition="inside">
             {users.map(user => (
               <List.Item key={user.id}>{user.name}</List.Item>
             ))}
           </List>
         )}
-        {getUsersLoader.isRejected && <Alert type="danger">Error! {getUsersLoader.error.message}</Alert>}
+        {getUsersRecord.isRejected && <Alert type="danger">Error! {getUsersRecord.error.message}</Alert>}
       </Container>
     </ThemeProvider>
   );

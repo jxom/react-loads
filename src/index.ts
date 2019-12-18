@@ -1,6 +1,13 @@
-export { default as Loads } from './Loads';
-export { default as LoadsContext, Provider } from './LoadsContext';
-export { default as useLoads } from './useLoads';
-export { default as useLoadsCache } from './useLoadsCache';
+import * as cache from './cache';
 
-export { default as createResource } from './createResource';
+export { cache };
+
+export * from './cache';
+export * from './createResource';
+export * from './Loads';
+export * from './LoadsConfig';
+export * from './preload';
+export * from './useCache';
+export * from './useLoads';
+export * from './useDeferredLoads';
+export * from './useGetStates';
