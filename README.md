@@ -745,6 +745,54 @@ export default function RandomDog() {
 
 ### Preloading (experimental)
 
+React Loads comes with the ability to eagerly preload your data. You can do so using the `preload` function.
+
+```jsx
+const randomDogLoader = Loads.preload('randomDog', fetchRandomDog);
+```
+
+The `preload` function shares the same arguments as the `useLoads` function, however, `preload` is not a React Hook and shouldn't be called in your render function. Instead, use it inside event handlers, or call it on first render.
+
+The `preload` function will essentially fetch & cache your data in the background. It does not return any value apart from a `useLoads` hook. When the `useLoads` hook is invoked, it will read the data from the cache that was previously loaded by `preload`, and won't re-fetch your data. If no cached data exists, it will go ahead and fetch it.
+
+#### Without Suspense
+
+```jsx
+const randomDogLoader = Loads.preload('randomDog', fetchRandomDog);
+
+function RandomDog() {
+  const { response, error, isPending, isResolved, isRejected } = randomDogLoader.useLoads();
+  return (
+    <div>
+      {isPending && 'Loading...'}
+      {isResolved && <img src={response.imgSrc} />}
+      {isRejected && `Oh no! ${error.message}`}
+    </div>
+  )
+}
+```
+
+#### With Suspense
+
+```jsx
+const randomDogLoader = Loads.preload('randomDog', fetchRandomDog);
+
+function RandomDog() {
+  const { response } = randomDogLoader.useLoads({ suspense: true });
+  return <img src={response.imgSrc} />;
+}
+
+function App() {
+  return (
+    <React.Suspense fallback={<div>Loading...</div>}>
+      <RandomDog />
+    </React.Suspense>
+  )
+}
+```
+
+#### Render-as-you-fetch
+
 ```jsx
 import * as Loads from 'react-loads';
 
