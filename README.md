@@ -600,7 +600,7 @@ async function getUsers() {
 // 2. Create your resource, and attach the loading function.
 const usersResource = Loads.createResource({
   context: 'users',
-  load: getUsers
+  fn: getUsers
 });
 
 function MyComponent() {
@@ -665,7 +665,7 @@ async function deleteUser(id) {
 
 export default Loads.createResource({
   context: 'user',
-  load: getUser,
+  fn: getUser,
   // You can supply either a async function, or an array of async function/config pairs.
   update: [updateUser, { timeout: 3000 }],
   delete: deleteUser
@@ -1063,7 +1063,73 @@ An object of [configuration options](#TODO)
 
 ### `createResource`
 
-> TODO
+```jsx
+const resource = createResource(options);
+```
+
+#### Parameters
+
+##### `options.context`
+
+> `string`
+
+The context of the resource. Used to generate a cache key.
+
+##### `options.fn`
+
+> `function`
+
+A function that returns a promise to retrieve your data.
+
+##### Any key can be an async function!
+
+Any key you provide to the resource is an async function.
+
+```jsx
+const dogsResource = createResource({
+  context: 'dogs',
+  fn: getDogs,
+  create: createDog,
+  foo: getDogFoo,
+  bar: getDogBar,
+  baz: getDogBaz
+});
+
+// In your function component - will invoke the `bar` async function in createResource:
+dogsResource.bar.useLoads();
+```
+
+#### Returns
+
+##### `useLoads`
+
+A `useLoads` hook which can be invoked in your function component.
+
+The arguments are a bit different to the standalone `useLoads` hook - it only optionally accepts a `config` object, and not a `context` or an async function (`fn`).
+
+```jsx
+resource.useLoads(config)
+```
+
+##### `useDeferredLoads`
+
+A `useLoads` hook which can be invoked in your function component.
+
+The arguments are a bit different to the standalone `useDeferredLoads` hook - it only optionally accepts a `config` object, and not a `context` or an async function (`fn`).
+
+```jsx
+resource.useDeferredLoads(config)
+```
+
+##### `preload` (experimental)
+
+Same as the [`preload` function](#preload-experimental), however only accepts a `config` object as it's only parameter.
+
+```jsx
+resource.preload(config)
+```
+
+[See the CodeSandbox example](https://codesandbox.io/s/react-loads-preloading-resources-example-render-as-you-fetch-p33fs)
 
 ### `preload` (experimental)
 

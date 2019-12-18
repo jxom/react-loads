@@ -19,7 +19,7 @@ function createLoadsHooks<Response, Err>(opts: ResourceOptions<Response, Err>) {
       config = val[1] || {};
     }
 
-    if (loadKey === 'load') {
+    if (loadKey === 'fn') {
       return {
         ...currentLoaders,
         preload: (loadsConfig: LoadsConfig<Response, Err> | undefined) =>

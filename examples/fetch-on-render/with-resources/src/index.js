@@ -31,7 +31,7 @@ function deleteUser(user) {
 
 export const usersResource = Loads.createResource({
   context: 'users',
-  load: getUsers,
+  fn: getUsers,
   add: addUser,
   delete: deleteUser
 });
