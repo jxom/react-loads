@@ -5,19 +5,19 @@ import { useLoads } from './useLoads';
 
 export type LoadsProps = LoadsConfig<unknown, unknown> & {
   context: string;
-  children: (loader: any) => React.ReactNode;
-  load: LoadFunction<unknown>;
+  children: (record: any) => React.ReactNode;
+  fn: LoadFunction<unknown>;
   inputs?: Array<any>;
 };
 
-export const Loads = ({ children, context, load, inputs, ...config }: LoadsProps) => {
-  const loader = useLoads(context, load, config);
-  return children(loader);
+export const Loads = ({ children, context, fn, inputs, ...config }: LoadsProps) => {
+  const record = useLoads(context, fn, config);
+  return children(record);
 };
 
 Loads.propTypes = {
   children: PropTypes.func.isRequired,
-  load: PropTypes.func.isRequired,
+  fn: PropTypes.func.isRequired,
   inputs: PropTypes.array
 };
 

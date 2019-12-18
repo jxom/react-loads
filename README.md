@@ -116,7 +116,7 @@ async function fetchRandomDog() {
 class RandomDog extends React.Component {
   render() {
     return (
-      <Loads context="randomDog" load={fetchRandomDog}>
+      <Loads context="randomDog" fn={fetchRandomDog}>
         {({ response, error, isPending, isResolved, isRejected }) => (
           <div>
             {isPending && 'Loading...'}
@@ -745,7 +745,74 @@ export default function RandomDog() {
 
 ### Preloading (experimental)
 
-TODO
+
+#### Without Suspense
+
+```jsx
+import * as Loads from 'react-loads';
+
+function DogImage({ dogLoader }) {
+  const { response, error, isPending, isResolved, isRejected } = dogLoader.useLoads();
+  return (
+    <div>
+      {isPending && 'Loading...'}
+      {isResolved && <img src={response.imgSrc} />}
+      {isRejected && `Oh no! ${error.message}`}
+    </div>
+  )
+}
+
+function App() {
+  const [dogLoader, setDogLoader] = React.useState();
+  const [currentId, setCurrentId] = React.useState();
+
+  const handleClickLoad = React.useCallback(() => {
+    const nextId = (currentId || 0) + 1;
+    const dogLoader = Loads.preload('dog', fetchDog, { variables: [nextId] });
+    setId(nextId);
+    setDogLoader(dogLoader);
+  })
+
+  return (
+    <button onClick={handleClickLoad}>Load next dog</button>
+    {dogLoader && (
+      <DogImage dogLoader={dogLoader} />
+    )}
+  )
+}
+```
+
+#### With Suspense
+
+```jsx
+import * as Loads from 'react-loads';
+
+function DogImage({ dogLoader }) {
+  const { response } = dogLoader.useLoads({ suspense: true });
+  return <img src={response.imgSrc} />;
+}
+
+function App() {
+  const [dogLoader, setDogLoader] = React.useState();
+  const [currentId, setCurrentId] = React.useState();
+
+  const handleClickLoad = React.useCallback(() => {
+    const nextId = (currentId || 0) + 1;
+    const dogLoader = Loads.preload('dog', fetchDog, { variables: [nextId] });
+    setId(nextId);
+    setDogLoader(dogLoader);
+  })
+
+  return (
+    <button onClick={handleClickLoad}>Load next dog</button>
+    {dogLoader && (
+      <React.Suspense fallback={<div>Loading...</div>}>
+        <DogImage dogLoader={dogLoader} />
+      </React.Suspense>
+    )}
+  )
+}
+```
 
 ## API
 
@@ -765,8 +832,7 @@ const {
   isRejected,
   reset,
   state,
-  isCached,
-  update
+  isCached
 } = useLoads(context, fn, config);
 ```
 
@@ -899,7 +965,7 @@ const {
 
 > `string` | optional
 
-A unique identifier for the request.
+A unique identifier for the request. This is optional for `useDeferredLoads`.
 
 `fn`
 
@@ -976,6 +1042,13 @@ Set a custom cache provider (e.g. local storage, session storate, etc). See [ext
 > `string` | Default: `"context-and-variables"`
 
 The caching strategy for your loader to determine the cache key.
+
+Available values:
+
+- `"context-only"`
+  - Caches your data against the `context` key only.
+- `"context-and-variables"`
+  - Caches your data against a combination of the `context` key & `variables`.
 
 #### `cacheTime`
 #### `dedupingInterval`
