@@ -751,28 +751,9 @@ React Loads comes with the ability to eagerly preload your data. You can do so u
 const randomDogLoader = Loads.preload('randomDog', fetchRandomDog);
 ```
 
-The `preload` function shares the same arguments as the `useLoads` function, however, `preload` is not a React Hook and shouldn't be called in your render function. Instead, use it inside event handlers, or call it on first render.
+The `preload` function shares the same arguments as the `useLoads` function, however, `preload` is not a React Hook and shouldn't be called in your render function. Instead, use it inside event handlers, route preparation, or call it on first render.
 
 The `preload` function will essentially fetch & cache your data in the background. It does not return any value apart from a `useLoads` hook. When the `useLoads` hook is invoked, it will read the data from the cache that was previously loaded by `preload`, and won't re-fetch your data. If no cached data exists, it will go ahead and fetch it.
-
-#### Without Suspense
-
-```jsx
-const randomDogLoader = Loads.preload('randomDog', fetchRandomDog);
-
-function RandomDog() {
-  const { response, error, isPending, isResolved, isRejected } = randomDogLoader.useLoads();
-  return (
-    <div>
-      {isPending && 'Loading...'}
-      {isResolved && <img src={response.imgSrc} />}
-      {isRejected && `Oh no! ${error.message}`}
-    </div>
-  )
-}
-```
-
-#### With Suspense
 
 ```jsx
 const randomDogLoader = Loads.preload('randomDog', fetchRandomDog);
@@ -791,37 +772,13 @@ function App() {
 }
 ```
 
+[See the CodeSandbox example](https://codesandbox.io/s/react-loads-preloading-example-vn1xn)
+
 #### Render-as-you-fetch
 
-```jsx
-import * as Loads from 'react-loads';
+The `preload` function is designed to implement the ["render-as-you-fetch" pattern](https://reactjs.org/docs/concurrent-mode-suspense.html#approach-3-render-as-you-fetch-using-suspense). Ideally, `preload` can be invoked when preparing your routes, or inside an event handler, where you can then use the `useLoads` function inside your component.
 
-function DogImage({ dogLoader }) {
-  const { response } = dogLoader.useLoads({ suspense: true });
-  return <img src={response.imgSrc} />;
-}
-
-function App() {
-  const [dogLoader, setDogLoader] = React.useState();
-  const [currentId, setCurrentId] = React.useState();
-
-  const handleClickLoad = React.useCallback(() => {
-    const nextId = (currentId || 0) + 1;
-    const dogLoader = Loads.preload('dog', fetchDog, { variables: [nextId] });
-    setId(nextId);
-    setDogLoader(dogLoader);
-  })
-
-  return (
-    <button onClick={handleClickLoad}>Load next dog</button>
-    {dogLoader && (
-      <React.Suspense fallback={<div>Loading...</div>}>
-        <DogImage dogLoader={dogLoader} />
-      </React.Suspense>
-    )}
-  )
-}
-```
+[See the CodeSandbox example](https://codesandbox.io/s/react-loads-preloading-example-render-as-you-fetch-vvulq)
 
 ## API
 
