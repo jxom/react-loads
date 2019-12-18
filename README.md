@@ -142,7 +142,7 @@ class RandomDog extends React.Component {
 - Render-as-you-fetch
   - [Basic](./examples/render-as-you-fetch/basic)
   - [Resources](./examples/render-as-you-fetch/with-resources)
-- [Stories](#TODO)
+- [Stories](https://jxom.github.io/react-loads/)
 
 ## Guides
 
