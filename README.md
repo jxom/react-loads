@@ -1,239 +1,128 @@
 # React Loads
 
-> A zero-dependency React utility to help with promise state & response data.
+> React Loads is a backend agnostic library to help with external data fetching & caching in your UI components.
 
-# The problem
+## Features
 
-There are a few concerns in managing async data fetching manually:
+- **Hooks** and **Render Props** to manage your async states & response data
+- **Backend agnostic.** Use React Loads with REST, GraphQL, or Web SDKs
+- **Renderer agnostic.** Use React Loads with React DOM, React Native, React VR, etc
+- **Automated caching & revalidation** to maximise user experience between page transitions
+- **React Suspense** support
+- **SSR** support
+- **Preload** support to [implement the "render-as-you-fetch" pattern](https://reactjs.org/docs/concurrent-mode-suspense.html#approach-3-render-as-you-fetch-using-suspense)
+- **Polling** support to load data every x seconds
+- **Request deduping** to minimise over-fetching of your data
+- **Focus revalidation** to re-fetch your data when the browser window is focused
+- **Resources** to allow your to hoist common async functions for built-in caching & reusability
+- **Finite set of state variables** to avoid cryptic ternaries and impossible states
+- **External cache** support
+- **Optimistic responses**
 
-- Managing loading state can be annoying and prone to a confusing user experience if you aren't careful.
-- Managing data persistence across page transitions can be easily overlooked.
-- Flashes of loading state & no feedback on something that takes a while to load can be annoying.
-- Nested ternaries can get messy and hard to read. Example:
+## Table of Contents
 
-```jsx
-<Fragment>
-  {isPending ? (
-    <p>{hasTimedOut ? 'Taking a while...' : 'Loading...'}</p>
-  ) : (
-    <Fragment>
-      {!error && !response && <button onClick={this.handleLoad}>Click here to load!</button>}
-      {response && <p>{response}</p>}
-      {error && <p>{error.message}</p>}
-    </Fragment>
-  )}
-</Fragment>
-```
-
-# The solution
-
-React Loads comes with a handy set of features to help solve these concerns:
-
-- Manage your async data & states with a declarative syntax with [React Hooks](https://reactjs.org/docs/hooks-intro.html) or [Render Props](#children-render-props)
-- Predictable outcomes with deterministic [state variables](#isidle) or [state components](#usage-with-state-components) to avoid messy state ternaries
-- Invoke your loading function **on initial render** and/or [on demand](#defer)
-- Pass any type of promise to your [loading function](#load)
-- Hoist your loading functions into [resources](#resources) for built-in cache support & reusability
-- Add a [delay](#delay) to prevent flashes of loading state
-- Add a [timeout](#timeout) to provide feedback when your loading function is taking a while to resolve
-- [Data caching](#caching-response-data) enabled by default to maximise user experience between page transitions
-- Tell Loads [how to load](#loadpolicy) your data from the cache to prevent unnessessary invocations
-- [External cache](#external-cache) support to enable something like local storage caching
-- [Optimistic responses](#optimistic-responses) to update your UI optimistically
-
-# Table of contents
-
-- [React Loads](#react-loads)
-- [The problem](#the-problem)
-- [The solution](#the-solution)
-- [Table of contents](#table-of-contents)
+- [Features](#features)
+- [Table of Contents](#table-of-contents)
 - [Installation](#installation)
-- [Usage](#usage)
-  - [FIRSTLY](#firstly)
-  - [With Hooks](#with-hooks)
-  - [With Render Props](#with-render-props)
-  - [See a demo](#see-a-demo)
-  - [More examples](#more-examples)
+- [Quick start](#quick-start)
 - [Guides](#guides)
-  - [Resources (API)](#resources-api)
-  - [Caching response data](#caching-response-data)
-    - [Basic cache](#basic-cache)
-  - [External cache](#external-cache)
-    - [Global cache provider](#global-cache-provider)
-    - [Local cache provider](#local-cache-provider)
+  - [Starting out](#starting-out)
+  - [Deferring](#deferring)
+  - [Configuration](#configuration)
+  - [Variables](#variables)
+  - [Conditional loaders](#conditional-loaders)
+  - [Dependant loaders](#dependant-loaders)
+  - [Caching](#caching)
+  - [Slow connections](#slow-connections)
+  - [Polling](#polling)
+  - [Deduping](#deduping)
+  - [Suspense](#suspense)
   - [Optimistic responses](#optimistic-responses)
-    - [setResponse(data[, opts[, callback]]) / setError(data[, opts[, callback]])](#setresponsedata-opts-callback--seterrordata-opts-callback)
-    - [Basic example](#basic-example)
-    - [Example updating another `useLoads` optimistically](#example-updating-another-useloads-optimistically)
-  - [Updating resources](#updating-resources)
-  - [Suspense (Experimental)](#suspense-experimental)
-  - [Concurrent React (Experimental)](#concurrent-react-experimental)
+  - [Resources](#resources)
+  - [External cache providers](#external-cache-providers)
+  - [Preloading (experimental)](#preloading-experimental)
 - [API](#api)
-  - [`loader = useLoads(load[, config[, inputs]])`](#loader--useloadsload-config-inputs)
-    - [load](#load)
-    - [config](#config)
-        - [defer](#defer)
-        - [delay](#delay)
-        - [context](#context)
-        - [id](#id)
-        - [args](#args)
-        - [suspense](#suspense)
-        - [timeout](#timeout)
-        - [loadPolicy](#loadpolicy)
-        - [enableBackgroundStates](#enablebackgroundstates)
-        - [cacheProvider](#cacheprovider)
-        - [update](#update)
-    - [`loader`](#loader)
-        - [response](#response)
-        - [error](#error)
-        - [load](#load-1)
-        - [update](#update-1)
-        - [isIdle](#isidle)
-        - [isPending](#ispending)
-        - [isTimeout](#istimeout)
-        - [isResolved](#isresolved)
-        - [isRejected](#isrejected)
-        - [Idle](#idle)
-        - [Pending](#pending)
-        - [Timeout](#timeout)
-        - [Resolved](#resolved)
-        - [Rejected](#rejected)
-        - [isCached](#iscached)
-    - [`<Loads>` Props](#loads-props)
-    - [load](#load-2)
-    - [inputs](#inputs)
-    - [defer](#defer-1)
-    - [delay](#delay-1)
-    - [context](#context-1)
-    - [suspense](#suspense-1)
-    - [timeout](#timeout-1)
-    - [loadPolicy](#loadpolicy-1)
-    - [enableBackgroundStates](#enablebackgroundstates-1)
-    - [cacheProvider](#cacheprovider-1)
-    - [update](#update-2)
-  - [`<Loads>` Render Props](#loads-render-props)
-    - [response](#response-1)
-    - [error](#error-1)
-    - [load](#load-3)
-    - [update](#update-3)
-    - [isIdle](#isidle-1)
-    - [isPending](#ispending-1)
-    - [isTimeout](#istimeout-1)
-    - [isResolved](#isresolved-1)
-    - [isRejected](#isrejected-1)
-    - [Idle](#idle-1)
-    - [Pending](#pending-1)
-    - [Timeout](#timeout-1)
-    - [Resolved](#resolved-1)
-    - [Rejected](#rejected-1)
-    - [isCached](#iscached-1)
-  - [`resource = createResource(options)`](#resource--createresourceoptions)
-    - [options](#options)
-      - [_namespace](#namespace)
-      - [load](#load-4)
-      - [any key is a loading function!](#any-key-is-a-loading-function)
-    - [`resource`](#resource)
-  - [`cache = useLoadsCache(context)`](#cache--useloadscachecontext)
-    - [context](#context-2)
-    - [`cache`](#cache)
-    - [Example](#example)
-- [Articles](#articles)
+  - [useLoads](#useloads)
+  - [useDeferredLoads](#usedeferredloads)
+  - [useCache](#usecache)
+  - [useGetStates](#usegetstates)
+  - [&lt;Provider&gt;](#provider)
+  - [createResource](#createresource)
+  - [preload (experimental)](#preload-experimental-1)
+  - [Config](#config)
 - [Happy customers](#happy-customers)
+- [Acknowledgments](#acknowledgments)
 - [License](#license)
 
-# Installation
-
-```
-npm install react-loads --save
-```
-
-or install with [Yarn](https://yarnpkg.com) if you prefer:
+## Installation
 
 ```
 yarn add react-loads
 ```
 
-# Usage
+or npm:
 
-## FIRSTLY
-
-Wrap your app in a `<LoadsContext.Provider>`:
-
-```jsx
-import React from 'react';
-import ReactDOM from 'react-dom';
-import { LoadsContext } from 'react-loads';
-
-ReactDOM.render(
-  <LoadsContext.Provider>
-    {/* ... */}
-  <LoadsContext.Provider>
-)
+```
+npm install react-loads
 ```
 
-## With Hooks
+## Quick start
 
-[See the `useLoads` API](#useloadsload-config-inputs)
+### With Hooks
 
 ```jsx
 import React from 'react';
-import { useLoads } from 'react-loads';
+import * as Loads from 'react-loads';
 
-export default function DogApp() {
-  const getRandomDog = React.useCallback(() => {
-    return axios.get('https://dog.ceo/api/breeds/image/random')
-  }, []);
-  const { response, error, load, isRejected, isPending, isResolved } = useLoads(getRandomDog);
+async function fetchRandomDog() {
+  // Dog fetcher logic here!
+  // You can use any type of backend here - REST, GraphQL, you name it!
+}
 
+export default function RandomDog() {
+  const { response, error, isPending, isResolved, isRejected } = Loads.useLoads('randomDog', fetchRandomDog);
   return (
     <div>
-      {isPending && <div>loading...</div>}
-      {isResolved && (
-        <div>
-          <div>
-            <img src={response.data.message} width="300px" alt="Dog" />
-          </div>
-          <button onClick={load}>Load another</button>
-        </div>
-      )}
-      {isRejected && <div type="danger">{error.message}</div>}
+      {isPending && 'Loading...'}
+      {isResolved && <img src={response.imgSrc} />}
+      {isRejected && `Oh no! ${error.message}`}
     </div>
-  );
+  )
 }
 ```
 
-> IMPORTANT NOTE: You must provide `useLoads` with a memoized promise (via **`React.useCallback`** or **bounded outside of your function component**), otherwise `useLoads` will be invoked on every render.
+[See the CodeSandbox example](https://codesandbox.io/s/react-loads-basic-example-38biz)
+
+The `useLoads` function accepts three arguments: a **context key**, an **async function**, and a **config object** (not used in this example). The **context key** will store the response of the `fetchRandomDog` function in the React Loads cache against the key. The **async function** is a function that returns a promise, and is used to fetch your data.
+
+The `useLoads` function also returns a set of values: `response`, `error`, and a finite set of states (`isIdle`, `isPending`, `isResolved`, `isRejected`, and a few others). If your **async function** resolves, it will update the `response` & `isResolved` values. If it rejects, it will update the `error` value.
+
+> IMPORTANT NOTE: You must provide useLoads with a memoized promise (via `React.useCallback` or **bounded outside of your function component as seen in the above example**), otherwise useLoads will be invoked on every render.
 >
->If you are using `React.useCallback`, the [`react-hooks` ESLint Plugin](https://www.npmjs.com/package/eslint-plugin-react-hooks) is incredibly handy to ensure your hook dependencies are set up correctly.
+> If you are using `React.useCallback`, the [`react-hooks` ESLint Plugin](https://www.npmjs.com/package/eslint-plugin-react-hooks) is incredibly handy to ensure your hook dependencies are set up correctly.
 
-## With Render Props
+### With Render Props
 
-[See the `<Loads>` API](#useloadsload-config-inputs)
+If your codebase isn't quite hook ready yet, React Loads provides a Render Props interface which shares the same API as the hook:
 
 ```jsx
 import React from 'react';
-import { useLoads } from 'react-loads';
+import { Loads } from 'react-loads';
 
-class DogApp extends React.Component {
-  getRandomDog = () => {
-    return axios.get('https://dog.ceo/api/breeds/image/random');
-  }
+async function fetchRandomDog() {
+  // Dog fetcher logic here!
+  // You can use any type of backend here - REST, GraphQL, you name it!
+}
 
-  render = () => {
+class RandomDog extends React.Component {
+  render() {
     return (
-      <Loads load={this.getRandomDog}>
-        {({ response, error, load, isRejected, isPending, isResolved }) => (
+      <Loads context="randomDog" fn={fetchRandomDog}>
+        {({ response, error, isPending, isResolved, isRejected }) => (
           <div>
-            {isPending && <div>loading...</div>}
-            {isResolved && (
-              <div>
-                <div>
-                  <img src={response.data.message} width="300px" alt="Dog" />
-                </div>
-                <button onClick={load}>Load another</button>
-              </div>
-            )}
-            {isRejected && <div type="danger">{error.message}</div>}
+            {isPending && 'Loading...'}
+            {isResolved && <img src={response.imgSrc} />}
+            {isRejected && `Oh no! ${error.message}`}
           </div>
         )}
       </Loads>
@@ -242,19 +131,457 @@ class DogApp extends React.Component {
 }
 ```
 
-## [See a demo](https://jxom.github.io/react-loads/)
+[See the CodeSandbox example](https://codesandbox.io/s/react-loads-basic-example-class-component-3vg8v)
 
-## More examples
+### More examples
 
-- [Stories](./src/__stories__/index.stories.js)
-- [Tests](./src/__tests__/useLoads.test.tsx)
+- [Basic](./examples/basic)
+- [Top movies](./examples/top-movies)
+- [Resources](./examples/with-resources)
+- [Typescript](./examples/with-typescript)
+- Render-as-you-fetch
+  - [Basic](./examples/render-as-you-fetch/basic)
+  - [Resources](./examples/render-as-you-fetch/with-resources)
+- [Stories](https://jxom.github.io/react-loads/)
 
-# Guides
+## Guides
 
-## Resources ([API](#resource--createresourceoptions))
+### Starting out
 
-For loading functions which may be used & invoked in many parts of your application, it may make sense to hoist and encapsulate them into resources.
-A resource consists of one (or more) loading function as well as an optional namespace if you want to enable caching.
+There are two main hooks: `useLoads` & `useDeferredLoads`.
+
+- `useLoads` is called on first render,
+- `useDeferredLoads` is called when you choose to invoke it (it's deferred until later).
+
+Let's focus on the `useLoads` hook for now, we will explain `useDeferredLoads` in the next section.
+
+The `useLoads` hook accepts 3 parameters:
+
+- A [**"context key"**](#optionscontext) in the form of a **string**.
+  - It will help us with identifying/storing data, deduping your requests & updating other `useLoad`'s sharing the same context
+  - Think of it as the namespace for your data
+- An [**"async function"**](#optionsfn) in the form of a **function that returns a promise**
+  - This will be the function to resolve the data
+- An optional [**"config"**](#config) in the form of an **object**
+
+```jsx
+import React from 'react';
+import * as Loads from 'react-loads';
+
+async function fetchRandomDog() {
+  // Dog fetcher logic here!
+  // You can use any type of backend here - REST, GraphQL, you name it!
+}
+
+export default function RandomDog() {
+  const {
+    response,
+    error,
+    load,
+    isPending,
+    isReloading,
+    isResolved,
+    isRejected
+  } = Loads.useLoads('randomDog', fetchRandomDog);
+  return (
+    <div>
+      {isPending && 'Loading...'}
+      {isResolved && (
+        <div>
+          <img src={response.imgSrc} />
+          <button onClick={load} disabled={isReloading}>Load another</button>
+        </div>
+      )}
+      {isRejected && `Oh no! ${error.message}`}
+    </div>
+  )
+}
+```
+
+[See the CodeSandbox example](https://codesandbox.io/s/react-loads-basic-example-38biz)
+
+The `useLoads` hook represents a finite state machine and returns a set of state variables:
+
+- `isIdle` if the async function hasn't been invoked yet (relevant for `useDeferredLoads`)
+- `isPending` for when the async function is loading
+- `isReloading` for when the async function is reloading (typically when `load` is manually invoked, or data exists in the cache)
+- `isResolved` for when the async function has resolved
+- `isRejected` for when the async function has errored
+
+It also returns a `response` variable if your function resolves, and an `error` variable if rejected.
+
+If you want to reload your data, `useLoads` also returns a `load` variable, which you can invoke.
+
+The `useLoads` hook returns [some other variables](#returns) as well.
+
+### Deferring
+
+Sometimes you don't want your async function to be invoked straight away. This is where the `useDeferredLoads` hook can be handy. It waits until you manually invoke it.
+
+```jsx
+import React from 'react';
+import * as Loads from 'react-loads';
+
+async function fetchRandomDog() {
+  // Dog fetcher logic here!
+  // You can use any type of backend here - REST, GraphQL, you name it!
+}
+
+export default function RandomDog() {
+  const {
+    response,
+    error,
+    load,
+    isIdle,
+    isPending,
+    isReloading,
+    isResolved,
+    isRejected
+  } = Loads.useDeferredLoads('randomDog', fetchRandomDog);
+  return (
+    <div>
+      {isIdle && <button onClick={load}>Load a dog</button>}
+      {isPending && 'Loading...'}
+      {isResolved && (
+        <div>
+          <img src={response.imgSrc} />
+          <button onClick={load} disabled={isReloading}>Load another</button>
+        </div>
+      )}
+      {isRejected && `Oh no! ${error.message}`}
+    </div>
+  )
+}
+```
+
+[See the CodeSandbox example](https://codesandbox.io/s/react-loads-basic-example-usedeferredloads-ev3vi)
+
+In the above example, the dog image is fetched via the `load` variable returned from `useDeferredLoads`.
+
+There are also some cases where including a **context key** may not make sense. You can omit it if you want like so:
+
+```js
+const { ... } = useDeferredLoads(fetchRandomDog);
+```
+
+### Configuration
+
+You can set configuration on either a global level, or a local `useLoads` level.
+
+#### On a global level
+
+By setting configuration on a global level, you are setting defaults for all instances of `useLoads`.
+
+```jsx
+import * as Loads from 'react-loads';
+
+const config = {
+  dedupingInterval: 1000,
+  timeout: 3000
+};
+
+export default function App() {
+  return (
+    <Loads.Provider config={config}>
+      ...
+    <Loads.Provider>
+  )
+}
+```
+
+> Warning: The `config` prop must be memoized. Either memoize it using `React.useMemo` or put it outside of the function component.
+
+[See the full set of configuration options here](#config-1)
+
+#### On a `useLoads` level
+
+By setting configuration on a `useLoads` level, you are overriding any defaults set by `Loads.Provider`.
+
+```jsx
+const { ... } = useLoads('randomDog', fetchRandomDog, { dedupingInterval: 1000, timeout: 3000 });
+```
+
+[See the full set of configuration options here](#config-1)
+
+### Variables
+
+If your async function needs some dependant variables (such as an ID or query parameters), use the `variables` attribute in the `useLoads` config:
+
+```jsx
+async function fetchDog(id) {
+  return axios.get(`https://dog.api/${id}`);
+}
+
+export default function DogImage(props) {
+  const { ... } = useLoads('dog', fetchDog, { variables: [props.id] });
+}
+```
+
+[See the CodeSandbox example](https://codesandbox.io/s/react-loads-variables-o6l5d)
+
+The `variables` attribute accepts an array of values. If your async function accepts more than one argument, you can pass through just as many values to `variables` as the function accepts:
+
+```jsx
+async function fetchDog(id, foo, bar) {
+  // id = props.id
+  // foo = { hello: 'world' }
+  // bar = true
+  return axios.get(`https://dog.api/${id}`);
+}
+
+export default function DogImage(props) {
+  const { ... } = useLoads('dog', fetchDog, {
+    variables: [props.id, { hello: 'world' }, true]
+  });
+}
+```
+
+#### WARNING!
+
+It may be tempting to not use the `variables` attribute at all, and just use the dependencies outside the scope of the function itself. While this works, it will probably produce unexpected results as the cache looks up the record against the **context key (`'dog'`)** and the set of **`variables`**. However, in this case, it will only look up the record against the `'dog'` context key meaning that every response will be stored against that key.
+
+```jsx
+// DON'T DO THIS! IT WILL CAUSE UNEXPECTED RESULTS!
+
+export default function DogImage(props) {
+  const id = props.id;
+  const fetchDog = React.useCallback(() => {
+    return axios.get(`https://dog.api/${id}`);
+  })
+  const { ... } = useLoads('dog', fetchDog);
+}
+```
+
+### Conditional loaders
+
+If you want to control when `useLoads` invokes it's async function via a variable, you can use the `defer` attribute in the config.
+
+```jsx
+export default function RandomDog(props) {
+  // Don't fetch until shouldFetch is truthy.
+  const { ... } = useLoads('randomDog', fetchRandomDog, {
+    defer: !props.shouldFetch
+  });
+}
+```
+
+[See the CodeSandbox example](https://codesandbox.io/s/react-loads-conditional-fetching-bi8b2)
+
+### Dependant loaders
+
+There may be a case where one `useLoads` depends on the data of another `useLoads`, where you don't want subsequent `useLoads` to invoke the async function until the first `useLoads` resolves.
+
+If you pass a function to `variables` and the function throws (due to `dog` being undefined), then the async function will be deferred while it is undefined. As soon as `dog` is defined, then the async function will be invoked.
+
+```jsx
+export default function RandomDog(props) {
+  const { response: dog } = useLoads('randomDog', fetchRandomDog);
+  const { response: friends } = useLoads('dogFriends', fetchDogFriends, {
+    variables: () => [dog.id]
+  })
+}
+```
+
+[See the CodeSandbox example](https://codesandbox.io/s/react-loads-dependant-loaders-9hojp)
+
+### Caching
+
+Caching in React Loads comes for free with no initial configuration. React Loads uses the "stale while revalidate" strategy, meaning that `useLoads` will serve you with cached (stale) data, while it loads new data (revalidates) in the background, and then show the new data (and update the cache) to the user.
+
+#### Caching strategy
+
+React Loads uses the `context` argument given to `useLoads` to store the data in-memory against a **"cache key"**. If `variables` are present, then React Loads will generate a hash and attach it to the **cache key**. In a nutshell, **`cache key = context + variables`**.
+
+```jsx
+// The response of this will be stored against a "cache key" of `dog.1`
+const { ... } = useLoads('dog', fetchDog, { variables: [1] });
+```
+
+React Loads will automatically revalidate whenever the cache key (`context` or `variables`) changes.
+
+```jsx
+// The fetchDog function will be fetched again if `props.context` or `props.id` changes.
+const { ... } = useLoads(props.context, fetchDog, { variables: [props.id] });
+```
+
+You can change the caching behaviour by specifying a [`cacheStrategy` config option](#cachestrategy). By default, this is set to `"context-and-variables"`, meaning that the cache key will be a combination of the `context` + `variables`.
+
+```jsx
+// The response of this will be stored against a `dog` key, ignoring the variables.
+const { ... } = useLoads('dog', fetchDog, { cacheStrategy: 'context-only', variables: [props.id] });
+```
+
+
+#### Stale data & revalidation
+
+By default, React Loads automatically revalidates data in the cache after **5 minutes**. That is, when the `useLoads` is invoked and React Loads detects that the data is stale (hasn't been updated for 5 minutes), then `useLoads` will invoke the async function and update the cache with new data. You can change the revalidation time using the [`revalidateTime` config option](#revalidatetime).
+
+```jsx
+// Set it globally:
+import * as Loads from 'react-loads';
+
+const config = {
+  revalidateTime: 600000
+}
+
+export default function App() {
+  return (
+    <Loads.Provider config={config}>
+      ...
+    </Loads.Provider>
+  )
+}
+
+// Or, set it locally:
+export default function RandomDog() {
+  const { ... } = useLoads('randomDog', fetchRandomDog, { revalidateTime: 600000 });
+}
+```
+
+#### Cache expiry
+
+React Loads doesn't set a cache expiration by default. If you would like to set one, you can use the [`cacheTime` config option](#cachetime).
+
+```jsx
+// Set it globally:
+import * as Loads from 'react-loads';
+
+const config = {
+  cacheTime: 600000
+}
+
+export default function App() {
+  return (
+    <Loads.Provider config={config}>
+      ...
+    </Loads.Provider>
+  )
+}
+
+// Or, set it locally:
+export default function RandomDog() {
+  const { ... } = useLoads('randomDog', fetchRandomDog, { cacheTime: 600000 });
+}
+```
+
+### Slow connections
+
+On top of the `isPending` & `isReloading` states, there are substates called `isPendingSlow` & `isReloadingSlow`. If the request is still pending after 5 seconds, then the `isPendingSlow`/`isReloadingSlow` states will become truthy, allowing you to indicate to the user that the request is loading slow.
+
+```jsx
+export default function RandomDog() {
+  const { isPending, isPendingSlow } = useLoads('randomDog', fetchRandomDog);
+  return (
+    <div>
+      {isPending && `Loading... ${isPendingSlow && 'Taking a while...'}`}
+    </div>
+  )
+}
+```
+
+By default, the timeout is **5 seconds**, you can change this with the [`timeout` config option](#timeout).
+
+### Polling
+
+React Loads supports request polling (reload data every `x` seconds) with the [`pollingInterval` config option](#pollingInterval).
+
+```jsx
+// Calls fetchRandomDog every 3 seconds.
+const { ... } = useLoads('randomDog', fetchRandomDog, { pollingInterval: 3000 });
+```
+
+### Deduping
+
+By default, all your requests are deduped on an interval of **500 milliseconds**. Meaning that if React Loads sees more than one request of the same cache key in under 500 milliseconds, it will not invoke the other requests. You can change the deduping interval with the [`dedupingInterval` config option](#dedupingInterval).
+
+### Suspense
+
+To use React Loads with Suspense, you can set the [`suspense` config option](#suspense) to `true`.
+
+```jsx
+// Set it globally:
+import * as Loads from 'react-loads';
+
+const config = {
+  suspense: true
+}
+
+export default function App() {
+  return (
+    <Loads.Provider config={config}>
+      ...
+    </Loads.Provider>
+  )
+}
+
+// Or, set it locally:
+export default function RandomDog() {
+  const { ... } = useLoads('randomDog', fetchRandomDog, { suspense: true });
+}
+```
+
+Once enabled, you can use the `React.Suspense` component to replicate the `isPending` state, and use [error boundaries]() to display error states.
+
+```jsx
+function RandomDog() {
+  const { response } = useLoads('randomDog', fetchRandomDog, { suspense: true });
+  return <img src={response.imgSrc} />;
+}
+
+function App() {
+  return (
+    <React.Suspense fallback={<div>loading...</div>}>
+      <RandomDog />
+    </React.Suspense>
+  )
+}
+```
+
+### Optimistic responses
+
+React Loads has the ability to optimistically update your data while it is still waiting for a response (if you know what the response will potentially look like). Once a response is received, then the optimistically updated data will be replaced by the response. [This article](https://uxplanet.org/optimistic-1000-34d9eefe4c05) explains the gist of optimistic UIs pretty well.
+
+The `setResponse` function is provided in a `meta` object as seen below.
+
+```jsx
+import React from 'react';
+import * as Loads from 'react-loads';
+
+async function fetchDog(id) {
+  // Fetch the dog
+}
+
+function updateDog(id, data) {
+  return async meta => {
+    meta.setResponse(data);
+    // Fetch the dog
+  }
+}
+
+export default function RandomDog(props) {
+  const dogRecord = Loads.useLoads('dog', fetchDog, { variables: [props.id] });
+
+  const updateDogRecord = Loads.useDeferredLoads('dog', updateDog);
+
+  return (
+    <div>
+      {dogRecord.isPending && 'Loading...'}
+      {dogRecord.isResolved && <img src={dogRecord.response.imgSrc} />}
+      {dogRecord.isRejected && `Oh no! ${dogRecord.error.message}`}
+      <button
+        onClick={() => updateDogRecord.load(props.id, { imgSrc: 'cooldog.png' })}
+      >
+        Update dog
+      </button>
+    </div>
+  )
+}
+```
+
+### Resources
+
+For async functions which may be used & invoked in many parts of your application, it may make sense to hoist and encapsulate them into resources.
+A resource consists of one (or more) async function as well as a context.
 
 Below is an example of a resource and it's usage:
 
@@ -262,7 +589,7 @@ Below is an example of a resource and it's usage:
 import React from 'react';
 import * as Loads from 'react-loads';
 
-// 1. Define your loading function.
+// 1. Define your async function.
 async function getUsers() {
   const response = await fetch('/users');
   const users = await response.json();
@@ -271,20 +598,21 @@ async function getUsers() {
 
 // 2. Create your resource, and attach the loading function.
 const usersResource = Loads.createResource({
-  _namespace: 'users',
-  load: getUsers
+  context: 'users',
+  fn: getUsers
 });
 
 function MyComponent() {
   // 3. Invoke the useLoads function in your resource.
-  const getUsersLoader = usersResource.useLoads();
+  const getUsersRecord = usersResource.useLoads();
 
-  // 4. Use the loader variables:
-  const users = getUsersLoader.response || [];
+  // 4. Use the record variables:
+  const users = getUsersRecord.response || [];
+
   return (
     <div>
-      {getUsersLoader.isPending && 'loading...'}
-      {getUsersLoader.isResolved && (
+      {getUsersRecord.isPending && 'loading...'}
+      {getUsersRecord.isResolved && (
         <ul>
           {users.map(user => (
             <li key={user.id}>
@@ -298,13 +626,15 @@ function MyComponent() {
 }
 ```
 
-You can attach more than one loading function to a resource. **But it's return value must be the same schema, as every response will update the cache.**.
+[See the CodeSandbox example](https://codesandbox.io/s/react-loads-resources-dg9xo)
 
-You can also provide an array of 2 items to the resource creator (seen below with `delete`); the first item being the loading function, and the second being the [loading config](#config).
+You can attach more than one loading function to a resource. **But it's return value must be the same schema, as every response will update the cache.**
 
-Here is an extended example using a resource with multiple loading functions, split into two files (`resources/users.js` & `index.js`):
+You can also provide an array of 2 items to the resource creator (seen below with `delete`); the first item being the async function, and the second being the [config](#config-1).
 
-### `resources/users.js`
+Here is an extended example using a resource with multiple async functions, split into two files (`resources/users.js` & `index.js`):
+
+#### `resources/users.js`
 ```jsx
 import * as Loads from 'react-loads';
 
@@ -314,15 +644,17 @@ async function getUser(id) {
   return user;
 }
 
-async function updateUser(id, data, { cachedRecord }) {
-  await fetch(`/users/${id}`, {
-    method: 'post',
-    body: JSON.stringify(data)
-  });
-  // `cachedRecord` is the record that's currently stored in the cache.
-  const currentUser = cachedRecord.response;
-  const updatedUser = { ...currentUser, ...data };
-  return updatedUser;
+function updateUser(id, data) {
+  return async meta => {
+    await fetch(`/users/${id}`, {
+      method: 'post',
+      body: JSON.stringify(data)
+    });
+    // `cachedRecord` is the record that's currently stored in the cache.
+    const currentUser = meta.cachedRecord.response;
+    const updatedUser = { ...currentUser, ...data };
+    return updatedUser;
+  }
 }
 
 async function deleteUser(id) {
@@ -331,54 +663,47 @@ async function deleteUser(id) {
 }
 
 export default Loads.createResource({
-  _namespace: 'user',
-  load: getUser,
-  // You can supply either a loading function, or an array of loading function/config pairs.
-  create: [updateUser, { defer: true }],
-  delete: [deleteUser, { defer: true }]
+  context: 'user',
+  fn: getUser,
+  // You can supply either a async function, or an array of async function/config pairs.
+  update: [updateUser, { timeout: 3000 }],
+  delete: deleteUser
 });
 ```
 
-### `index.js`
+#### `index.js`
 
 ```jsx
 import React from 'react';
 
-import AddUserForm from './AddUserForm';
+import DeleteUserButton from './DeleteUserButton';
+import UpdateUserForm from './UpdateUserForm';
 import usersResource from './resources/users';
 
 function MyComponent(props) {
   const { userId } = props;
 
-  /**
-   * For singular resources, it's important to supply an `id` so it can
-   * be stored/retrieved from it's own respective cache record. If an `id`
-   * is not supplied, then it will use the "user" cache record for every user,
-   * meaning "user" will be overridden with different users.
-   */
-  const getUserLoader = usersResource.useLoads({
-    id: userId,
-    args: [userId]
+  const getUserRecord = usersResource.useLoads({
+    variables: [userId]
   });
-  const user = getUserLoader.response || {};
+  const user = getUserRecord.response || {};
 
-  const updateUserLoader = usersResource.create.useLoads({ id: userId });
-
-  const deleteUserLoader = usersResource.delete.useLoads({ id: userId, args: [userId] });
+  const updateUserRecord = usersResource.update.useDeferredLoads({ variables: [userId] });
+  const deleteUserRecord = usersResource.delete.useDeferredLoads({ variables: [userId] });
 
   return (
     <div>
-      {getUserLoader.isPending && 'loading...'}
-      {getUserLoader.isResolved && (
+      {getUserRecord.isPending && 'loading...'}
+      {getUserRecord.isResolved && (
         <div>
           Username: {user.name}
 
           <DeleteUserButton
-            isLoading={deleteUserLoader.isPending}
-            onClick={deleteUserLoader.load}
+            isLoading={deleteUserRecord.isPending}
+            onClick={deleteUserRecord.load}
           />
 
-          <UpdateUserForm onSubmit={data => updateUserLoader.load(userId, data)} />
+          <UpdateUserForm onSubmit={data => updateUserRecord.load(userId, data)} />
         </div>
       )}
     </div>
@@ -386,73 +711,40 @@ function MyComponent(props) {
 }
 ```
 
-## Caching response data
-
-### Basic cache
-
-React Loads has the ability to cache the response and error data. The cached data will persist while the application is mounted, however, will clear when the application is unmounted (on page refresh or window close). Here is an example to use it:
-
-```jsx
-import React from 'react';
-import { useLoads } from 'react-loads';
-
-export default function DogApp() {
-  const getRandomDog = React.useCallback(() => axios.get('https://dog.ceo/api/breeds/image/random'), []);
-  const { response, error, load, Pending, Resolved, Rejected } = useLoads(getRandomDog, { context: 'random-dog' });
-
-  return (
-    <div>
-      {isPending && 'Loading...'}
-      {isResolved && (
-        <div>
-          <img src={response.data.message} width="300px" alt="Dog" />
-          <button onClick={load}>Load another</button>
-        </div>
-      )}
-      {isRejected && (
-        <div>{error.message}</div>
-      )}
-    </div>
-  );
-}
-```
-
-> NOTE: If you are using [resources](#resources), and provide a namespace (`_namespace`). Then caching comes for free.
-
-## External cache
-
-### Global cache provider
+### External cache providers
 
 If you would like the ability to persist response data upon unmounting the application (e.g. page refresh or closing window), a cache provider can also be utilised to cache response data.
 
-Here is an example using [Store.js](https://github.com/marcuswestin/store.js/) and setting the cache provider on an application level using `<LoadsContext.Provider>`. If you would like to set a cache provider on a hooks level with `useLoads`, see [Local cache provider](#local-cache-provider).
+Here is an example using [Store.js](https://github.com/marcuswestin/store.js/). You can either set the external cache provider on a global level or a `useLoads` level.
 
-`index.js`
+#### On a global level
+
 ```jsx
-import React from 'react';
-import ReactDOM from 'react-dom';
-import { LoadsContext } from 'react-loads';
+import * as Loads from 'react-loads';
+import store from 'store';
 
-const cacheProvider = {
-  get: key => store.get(key),
-  set: (key, val) => store.set(key, val)
-  reset: () => store.clearAll()
+const config = {
+  cacheProvider: {
+    get: key => store.get(key),
+    set: (key, val) => store.set(key, val),
+    reset: () => store.clearAll()
+  }
 }
 
-ReactDOM.render(
-  <LoadsContext.Provider cacheProvider={cacheProvider}>
-    {/* ... */}
-  </LoadsContext.Provider>
-)
+export default function App() {
+  return (
+    <Loads.Provider config={config}>
+      ...
+    </Loads.Provider>
+  )
+}
 ```
 
-### Local cache provider
-
-A cache provider can also be specified on a component level with `useLoads`. If a `cacheProvider` is provided to `useLoads`, it will override the global cache provider if one is already set.
+#### On a `useLoads` level
 
 ```jsx
-import React from 'react';
-import { useLoads } from 'react-loads';
+import * as Loads from 'react-loads';
+import store from 'store';
 
 const cacheProvider = {
   get: key => store.get(key),
@@ -460,188 +752,29 @@ const cacheProvider = {
   reset: () => store.clearAll()
 }
 
-export default function DogApp() {
-  const getRandomDog = React.useCallback(() => axios.get('https://dog.ceo/api/breeds/image/random'), []);
-  const { response, error, load, Pending, Resolved, Rejected } = useLoads(getRandomDog, {
-    cacheProvider,
-    context: 'random-dog'
-  });
-
-  return (
-    <div>
-      {isPending && 'Loading...'}
-      {isResolved && (
-        <div>
-          <img src={response.data.message} width="300px" alt="Dog" />
-          <button onClick={load}>Load another</button>
-        </div>
-      )}
-      {isRejected && (
-        <div>{error.message}</div>
-      )}
-    </div>
-  );
+export default function RandomDog() {
+  const { ... } = Loads.useLoads('randomDog', fetchRandomDog, { cacheProvider });
 }
 ```
 
-## Optimistic responses
+### Preloading (experimental)
 
-React Loads has the ability to optimistically update your data while it is still waiting for a response (if you know what the response will potentially look like). Once a response is received, then the optimistically updated data will be replaced by the response. [This article](https://uxplanet.org/optimistic-1000-34d9eefe4c05) explains the gist of optimistic UIs pretty well.
-
-The `setResponse` and `setError` functions are provided as the last argument of your loading function (`load`). The interface for these functions, along with an example implementation are seen below.
-
-### setResponse(data[, opts[, callback]]) / setError(data[, opts[, callback]])
-
-Optimistically sets a successful response or error.
-
-#### data
-
-> `Object` or `function(currentData) {}` | required
-
-The updated data. If a function is provided, then the first argument will be the current loaded (or cached) data.
-
-#### opts
-
-> `Object{ context }`
-
-##### opts.context
-
-> `string` | optional
-
-The context where the data will be updated. If not provided, then it will use the `context` prop specified in `useLoads`. If a `context` is provided, it will update the responses of all `useLoads` using that context immediately.
-
-#### callback
-
-> function(currentData) {}
-
-A callback can be also provided as a *second or third* parameter to `setResponse`, where the first and only parameter is the current loaded (or cached) response (`currentData`).
-
-### Basic example
+React Loads comes with the ability to eagerly preload your data. You can do so using the `preload` function.
 
 ```jsx
-import React from 'react';
-import { useLoads } from 'react-loads';
-
-export default function DogApp() {
-  const getRandomDog = React.useCallback(({ setResponse }) => {
-    setResponse({ data: { message: 'https://images.dog.ceo/breeds/doberman/n02107142_17147.jpg' } })
-    return axios.get('https://dog.ceo/api/breeds/image/random');
-  }, []);
-  const { response, error, load, isRejected, isPending, isResolved } = useLoads(getRandomDog);
-
-  return (
-    <div>
-      {isPending && 'Loading...'}
-      {isResolved && (
-        <div>
-          <img src={response.data.message} width="300px" alt="Dog" />
-          <button onClick={load}>Load another</button>
-        </div>
-      )}
-      {isRejected && (
-        <div>{error.message}</div>
-      )}
-    </div>
-  );
-}
+const randomDogLoader = Loads.preload('randomDog', fetchRandomDog);
 ```
 
-### Example updating another `useLoads` optimistically
+The `preload` function shares the same arguments as the `useLoads` function, however, `preload` is not a React Hook and shouldn't be called in your render function. Instead, use it inside event handlers, route preparation, or call it on first render.
+
+The `preload` function will essentially fetch & cache your data in the background. It does not return any value apart from a `useLoads` hook. When the `useLoads` hook is invoked, it will read the data from the cache that was previously loaded by `preload`, and won't re-fetch your data. If no cached data exists, it will go ahead and fetch it.
 
 ```jsx
-import React from 'react';
-import { useLoads } from 'react-loads';
-
-export default function DogApp() {
-  const createDog = React.useCallback(async (dog, { setResponse }) => {
-    setResponse(dog, { context: 'dog' });
-    // ... - create the dog
-  }, [])
-  const createDogLoader = useLoads(createDog, { defer: true });
-
-  const getDog = React.useCallback(async () {
-    // ... - fetch and return the dog
-  }, []);
-  const getDogLoader = useLoads(getDog, { context: 'dog' });
-
-  return (
-    <React.Fragment>
-      <button onClick={() => createDogLoader.load({ name: 'Teddy', breed: 'Groodle' })}>Create</button>
-      {getDogLoader.response && <div>{getDogLoader.response.name}</div>}
-    </React.Fragment>
-  )
-}
-```
-
-## Updating resources
-
-Instead of using multiple `useLoads`'s to provide a way to update/amend a resource, you are able to specify an `update` function which mimics the `load` function. In order to use the `update` function, you must have a `load` function which shares the same response schema as your `update` function.
-
-Here's an example of how you could use an update function:
-
-```jsx
-import React from 'react';
-import { useLoads } from 'react-loads';
-
-export default function DogApp() {
-  const getRandomDog = React.useCallback(() => axios.get('https://dog.ceo/api/breeds/image/random'), []);
-  const getRandomDoberman = React.useCallback(() => axios.get('https://dog.ceo/api/breed/doberman/images/random'), []);
-  const getRandomPoodle = React.useCallback(() => axios.get('https://dog.ceo/api/breed/poodle/images/random'), []);
-  const {
-    response,
-    load,
-    update: [loadDoberman, loadPoodle],
-    isPending,
-    isResolved
-  } = useLoads(getRandomDog, {
-    update: [getRandomDoberman, getRandomPoodle]
-  });
-
-  return (
-    <div>
-      {isPending && 'Loading...'}
-      {isResolved && (
-        <div>
-          <div>
-            <img src={response.data.message} width="300px" alt="Dog" />
-          </div>
-          <button onClick={load}>Load another random dog</button>
-          <button onClick={loadDoberman}>Load doberman</button>
-          <button onClick={loadPoodle}>Load poodle</button>
-        </div>
-      )}
-    </div>
-  );
-}
-```
-
-## Suspense (Experimental)
-
-React Loads supports [React's Suspense API](https://reactjs.org/docs/concurrent-mode-reference.html#suspense) allowing you to guard your data-fetching component under a `<Suspense>` component, where the `fallback` will be rendered when the data is fetching.
-
-```jsx
-import React from 'react';
-import { useLoads } from 'react-loads';
+const randomDogLoader = Loads.preload('randomDog', fetchRandomDog);
 
 function RandomDog() {
-  const getRandomDog = React.useCallback(() => {
-    return axios.get('https://dog.ceo/api/breeds/image/random')
-  }, []);
-  const { response, error, load, isRejected, isPending, isResolved } = useLoads(getRandomDog, { suspense: true });
-
-  return (
-    <div>
-      {isResolved && (
-        <div>
-          <div>
-            <img src={response.data.message} width="300px" alt="Dog" />
-          </div>
-          <button onClick={load}>Load another</button>
-        </div>
-      )}
-      {isRejected && <div type="danger">{error.message}</div>}
-    </div>
-  );
+  const { response } = randomDogLoader.useLoads({ suspense: true });
+  return <img src={response.imgSrc} />;
 }
 
 function App() {
@@ -653,499 +786,558 @@ function App() {
 }
 ```
 
-### [See the example](./examples/with-suspense)
+[See the CodeSandbox example](https://codesandbox.io/s/react-loads-preloading-example-vn1xn)
 
-## Concurrent React (Experimental)
+#### Render-as-you-fetch
 
-React Loads supports [Concurrent React & Suspense](https://reactjs.org/docs/concurrent-mode-intro.html). Concurrent features in React Loads are only supported in [resources](#resources-apiresource--createresourceoptions) and can be used with the `unstable_load` function:
+The `preload` function is designed to implement the ["render-as-you-fetch" pattern](https://reactjs.org/docs/concurrent-mode-suspense.html#approach-3-render-as-you-fetch-using-suspense). Ideally, `preload` can be invoked when preparing your routes, or inside an event handler, where you can then use the `useLoads` function inside your component.
 
-> Note: in order to use these features, you must be running [experimental React](https://reactjs.org/docs/concurrent-mode-adoption.html).
+[See the CodeSandbox example](https://codesandbox.io/s/react-loads-preloading-example-render-as-you-fetch-vvulq)
 
-```jsx
-import React from 'react';
-import * as Loads from 'react-loads';
+## API
 
-// 1. Define your loading function.
-async function getUsers() {
-  const response = await fetch('/users');
-  const users = await response.json();
-  return users;
-}
-
-// 2. Create a resource.
-const usersResource = Loads.createResource({
-  _namespace: 'users',
-  load: getUsers
-});
-
-function UsersList() {
-  // 3. Invoke your loading function.
-  const users = usersResource.unstable_load();
-
-  // 5. Once the loading function has resolved, the list will render.
-  return (
-    <ul>
-      {users.map(user => (
-        <li key={user.id}>
-          {user.name}
-        </li>
-      ))}
-    </ul>
-  )
-}
-
-function App() {
-  // 4. Wrap your UsersList in a <Suspense> to "catch" the loading state.
-  return (
-    <React.Suspense fallback={<div>Loading...</div>}>
-      <UsersList />
-    </React.Suspense>
-  )
-}
-```
-
-### [See the example](./examples/with-concurrent-react)
-
-# API
-
-## `loader = useLoads(load[, config[, inputs]])`
-
-> returns [an object (`loader`)](#loader)
-
-### load
-
-> `function(...args, { cachedRecord, setResponse, setError })` | returns `Promise` | required
-
-The function to invoke. **It must return a promise.**
-
-The argument `cachedRecord` is the stored record in the cache (if exists). It uses the [`context` option](#context) to retrieve the cache record.
-
-The arguments `setResponse` & `setError` are optional and are used for optimistic responses. [Read more on optimistic responses](#optimistic-responses).
-
-### config
-
-##### defer
-
-> `boolean` | default: `false`
-
-By default, the loading function will be invoked on initial render. However, if you want to defer the loading function (call the loading function at another time), then you can set `defer` to true.
-
-> If `defer` is set to true, the initial loading state will be `"idle"`.
-
-Example:
+### `useLoads`
 
 ```jsx
-const getRandomDog = React.useCallback(() => axios.get('https://dog.ceo/api/breeds/image/random'), []);
 const {
   response,
   error,
   load,
   isIdle,
   isPending,
+  isPendingSlow,
+  isReloading,
+  isReloadingSlow,
   isResolved,
-  isRejected
-} = useLoads(getRandomDog, { defer: true });
-
-return (
-  <div>
-    {isIdle && <button onClick={load}>Load dog</button>}
-    {isPending && 'Loading...'}
-    {isResolved && (
-      <div>
-        <img src={response.data.message} width="300px" alt="Dog" />
-        <button onClick={load}>Load another</button>
-      </div>
-    )}
-    {isRejected && (
-      <div>{error.message}</div>
-    )}
-  </div>
-);
+  isRejected,
+  reset,
+  state,
+  isCached
+} = useLoads(context, fn, config);
 ```
 
-##### delay
+#### Parameters
 
-> `number` | default: `0`
-
-Number of milliseconds before the component transitions to the `'pending'` state upon invoking `load`.
-
-##### context
+`context`
 
 > `string`
 
-Unique identifier for the promise (`load`). Enables the ability to [persist the response data](#caching-response-data). If `context` changes, then `load` will be invoked again.
+A unique identifier for the request.
 
-##### id
+`fn`
 
-> `string | Array<string>` | Used only with [resources](#resources-apiresource--createresourceoptions)
+> `function`
 
-A unique ID to associate with a resource. This ID is used in conjunction with the resource's namespace to set and retrieve the value from the cache.
+A function that returns a promise to retrieve your data.
 
-You can provide a unique string, or an array of unique strings.
+`config`
 
-##### args
+> `object` | optional
 
-> `Array<any>` | Used only with [resources](#resources-apiresource--createresourceoptions)
+A set of [configuration options](#config-1)
 
-The default arguments to supply to the resource's loading function.
+#### Returns
 
-##### suspense
-
-> `boolean`
-
-Enables React's Suspense mode - making `useLoads` essentially throw a promise while loading where a top-level `<Suspense>` can "catch" the promise and render a loading indicator. [See more](#suspense-experimental)
-
-##### timeout
-
-> `number` | default: `0`
-
-Number of milliseconds before the component transitions to the `'timeout'` state. Set to `0` to disable.
-
-_Note: `load` will still continue to try an resolve while in the `'timeout'` state_
-
-##### loadPolicy
-
-> `"cache-first" | "cache-and-load" | "load-only"` | default: `"cache-and-load"`
-
-A load policy allows you to specify whether or not you want your data to be resolved from the Loads cache and how it should load the data.
-
-- `"cache-first"`: If a value for the promise already exists in the Loads cache, then Loads will return the value that is in the cache, otherwise it will invoke the promise.
-
-- `"cache-and-load"`: This is the default value and means that Loads will return with the cached value if found, but regardless of whether or not a value exists in the cache, it will always invoke the promise.
-
-- `"load-only"`: This means that Loads will not return the cached data altogether, and will only return the data resolved from the promise.
-
-##### enableBackgroundStates
-
-> `boolean` | default: `false`
-
-If true and the data is in cache, `isIdle`, `isPending` and `isTimeout` will be evaluated on subsequent loads. When `false` (default), these states are only evaluated on initial load and are falsy on subsequent loads - this is helpful if you want to show the cached response and not have a idle/pending/timeout indicator when `load` is invoked again. You must have a `context` set to enable background states as it only effects data in the cache.
-
-##### cacheProvider
-
-> `Object({ get: function(key), set: function(key, val), reset: function() })`
-
-Set a custom cache provider (e.g. local storage, session storate, etc). See [external cache](#external-cache) below for an example.
-
-##### update
-
-`function(...args, { setResponse, setError })` | returns `Promise | Array<Promise>`
-
-A function to update the response from `load`. **It must return a promise.** Think of `update` like a secondary `load`, which has a different way of fetching/loading data.
-
-**IMPORTANT NOTE ON `update`**: It is recommended that your update function resolves with the same response schema as your loading function (load) to avoid erroneous & confusing behaviour in your UI.
-
-Read more on the `update` function [here](#updating-resources).
-
-### `loader`
-
-##### response
+##### `response`
 
 > `any`
 
-Response from the resolved promise (`load`).
+Response from the resolved promise (`fn`).
 
-##### error
+##### `error`
 
 > `any`
 
-Error from the rejected promise (`load`).
+Error from the rejected promise (`fn`).
 
-##### load
+##### `load`
 
-> `function(...args, { setResponse, setError })` | returns `Promise`
+> `function`
 
-Trigger to invoke [`load`](#load).
+Trigger to invoke [`fn`](#fn).
 
-The arguments `setResponse` & `setError` are optional and are used for optimistic responses. [Read more on optimistic responses](#optimistic-responses).
-
-##### update
-
-> `function(...args, { setResponse, setError })` or `Array<function(...args, { setResponse, setError })>`
-
-Trigger to invoke [`update`(#update)]
-
-##### isIdle
+##### `isIdle`
 
 > `boolean`
 
-Returns `true` if the state is idle (`load` has not been triggered).
+Returns `true` if the state is idle (`fn` has not been invoked).
 
-##### isPending
-
-> `boolean`
-
-Returns `true` if the state is pending (`load` is in a pending state).
-
-##### isTimeout
+##### `isPending`
 
 > `boolean`
 
-Returns `true` if the state is timeout (`load` is in a pending state for longer than `delay` milliseconds).
+Returns `true` if the state is pending (`fn` is in a pending state).
 
-##### isResolved
-
-> `boolean`
-
-Returns `true` if the state is resolved (`load` has been resolved).
-
-##### isRejected
+##### `isPendingSlow`
 
 > `boolean`
 
-Returns `true` if the state is rejected (`load` has been rejected).
+Returns `true` if the state is pending for longer than `timeout` milliseconds.
 
-##### Idle
+##### `isReloading`
 
-> `ReactComponent`
+> `boolean`
 
-Renders it's children when the state is idle.
+Returns `true` if the state is reloading (`fn` is in a pending state & `fn` has already been invoked or cached).
 
-[See here for an example](#usage-with-state-components)
+##### `isReloadingSlow`
 
-##### Pending
+> `boolean`
 
-> `ReactComponent`
+Returns `true` if the state is reloading for longer than `timeout` milliseconds.
 
-Renders it's children when the state is pending.
+##### `isResolved`
 
-[See here for an example](#usage-with-state-components)
+> `boolean`
 
-##### Timeout
+Returns `true` if the state is resolved (`fn` has been resolved).
 
-> `ReactComponent`
+##### `isRejected`
 
-Renders it's children when the state is timeout.
+> `boolean`
 
-[See here for an example](#usage-with-state-components)
+Returns `true` if the state is rejected (`fn` has been rejected).
 
-##### Resolved
+##### `reset`
 
-> `ReactComponent`
+> `function`
 
-Renders it's children when the state is resolved.
+Function to reset the state & response back to an idle state.
 
-[See here for an example](#usage-with-state-components)
+##### `state`
 
-##### Rejected
+> `string`
 
-> `ReactComponent`
+State of the promise (`fn`).
 
-Renders it's children when the state is rejected.
-
-[See here for an example](#usage-with-state-components)
-
-##### isCached
+##### `isCached`
 
 > `boolean`
 
 Returns `true` if data exists in the cache.
 
-### `<Loads>` Props
+### `useDeferredLoads`
 
-The `<Loads>` props mimics the `useLoads` arguments and it's config attributes.
+```jsx
+const {
+  response,
+  error,
+  load,
+  isIdle,
+  isPending,
+  isPendingSlow,
+  isReloading,
+  isReloadingSlow,
+  isResolved,
+  isRejected,
+  reset,
+  state,
+  isCached,
+  update
+} = useDeferredLoads(context, fn, config);
+// OR
+} = useDeferredLoads(fn, config);
+```
 
-### load
+#### Parameters
 
-[See here](#load)
+`context`
 
-### inputs
+> `string` | optional
 
-You can optionally pass an array of `inputs` (or an empty array), which `<Loads>` will use to determine whether or not to load the loading function. If any of the values in the `inputs` array change, then it will reload the loading function.
+A unique identifier for the request. This is optional for `useDeferredLoads`.
 
-### defer
+`fn`
 
-[See here](#defer)
+> `function`
 
-### delay
+A function that returns a promise to retrieve your data.
 
-[See here](#delay)
+`config`
 
-### context
+> `object` | optional
 
-[See here](#context)
+A set of [configuration options](#config-1)
 
-##### suspense
+#### Returns
 
-[See here](#suspense)
+[Same as `useLoads`](#useloads)
 
-### timeout
+### `useCache`
 
-[See here](#timeout)
+A hook which enables you to retrieve a record from the cache.
 
-### loadPolicy
+```jsx
+// Including `context` only
+const randomDogRecord = useCache('randomDog');
 
-[See here](#loadpolicy)
+// Including `context` & `variables`
+const dogRecord = useCache('dog', { variables: [0] });
+```
 
-### enableBackgroundStates
+#### Parameters
 
-[See here](#enablebackgroundstates)
+##### `context`
 
-### cacheProvider
+The unique identifier of the record to retrieve.
 
-[See here](#cacheprovider)
+##### `variables`
 
-### update
+An array of variables (parameters).
 
-[See here](#update)
+#### Returns
 
-## `<Loads>` Render Props
+##### `response`
 
-The `<Loads>` render props mimics the [`useLoads`' `loader`](#loader).
+> `any`
 
-> Note: `<Loads.Idle>`, `<Loads.Pending>`, `<Loads.Timeout>`, `<Loads.Resolved>` and `<Loads.Rejected>` share the same render props as `<Loads>`.
+Response of the cached record.
 
-### response
+##### `error`
 
-[See here](#response)
+> `any`
 
-### error
+Error of the cached record.
 
-[See here](#error)
+##### `state`
 
-### load
+> `any`
 
-[See here](#load-1)
+State of the cached record.
 
-### update
+### `useGetStates`
 
-[See here](#update-1)
+A hook which composes a set of records, and gives you a singular state.
 
-### isIdle
+Without using `useGetStates`, you may run into situations like this:
 
-[See here](#isidle)
+```jsx
+const randomDogRecord = useLoads('randomDog', fetchRandomDog);
+const dogFriendsRecord = useLoads('dogFriends', fetchDogFriends);
 
-### isPending
+<div>
+  {(randomDogRecord.isPending || dogFriendsRecord.isPending) && 'Loading...'}
+  {randomDogRecord.isResolved && dogFriendsRecord.isResolved && 'Loaded!'}
+</div>
+```
 
-[See here](#ispending)
+But, if you compose your records inside `useGetStates`, you can clean up your state variables:
 
-### isTimeout
+```jsx
+const randomDogRecord = useLoads('randomDog', fetchRandomDog);
+const dogFriendsLoader = useLoads('dogFriends', fetchDogFriends);
 
-[See here](#istimeout)
+const { isPending, isResolved, isRejected } = useGetStates(randomDogRecord, dogFriendsRecord);
+```
 
-### isResolved
+### `<Provider>`
 
-[See here](#isresolved)
+Set global configuration with the `<Provider>` component.
 
-### isRejected
+```jsx
+import * as Loads from 'react-loads';
 
-[See here](#isrejected)
+const config = {
+  cacheTime: 600000
+}
 
-### Idle
+export default function App() {
+  return (
+    <Loads.Provider config={config}>
+      {/* ... */}
+    </Loads.Provider>
+  )
+}
+```
 
-[See here](#idle)
+#### Props
 
-### Pending
+##### `config`
 
-[See here](#pending)
+> `Object`
 
-### Timeout
+An object of [configuration options](#config-1)
 
-[See here](#timeout)
+### `createResource`
 
-### Resolved
+```jsx
+const resource = createResource(options);
+```
 
-[See here](#resolved)
+#### Parameters
 
-### Rejected
+##### `options.context`
 
-[See here](#rejected)
+> `string`
 
-### isCached
+The context of the resource. Used to generate a cache key.
 
-[See here](#iscached)
+##### `options.fn`
 
-## `resource = createResource(options)`
+> `function`
 
-> returns an object [`resource`](#resource)
+A function that returns a promise to retrieve your data.
 
-### options
+##### Any key can be an async function!
 
-#### _namespace
-
-> string
-
-The namespace of the resource. Mostly used to namespace the cache.
-
-#### load
-
-> `function(...args, { cachedRecord, setResponse, setError })` | returns `Promise`
-
-The function to invoke. **It must return a promise.**
-
-The argument `cachedRecord` is the stored record in the cache (if exists). It uses the [`context` option](#context) to retrieve the cache record.
-
-The arguments `setResponse` & `setError` are optional and are used for optimistic responses. [Read more on optimistic responses](#optimistic-responses).
-
-#### any key is a loading function!
-
-Any key you provide to the resource is a loading function, see the example below.
+Any key you provide to the resource is an async function.
 
 ```jsx
 const dogsResource = createResource({
-  _namespace: 'dogs',
-  load: getDogs,
+  context: 'dogs',
+  fn: getDogs,
   create: createDog,
   foo: getDogFoo,
   bar: getDogBar,
   baz: getDogBaz
 });
 
-// In your function component:
+// In your function component - will invoke the `bar` async function in createResource:
 dogsResource.bar.useLoads();
 ```
 
-### `resource`
+#### Returns
 
-> Object
+##### `useLoads`
 
-The resource. Inside are the [`useLoads` hooks](#loader--useloadsload-config-inputs) (and unstable concurrent React features):
+A `useLoads` hook which can be invoked in your function component.
 
-```js
-{
-  useLoads,
-  <custom-type>: { useLoads },
-
-  // You must be running experimental React to use these functions.
-  unstable_load,
-  unstable_preload
-}
-```
-
-## `cache = useLoadsCache(context)`
-
-> returns [an object (`cache`)](#cache)
-
-### context
-
-> string
-
-The context key of the record to retrieve from cache.
-
-### `cache`
-
-> Object
-
-The cached record.
-
-### Example
+The arguments are a bit different to the standalone `useLoads` hook - it only optionally accepts a `config` object, and not a `context` or an async function (`fn`).
 
 ```jsx
-export default function DogApp() {
-  const dogRecord = useLoadsCache('dog');
-  // dogRecord = { response: { ... }, error: undefined, isIdle: false, isPending: false, isResolved, true, ... }
+resource.useLoads(config)
+```
 
-  // ...
+##### `useDeferredLoads`
+
+A `useLoads` hook which can be invoked in your function component.
+
+The arguments are a bit different to the standalone `useDeferredLoads` hook - it only optionally accepts a `config` object, and not a `context` or an async function (`fn`).
+
+```jsx
+resource.useDeferredLoads(config)
+```
+
+##### `preload` (experimental)
+
+Same as the [`preload` function](#preload-experimental), however only accepts a `config` object as it's only parameter.
+
+```jsx
+resource.preload(config)
+```
+
+[See the CodeSandbox example](https://codesandbox.io/s/react-loads-preloading-resources-example-render-as-you-fetch-p33fs)
+
+### `preload` (experimental)
+
+```jsx
+const loader = preload(context, fn, config);
+```
+
+#### Parameters
+
+`context`
+
+> `string` | optional
+
+A unique identifier for the request. This is optional for `useDeferredLoads`.
+
+`fn`
+
+> `function`
+
+A function that returns a promise to retrieve your data.
+
+`config`
+
+> `object` | optional
+
+A set of [configuration options](#config-1)
+
+#### Returns
+
+`useLoads`
+
+A `useLoads` hook which can be invoked in your function component.
+
+The arguments are a bit different to the standalone `useLoads` hook - it only optionally accepts a `config` object, and not a `context` or an async function (`fn`).
+
+```jsx
+loader.useLoads(config)
+```
+
+### Config
+
+```jsx
+config = {
+  cacheProvider,
+  cacheStrategy,
+  cacheTime,
+  context,
+  dedupingInterval,
+  delay,
+  defer,
+  initialResponse,
+  loadPolicy,
+  onReject,
+  onResolve,
+  pollingInterval,
+  pollWhenHidden,
+  rejectRetryInterval,
+  revalidateTime,
+  revalidateOnWindowFocus,
+  suspense,
+  throwError,
+  timeout,
+  update,
+  variables
 }
 ```
 
+#### `cacheProvider`
 
-# Articles
+> `{ get: function(key), set: function(key, val), reset: function() }`
 
-- [Introducing React Loads — A headless React component to handle promise states and response data](https://medium.freecodecamp.org/introducing-react-loads-a-headless-react-component-to-handle-promise-states-and-response-data-f45cb3621335)
-- [Using React Loads and caching for a simple, snappy loading UX](https://medium.com/localz-engineering/using-react-loads-and-caching-for-a-simple-snappy-loading-ux-a91506cce5d1)
+Set a custom cache provider (e.g. local storage, session storate, etc). See [external cache providers](#external-cache-providers) for an example.
 
-# Happy customers
+#### `cacheStrategy`
+
+> `string` | Default: `"context-and-variables"`
+
+The caching strategy for your loader to determine the cache key.
+
+Available values:
+
+- `"context-only"`
+  - Caches your data against the `context` key only.
+- `"context-and-variables"`
+  - Caches your data against a combination of the `context` key & `variables`.
+
+#### `cacheTime`
+
+> `number` | Default: `0`
+
+Time (in milliseconds) that the data remains in the cache. After this time, the cached data will be removed.
+
+#### `dedupingInterval`
+
+> `number` | Default: `500`
+
+Interval (in milliseconds) that requests will be deduped in this time span.
+
+#### `delay`
+
+> `number` | Default: `0`
+
+Time (in milliseconds) before the component transitions to the `"pending"` state upon invoking `fn`.
+
+#### `defer`
+
+> `boolean`
+
+If set to `true`, the async function (`fn`) won't be called automatically and will be deferred until later.
+
+If `defer` is set to true, the initial state will be `idle`.
+
+#### `initialResponse`
+
+> `any`
+
+Set initial data for the request. Useful for SSR.
+
+#### `loadPolicy`
+
+> `string` | Default: `"cache-and-load"`
+
+A load policy allows you to specify whether or not you want your data to be resolved from the Loads cache and how it should load the data.
+
+- `"cache-only"`: `useLoads` will only return data from the cache. It will not invoke the async function.
+
+- `"cache-first"`: If a value for the loader already exists in the Loads cache, then `useLoads` will return the value that is in the cache, otherwise it will invoke the async function.
+
+- `"cache-and-load"`: This is the default value and means that `useLoads` will return with the cached value if found, but regardless of whether or not a value exists in the cache, it will always invoke the async function.
+
+- `"load-only"`: This means that `useLoads` will not return the cached data altogether, and will only return the data resolved from the async function.
+
+#### `onReject`
+
+> `function(error)`
+
+A hook that is invoked when the async function (`fn`) rejects.
+
+#### `onResolve`
+
+> `function(response)`
+
+A hook that is invoked when the async function (`fn`) resolves.
+
+#### `pollingInterval`
+
+> `number`
+
+If set, then `useLoads` will invoke the async function (`fn`) every `x` amount of seconds.
+
+#### `pollWhenHidden`
+
+> `boolean` | Default: `false`
+
+If truthy, then `useLoads` will continue to poll when the window is not focused.
+
+#### `rejectRetryInterval`
+
+> `number | function(count)`
+
+If set, and `useLoads` rejects, then `useLoads` will continue to try and resolve `fn` every `x` seconds. If a function is given, you can determine the interval time with that.
+
+Example:
+
+```js
+// Retry every 1000 milliseconds.
+rejectRetryInterval: 1000
+
+// Retry every "error count" * "2000 milliseconds".
+rejectRetryInterval: count => count * 2000
+```
+
+#### `revalidateTime`
+
+> `number` | Default: `300000` (5 minutes)
+
+Time that the data in the cache remains "fresh". After this time, data in the cache will be marked as "stale", meaning that the data will have to be reloaded on next invocation.
+
+#### `revalidateOnWindowFocus`
+
+> `boolean` | Default: `false`
+
+If truthy, `useLoads` will load the async function (`fn`), when the browser window is focused again.
+
+#### `suspense`
+
+> `boolean` | Default: `false`
+
+If truthy, this will enable React Suspense mode.
+
+#### `throwError`
+
+> `boolean` | Default: `false`
+
+If truthy and the async function (`fn`) rejects, then `useLoads` or `load` will throw the error.
+
+#### `timeout`
+
+> `number` | Default: `5000` (5 seconds)
+
+Number of milliseconds before the component transitions to the `isPendingSlow` or `isReloadingSlow` state. Set to `0` to disable.
+
+Note: `useLoads` will still continue to try and resolve while in the `isPendingSlow` state
+
+#### `variables`
+
+> `Array<any>`
+
+An array of variables (parameters) to pass to your async function (`fn`).
+
+## Happy customers
 
 - "I'm super excited about this package" - [Michele Bertoli](https://twitter.com/MicheleBertoli)
 - "Love the API! And that nested ternary-boolean example is a perfect example of how messy React code commonly gets without structuring a state machine." - [David K. Piano](https://twitter.com/DavidKPiano)
@@ -1153,6 +1345,11 @@ export default function DogApp() {
 - "I used to get the shakes coding data fetch routines with React. Not anymore. Using react loads, I now achieve data fetching zen." - [Claudia Nadalin](https://github.com/thepenskefile)
 - "After seeing https://twitter.com/dan_abramov/status/1039584557702553601?lang=en, we knew we had to change our loading lifecycles; React Loads was our saviour." - [Zhe Wang](https://twitter.com/auzwang)
 
-# License
+## Acknowledgments
+
+- [David K. Piano](https://twitter.com/DavidKPiano) for state machine inspiration
+- [React Query](https://github.com/tannerlinsley/react-query) & [Zeit's SWR](https://github.com/zeit/swr) for design inspiration & ideas
+
+## License
 
 MIT © [jxom](http://jxom.io)

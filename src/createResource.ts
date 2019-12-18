@@ -1,118 +1,52 @@
-import { LoadFunction, LoadsConfig, Record } from './types';
-import useLoads from './useLoads';
-import * as constants from './constants';
+import { LoadFunction, LoadsConfig } from './types';
+import { preload } from './preload';
+import { useLoads } from './useLoads';
+import { useDeferredLoads } from './useDeferredLoads';
 
-type LoadsSuspenderOpts = { id?: string; args?: Array<unknown> };
-type ResourceOptions<R> = {
-  _namespace: string;
-  [loadKey: string]: LoadFunction<R> | [LoadFunction<R>, LoadsConfig<R> | undefined] | string;
+type ResourceOptions<Response, Err> = {
+  context: string;
+  [loadKey: string]: LoadFunction<Response> | [LoadFunction<Response>, LoadsConfig<Response, Err> | undefined] | string;
 };
 
-/* ====== START: SUSPENDER CREATOR ====== */
-
-const STATES = constants.STATES;
-
-const records = new Map();
-
-function createLoadsSuspender<R>(opts: ResourceOptions<R>, { preload = false }: { preload?: boolean } = {}) {
-  let loader = opts.load;
-  if (Array.isArray(opts.load)) {
-    loader = opts.load[0];
-  }
-
-  return ({ id, args = [] }: LoadsSuspenderOpts = {}): R | undefined => {
-    let key = opts._namespace;
-    if (id) {
-      key = `${key}.${id}`;
-    }
-
-    let record: Record<R> = records.get(key);
-    if (typeof loader !== 'function') throw new Error('TODO');
-
-    const promise = loader(...args);
-
-    if (record === undefined) {
-      record = {
-        state: STATES.PENDING,
-        promise
-      };
-      records.set(key, record);
-    }
-
-    promise
-      .then(response => {
-        record = {
-          state: STATES.RESOLVED,
-          response
-        };
-        records.set(key, record);
-      })
-      .catch(error => {
-        record = {
-          state: STATES.REJECTED,
-          error
-        };
-        records.set(key, record);
-      });
-
-    if (!preload) {
-      if (record.state === STATES.PENDING) {
-        throw record.promise;
-      }
-      if (record.state === STATES.RESOLVED && record.response) {
-        return record.response;
-      }
-      if (record.state === STATES.REJECTED) {
-        throw record.error;
-      }
-    }
-    return undefined;
-  };
-}
-
-/* ====== END: SUSPENDER CREATOR ====== */
-
-/* ====== START: HOOK CREATOR ====== */
-
-function createLoadsHook<R>(loader: LoadFunction<R>, config: LoadsConfig<R>, opts: ResourceOptions<R>) {
-  return (loadsConfig: LoadsConfig<R> | undefined, inputs: Array<any>) =>
-    useLoads(loader, { context: opts._namespace, ...config, ...loadsConfig }, inputs);
-}
-
-function createLoadsHooks<R>(opts: ResourceOptions<R>) {
+function createLoadsHooks<Response, Err>(opts: ResourceOptions<Response, Err>) {
   return Object.entries(opts).reduce((currentLoaders, [loadKey, val]) => {
     if (loadKey[0] === '_' || typeof val === 'string') return currentLoaders;
 
-    let loader = val as LoadFunction<R>;
+    let loader = val as LoadFunction<Response>;
     let config = {};
     if (Array.isArray(val)) {
       loader = val[0];
       config = val[1] || {};
     }
 
-    if (loadKey === 'load') {
+    if (loadKey === 'fn') {
       return {
         ...currentLoaders,
-        useLoads: createLoadsHook(loader, config, opts)
+        preload: (loadsConfig: LoadsConfig<Response, Err> | undefined) =>
+          preload(opts.context, loader, { ...config, ...loadsConfig }),
+        useLoads: (loadsConfig: LoadsConfig<Response, Err> | undefined) =>
+          useLoads(opts.context, loader, { ...config, ...loadsConfig }),
+        useDeferredLoads: (loadsConfig: LoadsConfig<Response, Err> | undefined) =>
+          useDeferredLoads(opts.context, loader, { ...config, ...loadsConfig })
       };
     }
 
-    config = { ...config, enableBackgroundStates: true };
     return {
       ...currentLoaders,
       [loadKey]: {
-        useLoads: createLoadsHook(loader, config, opts)
+        preload: (loadsConfig: LoadsConfig<Response, Err> | undefined) =>
+          preload(opts.context, loader, { ...config, ...loadsConfig }),
+        useLoads: (loadsConfig: LoadsConfig<Response, Err> | undefined) =>
+          useLoads(opts.context, loader, { ...config, ...loadsConfig }),
+        useDeferredLoads: (loadsConfig: LoadsConfig<Response, Err> | undefined) =>
+          useDeferredLoads(opts.context, loader, { ...config, ...loadsConfig })
       }
     };
   }, {});
 }
 
-/* ====== END: HOOK CREATOR ====== */
-
-export default function createResource<R>(opts: ResourceOptions<R>) {
+export function createResource<Response, Err>(opts: ResourceOptions<Response, Err>) {
   return {
-    ...createLoadsHooks<R>(opts),
-    unstable_load: createLoadsSuspender<R>(opts),
-    unstable_preload: createLoadsSuspender<R>(opts, { preload: true })
+    ...createLoadsHooks<Response, Err>(opts)
   };
 }

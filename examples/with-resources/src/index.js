@@ -9,48 +9,52 @@ async function getUsers() {
   return response.data;
 }
 
-async function addUser({ name }, { cachedRecord }) {
-  const response = await axios.post('https://jsonplaceholder.typicode.com/users', {
-    data: { name }
-  });
-  const currentUsers = cachedRecord.response;
-  const newUser = response.data.data;
-  return [...currentUsers, newUser];
+function addUser({ name }) {
+  return async meta => {
+    const response = await axios.post('https://jsonplaceholder.typicode.com/users', {
+      data: { name }
+    });
+    const currentUsers = meta.cachedRecord.response;
+    const newUser = response.data.data;
+    return [...currentUsers, newUser];
+  };
 }
 
-async function deleteUser(user, { cachedRecord }) {
-  await axios.delete(`https://jsonplaceholder.typicode.com/users/${user.id}`);
-  const currentUsers = cachedRecord.response;
-  const newUsers = currentUsers.filter(_user => _user.id !== user.id);
-  return newUsers;
+function deleteUser(user) {
+  return async meta => {
+    await axios.delete(`https://jsonplaceholder.typicode.com/users/${user.id}`);
+    const currentUsers = meta.cachedRecord.response;
+    const newUsers = currentUsers.filter(_user => _user.id !== user.id);
+    return newUsers;
+  };
 }
 
 export const usersResource = Loads.createResource({
-  _namespace: 'users',
-  load: getUsers,
-  add: [addUser, { defer: true }],
-  delete: [deleteUser, { defer: true }]
+  context: 'users',
+  fn: getUsers,
+  add: addUser,
+  delete: deleteUser
 });
 
 function App() {
   const [name, setName] = React.useState();
   const [deletingUserId, setDeletingUserId] = React.useState();
 
-  const getUsersLoader = usersResource.useLoads();
-  const users = getUsersLoader.response;
+  const getUsersRecord = usersResource.useLoads();
+  const users = getUsersRecord.response;
 
-  const addUserLoader = usersResource.add.useLoads();
+  const addUserRecord = usersResource.add.useDeferredLoads();
 
-  const deleteUserLoader = usersResource.delete.useLoads();
+  const deleteUserRecord = usersResource.delete.useDeferredLoads();
 
   async function handleAddUser() {
-    await addUserLoader.load({ name });
+    await addUserRecord.load({ name });
     setName('');
   }
 
   async function handleDeleteUser(user) {
     setDeletingUserId(user.id);
-    await deleteUserLoader.load(user);
+    await deleteUserRecord.load(user);
     setDeletingUserId();
   }
 
@@ -58,15 +62,15 @@ function App() {
     <ThemeProvider>
       <Container breakpoint="mobile" padding="major-2">
         <Heading fontSize="500">Users</Heading>
-        {getUsersLoader.isPending && <Spinner />}
-        {getUsersLoader.isResolved && (
+        {getUsersRecord.isPending && <Spinner />}
+        {getUsersRecord.isResolved && (
           <LayoutSet>
             <List listStyleType="disc" listStylePosition="inside">
               {users.map(user => (
                 <List.Item key={user.id}>
                   {user.name}
                   <Button
-                    isLoading={deleteUserLoader.isPending && deletingUserId === user.id}
+                    isLoading={deleteUserRecord.isReloading && deletingUserId === user.id}
                     kind="ghost"
                     marginLeft="major-1"
                     onClick={() => handleDeleteUser(user)}
@@ -80,7 +84,7 @@ function App() {
             </List>
             <Group width="300px">
               <Input placeholder="John Smith" onChange={e => setName(e.target.value)} value={name} />
-              <Button isLoading={addUserLoader.isPending} onClick={handleAddUser} palette="primary">
+              <Button isLoading={addUserRecord.isReloading} onClick={handleAddUser} palette="primary">
                 Add
               </Button>
             </Group>
@@ -92,9 +96,4 @@ function App() {
 }
 
 const rootElement = document.getElementById('root');
-ReactDOM.render(
-  <Loads.Provider>
-    <App />
-  </Loads.Provider>,
-  rootElement
-);
+ReactDOM.render(<App />, rootElement);

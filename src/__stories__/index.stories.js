@@ -1,77 +1,172 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { Alert, Box, Button, Image, Set, Spinner } from 'fannypack';
+import { Alert, Box, Button, Group, Heading, Image, Input, Set, Spinner } from 'fannypack';
 
 import { storiesOf } from '@storybook/react';
 
-import { Loads, useLoads } from '../index';
+import { cache, useCache, useGetStates, useLoads, useDeferredLoads } from '../index';
+import * as api from './api';
 
-storiesOf('useLoads (Hook)', module)
-  .add('load on mount', () => {
+storiesOf('useLoads', module)
+  .add('basic', () => {
     function Component() {
       const getRandomDog = React.useCallback(() => axios.get('https://dog.ceo/api/breeds/image/random'), []);
-      const { response, error, load, isRejected, isPending, isResolved } = useLoads(getRandomDog);
+      const randomDogRecord = useLoads('basic', getRandomDog);
+
       return (
         <Box>
-          {isPending && <Spinner size="large" />}
-          {isResolved && (
+          {randomDogRecord.isPending && <Spinner size="large" />}
+          {randomDogRecord.isResolved && (
             <Box>
               <Box>
-                <Image src={response.data.message} width="300px" alt="Dog" />
+                <Image src={randomDogRecord.response.data.message} width="300px" alt="Dog" />
               </Box>
-              <Button onClick={load}>Load another</Button>
+              <Button onClick={randomDogRecord.load} isLoading={randomDogRecord.isReloading}>
+                Load another
+              </Button>
             </Box>
           )}
-          {isRejected && <Alert type="danger">{error.message}</Alert>}
+          {randomDogRecord.isRejected && <Alert type="danger">{randomDogRecord.error.message}</Alert>}
         </Box>
       );
     }
     return <Component />;
   })
-  .add('with deferred load', () => {
+  .add('basic (deferred)', () => {
     function Component() {
       const getRandomDog = React.useCallback(() => axios.get('https://dog.ceo/api/breeds/image/random'), []);
-      const { response, error, load, isIdle, isRejected, isPending, isResolved } = useLoads(getRandomDog, {
-        defer: true
-      });
+      const randomDogRecord = useDeferredLoads('basic', getRandomDog);
+
       return (
         <Box>
-          {isIdle && <Button onClick={load}>Load dog</Button>}
-          {isPending && <Spinner size="large" />}
-          {isResolved && (
+          {randomDogRecord.isIdle && <Button onClick={randomDogRecord.load}>Load dog</Button>}
+          {randomDogRecord.isPending && <Spinner size="large" />}
+          {randomDogRecord.isResolved && (
             <Box>
               <Box>
-                <Image src={response.data.message} width="300px" alt="Dog" />
+                <Image src={randomDogRecord.response.data.message} width="300px" alt="Dog" />
               </Box>
-              <Button onClick={load}>Load another</Button>
+              <Button onClick={randomDogRecord.load} isLoading={randomDogRecord.isReloading}>
+                Load another
+              </Button>
             </Box>
           )}
-          {isRejected && <Alert type="danger">{error.message}</Alert>}
+          {randomDogRecord.isRejected && <Alert type="danger">{randomDogRecord.error.message}</Alert>}
+        </Box>
+      );
+    }
+
+    return <Component />;
+  })
+  .add('with function variables', () => {
+    function Component() {
+      const [breed, setBreed] = React.useState('beagle');
+
+      const getRandomDogByBreed = React.useCallback(
+        breed => axios.get(`https://dog.ceo/api/breed/${breed}/images/random`),
+        []
+      );
+      const randomDogRecord = useLoads('functionVariables', getRandomDogByBreed, {
+        variables: [breed]
+      });
+
+      return (
+        <Box>
+          {randomDogRecord.isPending && <Spinner size="large" />}
+          {randomDogRecord.isResolved && (
+            <Box>
+              <Box>
+                <Image src={randomDogRecord.response.data.message} width="300px" alt="Dog" />
+              </Box>
+              <Button onClick={randomDogRecord.load} isLoading={randomDogRecord.isReloading}>
+                Load another
+              </Button>
+              <Box>
+                <Button onClick={() => setBreed('doberman')}>Set to doberman</Button>
+              </Box>
+            </Box>
+          )}
+          {randomDogRecord.isRejected && <Alert type="danger">{randomDogRecord.error.message}</Alert>}
         </Box>
       );
     }
     return <Component />;
+  })
+  .add('with function variables (deferred)', () => {
+    function Component() {
+      const getRandomDogByBreed = React.useCallback(
+        breed => axios.get(`https://dog.ceo/api/breed/${breed}/images/random`),
+        []
+      );
+      const randomDogRecord = useDeferredLoads('functionVariables', getRandomDogByBreed);
+
+      return (
+        <Box>
+          {randomDogRecord.isIdle && <Button onClick={() => randomDogRecord.load('beagle')}>Load beagle</Button>}
+          {randomDogRecord.isPending && <Spinner size="large" />}
+          {randomDogRecord.isResolved && (
+            <Box>
+              <Box>
+                <Image src={randomDogRecord.response.data.message} width="300px" alt="Dog" />
+              </Box>
+              <Button onClick={() => randomDogRecord.load('beagle')} isLoading={randomDogRecord.isReloading}>
+                Load another
+              </Button>
+            </Box>
+          )}
+          {randomDogRecord.isRejected && <Alert type="danger">{randomDogRecord.error.message}</Alert>}
+        </Box>
+      );
+    }
+    return <Component />;
+  })
+  .add('suspense', () => {
+    function Component() {
+      const getRandomDog = React.useCallback(() => axios.get('https://dog.ceo/api/breeds/image/random'), []);
+      const randomDogRecord = useLoads('suspense', getRandomDog, { suspense: true });
+      return (
+        <Box>
+          {randomDogRecord.isResolved && (
+            <Box>
+              <Box>
+                <Image src={randomDogRecord.response.data.message} width="300px" alt="Dog" />
+              </Box>
+              <Button onClick={randomDogRecord.load} isLoading={randomDogRecord.isReloading}>
+                Load another
+              </Button>
+            </Box>
+          )}
+          {randomDogRecord.isRejected && <Alert type="danger">{randomDogRecord.error.message}</Alert>}
+        </Box>
+      );
+    }
+    return (
+      <React.Suspense fallback={<Spinner />}>
+        <Component />
+      </React.Suspense>
+    );
   })
   .add('custom delay', () => {
     function Component() {
       const getRandomDog = React.useCallback(() => axios.get('https://dog.ceo/api/breeds/image/random'), []);
-      const { response, error, load, isIdle, isRejected, isPending, isResolved } = useLoads(getRandomDog, {
-        defer: true,
+      const randomDogRecord = useDeferredLoads(getRandomDog, {
         delay: 1000
       });
       return (
         <Box>
-          {isIdle && <Button onClick={load}>Load dog</Button>}
-          {isPending && <Spinner size="large" />}
-          {isResolved && (
+          {randomDogRecord.isIdle && <Button onClick={randomDogRecord.load}>Load dog</Button>}
+          {randomDogRecord.isPending && <Spinner size="large" />}
+          {randomDogRecord.isResolved && (
             <Box>
               <Box>
-                <Image src={response.data.message} width="300px" alt="Dog" />
+                <Image src={randomDogRecord.response.data.message} width="300px" alt="Dog" />
               </Box>
-              <Button onClick={load}>Load another</Button>
+              <Button onClick={randomDogRecord.load} isLoading={randomDogRecord.isReloading}>
+                Load another
+              </Button>
             </Box>
           )}
-          {isRejected && <Alert type="danger">{error.message}</Alert>}
+          {randomDogRecord.isRejected && <Alert type="danger">{randomDogRecord.error.message}</Alert>}
         </Box>
       );
     }
@@ -80,23 +175,24 @@ storiesOf('useLoads (Hook)', module)
   .add('no delay', () => {
     function Component() {
       const getRandomDog = React.useCallback(() => axios.get('https://dog.ceo/api/breeds/image/random'), []);
-      const { response, error, load, isIdle, isRejected, isPending, isResolved } = useLoads(getRandomDog, {
-        defer: true,
+      const randomDogRecord = useDeferredLoads(getRandomDog, {
         delay: 0
       });
       return (
         <Box>
-          {isIdle && <Button onClick={load}>Load dog</Button>}
-          {isPending && <Spinner size="large" />}
-          {isResolved && (
+          {randomDogRecord.isIdle && <Button onClick={randomDogRecord.load}>Load dog</Button>}
+          {randomDogRecord.isPending && <Spinner size="large" />}
+          {randomDogRecord.isResolved && (
             <Box>
               <Box>
-                <Image src={response.data.message} width="300px" alt="Dog" />
+                <Image src={randomDogRecord.response.data.message} width="300px" alt="Dog" />
               </Box>
-              <Button onClick={load}>Load another</Button>
+              <Button onClick={randomDogRecord.load} isLoading={randomDogRecord.isReloading}>
+                Load another
+              </Button>
             </Box>
           )}
-          {isRejected && <Alert type="danger">{error.message}</Alert>}
+          {randomDogRecord.isRejected && <Alert type="danger">{randomDogRecord.error.message}</Alert>}
         </Box>
       );
     }
@@ -105,23 +201,24 @@ storiesOf('useLoads (Hook)', module)
   .add('with error', () => {
     function Component() {
       const getRandomDog = React.useCallback(() => axios.get('https://dog.ceo/api/breeds/sssss/random'), []);
-      const { response, error, load, isIdle, isRejected, isPending, isResolved } = useLoads(getRandomDog, {
-        defer: true,
+      const randomDogRecord = useDeferredLoads(getRandomDog, {
         delay: 1000
       });
       return (
         <Box>
-          {isIdle && <Button onClick={load}>Load dog</Button>}
-          {isPending && <Spinner size="large" />}
-          {isResolved && (
+          {randomDogRecord.isIdle && <Button onClick={randomDogRecord.load}>Load dog</Button>}
+          {randomDogRecord.isPending && <Spinner size="large" />}
+          {randomDogRecord.isResolved && (
             <Box>
               <Box>
-                <Image src={response.data.message} width="300px" alt="Dog" />
+                <Image src={randomDogRecord.response.data.message} width="300px" alt="Dog" />
               </Box>
-              <Button onClick={load}>Load another</Button>
+              <Button onClick={randomDogRecord.load} isLoading={randomDogRecord.isReloading}>
+                Load another
+              </Button>
             </Box>
           )}
-          {isRejected && <Alert type="danger">{error.message}</Alert>}
+          {randomDogRecord.isRejected && <Alert type="danger">{randomDogRecord.error.message}</Alert>}
         </Box>
       );
     }
@@ -130,114 +227,85 @@ storiesOf('useLoads (Hook)', module)
   .add('with timeout', () => {
     function Component() {
       const fn = React.useCallback(() => new Promise(res => setTimeout(() => res('this is data'), 2000)), []);
-      const { response, load, isIdle, isTimeout, isPending, isResolved } = useLoads(fn, {
-        defer: true,
+      const randomDogRecord = useDeferredLoads(fn, {
         timeout: 1000
       });
       return (
         <Box>
-          {isIdle && <Button onClick={load}>Load dog</Button>}
-          {(isPending || isTimeout) && <Spinner size="large" />}
-          {isTimeout && 'taking a while'}
-          {isResolved && <Box>{response}</Box>}
-        </Box>
-      );
-    }
-    return <Component />;
-  })
-  .add('with function arguments', () => {
-    function Component() {
-      const getRandomDogByBreed = React.useCallback(
-        breed => axios.get(`https://dog.ceo/api/breed/${breed}/images/random`),
-        []
-      );
-      const { response, error, load, isIdle, isRejected, isPending, isResolved } = useLoads(getRandomDogByBreed, {
-        defer: true
-      });
-      return (
-        <Box>
-          {isIdle && <Button onClick={() => load('beagle')}>Load beagle</Button>}
-          {isPending && <Spinner size="large" />}
-          {isResolved && (
-            <Box>
-              <Box>
-                <Image src={response.data.message} width="300px" alt="Dog" />
-              </Box>
-              <Button onClick={() => load('beagle')}>Load another</Button>
-            </Box>
-          )}
-          {isRejected && <Alert type="danger">{error.message}</Alert>}
-        </Box>
-      );
-    }
-    return <Component />;
-  })
-  .add('with state components', () => {
-    function Component() {
-      const getRandomDog = React.useCallback(() => axios.get('https://dog.ceo/api/breeds/image/random'), []);
-      const { response, error, load, Idle, Rejected, Pending, Resolved } = useLoads(getRandomDog, { defer: true });
-      return (
-        <Box>
-          <Idle>
-            <Button onClick={load}>Load dog</Button>
-          </Idle>
-          <Pending>
-            <Spinner size="large" />
-          </Pending>
-          <Resolved>
-            <Box>
-              <Box>{response && <Image src={response.data.message} width="300px" alt="Dog" />}</Box>
-              <Button onClick={load}>Load another</Button>
-            </Box>
-          </Resolved>
-          <Rejected>{error && <Alert type="danger">{error.message}</Alert>}</Rejected>
+          {randomDogRecord.isIdle && <Button onClick={randomDogRecord.load}>Load dog</Button>}
+          {(randomDogRecord.isPending || randomDogRecord.isPendingSlow) && <Spinner size="large" />}
+          {randomDogRecord.isPendingSlow && 'taking a while'}
+          {randomDogRecord.isResolved && <Box>{randomDogRecord.response}</Box>}
         </Box>
       );
     }
     return <Component />;
   })
   .add('with dependant useLoads', () => {
-    function Component() {
-      const getRandomDog = React.useCallback(() => axios.get('https://dog.ceo/api/breeds/image/random'), []);
-      const getRandomDogLoader = useLoads(getRandomDog, { defer: true });
+    function Component({ movieId }) {
+      const getMovie = React.useCallback(async movieId => {
+        const movie = await api.getMovie(movieId);
+        return movie;
+      }, []);
+      const movieRecord = useLoads('movie', getMovie, { variables: [movieId] });
+      const movie = movieRecord.response;
 
-      const saveDog = React.useCallback(
-        async () => new Promise(res => res(`Saved. Image: ${getRandomDogLoader.response.data.message}`)),
-        [getRandomDogLoader.response]
-      );
-      const saveDogLoader = useLoads(saveDog, { defer: true });
+      const getReviews = React.useCallback(async movieId => {
+        const reviews = await api.getReviewsByMovieId(movieId);
+        return reviews;
+      }, []);
+      const reviewsRecord = useLoads('reviews', getReviews, { variables: () => [movie.id] });
+      const reviews = reviewsRecord.response;
 
       return (
         <Box>
-          <getRandomDogLoader.Idle>
-            <Button onClick={getRandomDogLoader.load}>Load dog</Button>
-          </getRandomDogLoader.Idle>
-          <getRandomDogLoader.Pending>
-            <Spinner size="large" />
-          </getRandomDogLoader.Pending>
-          <getRandomDogLoader.Resolved>
+          {movieRecord.isPending && <Spinner />}
+          {movieRecord.isResolved && (
+            <Box>
+              <Box>Title: {movie.title}</Box>
+              {reviewsRecord.isResolved && reviews.map(review => review.comment)}
+            </Box>
+          )}
+        </Box>
+      );
+    }
+    return <Component movieId={1} />;
+  })
+  .add('with dependant useLoads (deferred)', () => {
+    function Component() {
+      const getRandomDog = React.useCallback(() => axios.get('https://dog.ceo/api/breeds/image/random'), []);
+      const randomDogRecord = useLoads('dependant', getRandomDog, { defer: true });
+
+      const saveDog = React.useCallback(async imageSrc => new Promise(res => res(`Saved. Image: ${imageSrc}`)), []);
+      const saveDogRecord = useDeferredLoads(saveDog, {
+        variables: () => [randomDogRecord.response.data.message]
+      });
+
+      return (
+        <Box>
+          {randomDogRecord.isIdle && <Button onClick={randomDogRecord.load}>Load dog</Button>}
+          {randomDogRecord.isPending && <Spinner size="large" />}
+          {randomDogRecord.isResolved && (
             <Box>
               <Box>
-                {getRandomDogLoader.response && (
-                  <Image src={getRandomDogLoader.response.data.message} width="300px" alt="Dog" />
+                {randomDogRecord.response && (
+                  <Image src={randomDogRecord.response.data.message} width="300px" alt="Dog" />
                 )}
               </Box>
               <Set>
-                <Button onClick={getRandomDogLoader.load}>Load another</Button>
-                <saveDogLoader.Idle>
-                  <Button isPending={saveDogLoader.isPending} onClick={saveDogLoader.load}>
+                <Button onClick={randomDogRecord.load} isLoading={randomDogRecord.isReloading}>
+                  Load another
+                </Button>
+                {saveDogRecord.isIdle && (
+                  <Button isPending={saveDogRecord.isPending} onClick={saveDogRecord.load}>
                     Save dog
                   </Button>
-                </saveDogLoader.Idle>
+                )}
               </Set>
-              <saveDogLoader.Resolved>
-                <Box>{saveDogLoader.response}</Box>
-              </saveDogLoader.Resolved>
+              {saveDogRecord.isResolved && <Box>{saveDogRecord.response}</Box>}
             </Box>
-          </getRandomDogLoader.Resolved>
-          <getRandomDogLoader.Rejected>
-            {getRandomDogLoader.error && <Alert type="danger">{getRandomDogLoader.error.message}</Alert>}
-          </getRandomDogLoader.Rejected>
+          )}
+          {randomDogRecord.isRejected && <Alert type="danger">{randomDogRecord.error.message}</Alert>}
         </Box>
       );
     }
@@ -251,23 +319,30 @@ storiesOf('useLoads (Hook)', module)
         () => axios.get(`https://dog.ceo/api/breed/${breed}/images/random`),
         [breed]
       );
-      const { response, error, isRejected, isPending, isResolved } = useLoads(getRandomDogByBreed);
+      const randomDogRecord = useLoads('inputs', getRandomDogByBreed);
 
       return (
         <Box>
-          {isPending && <Spinner size="large" />}
-          {isResolved && (
+          {randomDogRecord.isPending && <Spinner size="large" />}
+          {randomDogRecord.isResolved && (
             <Box>
               <Box>
-                <Image src={response.data.message} width="300px" alt="Dog" />
+                <Image src={randomDogRecord.response.data.message} width="300px" alt="Dog" />
               </Box>
               <Set>
-                <Button onClick={() => setBreed('beagle')}>Set to beagle</Button>
-                <Button onClick={() => setBreed('dingo')}>Set to dingo</Button>
+                <Button
+                  onClick={() => setBreed('beagle')}
+                  isLoading={breed === 'beagle' && randomDogRecord.isReloading}
+                >
+                  Set to beagle
+                </Button>
+                <Button onClick={() => setBreed('dingo')} isLoading={breed === 'dingo' && randomDogRecord.isReloading}>
+                  Set to dingo
+                </Button>
               </Set>
             </Box>
           )}
-          {isRejected && <Alert type="danger">{error.message}</Alert>}
+          {randomDogRecord.isRejected && <Alert type="danger">{randomDogRecord.error.message}</Alert>}
         </Box>
       );
     }
@@ -280,19 +355,19 @@ storiesOf('useLoads (Hook)', module)
         () => axios.get('https://dog.ceo/api/breed/doberman/images/random'),
         []
       );
-      const { response, load, update, isPending, isResolved } = useLoads(getRandomDog, {
+      const randomDogRecord = useLoads('updateFn', getRandomDog, {
         update: getRandomDoberman
       });
       return (
         <Box>
-          {isPending && <Spinner size="large" />}
-          {isResolved && (
+          {randomDogRecord.isPending && <Spinner size="large" />}
+          {randomDogRecord.isResolved && (
             <Box>
               <Box>
-                <Image src={response.data.message} width="300px" alt="Dog" />
+                <Image src={randomDogRecord.response.data.message} width="300px" alt="Dog" />
               </Box>
-              <Button onClick={load}>Load another random dog</Button>
-              <Button onClick={update}>Load doberman</Button>
+              <Button onClick={randomDogRecord.load}>Load another random dog</Button>
+              <Button onClick={randomDogRecord.update}>Load doberman</Button>
             </Box>
           )}
         </Box>
@@ -308,24 +383,21 @@ storiesOf('useLoads (Hook)', module)
         []
       );
       const getRandomPoodle = React.useCallback(() => axios.get('https://dog.ceo/api/breed/poodle/images/random'), []);
-      const {
-        response,
-        load,
-        update: [loadDoberman, loadPoodle],
-        isPending,
-        isResolved
-      } = useLoads(getRandomDog, {
+
+      const randomDogRecord = useLoads('updateFns', getRandomDog, {
         update: [getRandomDoberman, getRandomPoodle]
       });
+      const [loadDoberman, loadPoodle] = randomDogRecord.update;
+
       return (
         <Box>
-          {isPending && <Spinner size="large" />}
-          {isResolved && (
+          {randomDogRecord.isPending && <Spinner size="large" />}
+          {randomDogRecord.isResolved && (
             <Box>
               <Box>
-                <Image src={response.data.message} width="300px" alt="Dog" />
+                <Image src={randomDogRecord.response.data.message} width="300px" alt="Dog" />
               </Box>
-              <Button onClick={load}>Load another random dog</Button>
+              <Button onClick={randomDogRecord.load}>Load another random dog</Button>
               <Button onClick={loadDoberman}>Load doberman</Button>
               <Button onClick={loadPoodle}>Load poodle</Button>
             </Box>
@@ -334,335 +406,462 @@ storiesOf('useLoads (Hook)', module)
       );
     }
     return <Component />;
+  })
+  .add('with optimistic updates', () => {
+    function Component({ movieId }) {
+      const [ratingValue, setRatingValue] = React.useState();
+
+      const getMovie = React.useCallback(() => api.getMovie(movieId), [movieId]);
+      const movieRecord = useLoads('movie', getMovie);
+      const movie = movieRecord.response || {};
+
+      const updateMovie = React.useCallback(
+        () => meta => {
+          meta.setResponse(movie => ({ ...movie, imdbRating: ratingValue }));
+          return api.updateMovie(movieId, { imdbRating: ratingValue });
+        },
+        [movieId, ratingValue]
+      );
+      const updateMovieRecord = useDeferredLoads('movie', updateMovie);
+
+      return (
+        <Box>
+          {movieRecord.isPending && <Spinner size="large" />}
+          {movieRecord.isResolved && (
+            <Box>
+              <Box fontSize="400" fontWeight="semibold">
+                {movie.title}
+              </Box>
+              <Box>Rating: {movie.imdbRating}</Box>
+              <Group>
+                <Input
+                  onChange={e => setRatingValue(e.target.value)}
+                  placeholder="Enter new rating"
+                  value={ratingValue}
+                />
+                <Button onClick={updateMovieRecord.load} isLoading={updateMovieRecord.isPending}>
+                  Update
+                </Button>
+              </Group>
+            </Box>
+          )}
+          {movieRecord.isRejected && <Alert type="danger">{movieRecord.error.message}</Alert>}
+        </Box>
+      );
+    }
+    return <Component movieId={4} />;
+  })
+  .add('with onResolve', () => {
+    function Component() {
+      const getRandomDog = React.useCallback(() => axios.get('https://dog.ceo/api/breeds/image/random'), []);
+      const onResolve = React.useCallback(record => console.log('success', record), []);
+      const randomDogRecord = useLoads('basic', getRandomDog, { onResolve });
+
+      return (
+        <Box>
+          {randomDogRecord.isPending && <Spinner size="large" />}
+          {randomDogRecord.isResolved && (
+            <Box>
+              <Box>
+                <Image src={randomDogRecord.response.data.message} width="300px" alt="Dog" />
+              </Box>
+              <Button onClick={randomDogRecord.load} isLoading={randomDogRecord.isReloading}>
+                Load another
+              </Button>
+            </Box>
+          )}
+          {randomDogRecord.isRejected && <Alert type="danger">{randomDogRecord.error.message}</Alert>}
+        </Box>
+      );
+    }
+    return <Component />;
+  })
+  .add('with onReject', () => {
+    function Component() {
+      const getSomething = React.useCallback(async () => {
+        return new Promise((res, rej) => setTimeout(() => rej(new Error('This is an error.')), 1000));
+      }, []);
+      const onReject = React.useCallback(error => console.log('error', error), []);
+      const somethingRecord = useLoads('rejectHook', getSomething, { onReject });
+
+      return (
+        <Box>
+          {somethingRecord.isPending && <Spinner size="large" />}
+          {somethingRecord.isRejected && <Alert type="danger">{somethingRecord.error.message}</Alert>}
+        </Box>
+      );
+    }
+    return <Component />;
+  })
+  .add('with revalidateTime', () => {
+    function Component() {
+      const getRandomDog = React.useCallback(() => axios.get('https://dog.ceo/api/breeds/image/random'), []);
+      const randomDogRecord = useLoads('revalidateTime', getRandomDog, {
+        revalidateTime: 5000,
+        loadPolicy: 'cache-first'
+      });
+
+      return (
+        <Box>
+          {randomDogRecord.isPending && <Spinner size="large" />}
+          {randomDogRecord.isResolved && (
+            <Box>
+              <Box>
+                <Image src={randomDogRecord.response.data.message} width="300px" alt="Dog" />
+              </Box>
+              <Button onClick={randomDogRecord.load} isLoading={randomDogRecord.isReloading}>
+                Load another
+              </Button>
+            </Box>
+          )}
+          {randomDogRecord.isRejected && <Alert type="danger">{randomDogRecord.error.message}</Alert>}
+        </Box>
+      );
+    }
+    return <Component />;
+  })
+  .add('with cacheTime', () => {
+    function Component() {
+      const getRandomDog = React.useCallback(() => axios.get('https://dog.ceo/api/breeds/image/random'), []);
+      const randomDogRecord = useLoads('cacheTime', getRandomDog, {
+        cacheTime: 5000
+      });
+
+      return (
+        <Box>
+          {randomDogRecord.isPending && <Spinner size="large" />}
+          {randomDogRecord.isResolved && (
+            <Box>
+              <Box>
+                <Image src={randomDogRecord.response.data.message} width="300px" alt="Dog" />
+              </Box>
+              <Button onClick={randomDogRecord.load} isLoading={randomDogRecord.isReloading}>
+                Load another
+              </Button>
+            </Box>
+          )}
+          {randomDogRecord.isRejected && <Alert type="danger">{randomDogRecord.error.message}</Alert>}
+        </Box>
+      );
+    }
+    return <Component />;
+  })
+  .add('with dedupingInterval', () => {
+    function Component() {
+      const getRandomDog = React.useCallback(() => axios.get('https://dog.ceo/api/breeds/image/random'), []);
+      const randomDogRecord = useLoads('dedupingInterval', getRandomDog, {
+        dedupingInterval: 2000
+      });
+
+      return (
+        <Box>
+          {randomDogRecord.isPending && <Spinner size="large" />}
+          {randomDogRecord.isResolved && (
+            <Box>
+              <Box>
+                <Image src={randomDogRecord.response.data.message} width="300px" alt="Dog" />
+              </Box>
+              <Button onClick={randomDogRecord.load} isLoading={randomDogRecord.isReloading}>
+                Load another
+              </Button>
+            </Box>
+          )}
+          {randomDogRecord.isRejected && <Alert type="danger">{randomDogRecord.error.message}</Alert>}
+        </Box>
+      );
+    }
+    return <Component />;
+  })
+  .add('with pollingInterval', () => {
+    function Component() {
+      const getRandomDog = React.useCallback(() => axios.get('https://dog.ceo/api/breeds/image/random'), []);
+      const randomDogRecord = useLoads('pollingInterval', getRandomDog, {
+        pollingInterval: 2000
+      });
+
+      return (
+        <Box>
+          {randomDogRecord.isPending && <Spinner size="large" />}
+          {randomDogRecord.isResolved && (
+            <Box>
+              <Box>
+                <Image src={randomDogRecord.response.data.message} width="300px" alt="Dog" />
+              </Box>
+              <Button onClick={randomDogRecord.load} isLoading={randomDogRecord.isReloading}>
+                Load another
+              </Button>
+            </Box>
+          )}
+          {randomDogRecord.isRejected && <Alert type="danger">{randomDogRecord.error.message}</Alert>}
+        </Box>
+      );
+    }
+    return <Component />;
+  })
+  .add('with rejectRetryInterval', () => {
+    function Component() {
+      const getRandomDog = React.useCallback(() => axios.get('https://dog.ceo/api/breeds/sssss/random'), []);
+      const randomDogRecord = useDeferredLoads(getRandomDog, {
+        rejectRetryInterval: 5000
+      });
+      return (
+        <Box>
+          {randomDogRecord.isIdle && <Button onClick={randomDogRecord.load}>Load dog</Button>}
+          {randomDogRecord.isPending && <Spinner size="large" />}
+          {randomDogRecord.isResolved && (
+            <Box>
+              <Box>
+                <Image src={randomDogRecord.response.data.message} width="300px" alt="Dog" />
+              </Box>
+              <Button onClick={randomDogRecord.load} isLoading={randomDogRecord.isReloading}>
+                Load another
+              </Button>
+            </Box>
+          )}
+          {randomDogRecord.isRejected && <Alert type="danger">{randomDogRecord.error.message}</Alert>}
+        </Box>
+      );
+    }
+    return <Component />;
+  })
+  .add('with rejectRetryInterval (function)', () => {
+    function Component() {
+      const getRandomDog = React.useCallback(() => axios.get('https://dog.ceo/api/breeds/sssss/random'), []);
+      const randomDogRecord = useDeferredLoads(getRandomDog, {
+        rejectRetryInterval: count => count * 5000
+      });
+      return (
+        <Box>
+          {randomDogRecord.isIdle && <Button onClick={randomDogRecord.load}>Load dog</Button>}
+          {randomDogRecord.isPending && <Spinner size="large" />}
+          {randomDogRecord.isResolved && (
+            <Box>
+              <Box>
+                <Image src={randomDogRecord.response.data.message} width="300px" alt="Dog" />
+              </Box>
+              <Button onClick={randomDogRecord.load} isLoading={randomDogRecord.isReloading}>
+                Load another
+              </Button>
+            </Box>
+          )}
+          {randomDogRecord.isRejected && <Alert type="danger">{randomDogRecord.error.message}</Alert>}
+        </Box>
+      );
+    }
+    return <Component />;
+  })
+  .add('with load-only loadPolicy', () => {
+    function Component() {
+      const getRandomDog = React.useCallback(() => axios.get('https://dog.ceo/api/breeds/image/random'), []);
+      const randomDogRecord = useLoads('loadOnly', getRandomDog, { loadPolicy: 'load-only' });
+
+      return (
+        <Box>
+          {randomDogRecord.isPending && <Spinner size="large" />}
+          {randomDogRecord.isResolved && (
+            <Box>
+              <Box>
+                <Image src={randomDogRecord.response.data.message} width="300px" alt="Dog" />
+              </Box>
+              <Button onClick={randomDogRecord.load} isLoading={randomDogRecord.isReloading}>
+                Load another
+              </Button>
+            </Box>
+          )}
+          {randomDogRecord.isRejected && <Alert type="danger">{randomDogRecord.error.message}</Alert>}
+        </Box>
+      );
+    }
+    return <Component />;
+  })
+  .add('with cache-and-load loadPolicy', () => {
+    function Component() {
+      const getRandomDog = React.useCallback(() => axios.get('https://dog.ceo/api/breeds/image/random'), []);
+      const randomDogRecord = useLoads('cacheAndLoad', getRandomDog, { loadPolicy: 'cache-and-load' });
+
+      return (
+        <Box>
+          {randomDogRecord.isPending && <Spinner size="large" />}
+          {randomDogRecord.isResolved && (
+            <Box>
+              <Box>
+                <Image src={randomDogRecord.response.data.message} width="300px" alt="Dog" />
+              </Box>
+              <Button onClick={randomDogRecord.load} isLoading={randomDogRecord.isReloading}>
+                Load another
+              </Button>
+            </Box>
+          )}
+          {randomDogRecord.isRejected && <Alert type="danger">{randomDogRecord.error.message}</Alert>}
+        </Box>
+      );
+    }
+    return <Component />;
+  })
+  .add('with cache-first loadPolicy', () => {
+    function Component() {
+      const getRandomDog = React.useCallback(() => axios.get('https://dog.ceo/api/breeds/image/random'), []);
+      const randomDogRecord = useLoads('cacheFirst', getRandomDog, { loadPolicy: 'cache-first' });
+
+      return (
+        <Box>
+          {randomDogRecord.isPending && <Spinner size="large" />}
+          {randomDogRecord.isResolved && (
+            <Box>
+              <Box>
+                <Image src={randomDogRecord.response.data.message} width="300px" alt="Dog" />
+              </Box>
+              <Button onClick={randomDogRecord.load} isLoading={randomDogRecord.isReloading}>
+                Load another
+              </Button>
+            </Box>
+          )}
+          {randomDogRecord.isRejected && <Alert type="danger">{randomDogRecord.error.message}</Alert>}
+        </Box>
+      );
+    }
+    return <Component />;
+  })
+  .add('with key-only cacheStrategy', () => {
+    function Component() {
+      const [breed, setBreed] = React.useState('beagle');
+
+      const getRandomDogByBreed = React.useCallback(
+        breed => axios.get(`https://dog.ceo/api/breed/${breed}/images/random`),
+        []
+      );
+      const randomDogRecord = useLoads('functionVariables', getRandomDogByBreed, {
+        cacheStrategy: 'key-only',
+        variables: [breed]
+      });
+
+      return (
+        <Box>
+          {randomDogRecord.isPending && <Spinner size="large" />}
+          {randomDogRecord.isResolved && (
+            <Box>
+              <Box>
+                <Image src={randomDogRecord.response.data.message} width="300px" alt="Dog" />
+              </Box>
+              <Button onClick={randomDogRecord.load} isLoading={randomDogRecord.isReloading}>
+                Load another
+              </Button>
+              <Box>
+                <Button onClick={() => setBreed('doberman')}>Set to doberman</Button>
+              </Box>
+            </Box>
+          )}
+          {randomDogRecord.isRejected && <Alert type="danger">{randomDogRecord.error.message}</Alert>}
+        </Box>
+      );
+    }
+    return <Component />;
+  })
+  .add('with initialResponse', () => {
+    function Component() {
+      const getRandomDog = React.useCallback(() => axios.get('https://dog.ceo/api/breeds/image/random'), []);
+      const randomDogRecord = useLoads('basic', getRandomDog, {
+        initialResponse: { data: { message: 'https://images.dog.ceo/breeds/schnauzer-miniature/n02097047_2002.jpg' } }
+      });
+
+      return (
+        <Box>
+          {randomDogRecord.isPending && <Spinner size="large" />}
+          {randomDogRecord.isResolved && (
+            <Box>
+              <Box>
+                <Image src={randomDogRecord.response.data.message} width="300px" alt="Dog" />
+              </Box>
+              <Button onClick={randomDogRecord.load} isLoading={randomDogRecord.isReloading}>
+                Load another
+              </Button>
+            </Box>
+          )}
+          {randomDogRecord.isRejected && <Alert type="danger">{randomDogRecord.error.message}</Alert>}
+        </Box>
+      );
+    }
+    return <Component />;
   });
 
-storiesOf('<Loads> (Render Props)', module)
-  .add('load on mount', () => {
-    class DogApp extends React.Component {
-      getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
+storiesOf('useCache', module).add('cache', () => {
+  function Component() {
+    const getRandomDog = React.useCallback(() => axios.get('https://dog.ceo/api/breeds/image/random'), []);
+    const randomDogRecord = useDeferredLoads('basic', getRandomDog);
 
-      render = () => {
-        return (
-          <Loads load={this.getRandomDog}>
-            {({ response, error, load, isRejected, isPending, isResolved }) => (
-              <Box>
-                {isPending && <Spinner size="large" />}
-                {isResolved && (
-                  <Box>
-                    <Box>
-                      <Image src={response.data.message} width="300px" alt="Dog" />
-                    </Box>
-                    <Button onClick={load}>Load another</Button>
-                  </Box>
-                )}
-                {isRejected && <Alert type="danger">{error.message}</Alert>}
-              </Box>
-            )}
-          </Loads>
-        );
-      };
+    return (
+      <Box>
+        {randomDogRecord.isIdle && <Button onClick={randomDogRecord.load}>Load dog</Button>}
+        {randomDogRecord.isPending && <Spinner size="large" />}
+        {randomDogRecord.isResolved && (
+          <Box>
+            <Box>
+              <Image src={randomDogRecord.response.data.message} width="300px" alt="Dog" />
+            </Box>
+            <Button onClick={randomDogRecord.load} isLoading={randomDogRecord.isReloading}>
+              Load another
+            </Button>
+          </Box>
+        )}
+        {randomDogRecord.isRejected && <Alert type="danger">{randomDogRecord.error.message}</Alert>}
+      </Box>
+    );
+  }
+
+  function Cache() {
+    const randomDogRecord = useCache('basic');
+    if (randomDogRecord && randomDogRecord.response) {
+      return (
+        <Box marginTop="major-2">
+          <Heading fontSize="300">Cached:</Heading>
+          <Image src={randomDogRecord.response.data.message} width="300px" alt="Dog" />
+        </Box>
+      );
     }
-    return <DogApp />;
-  })
-  .add('with deferred load', () => {
-    class DogApp extends React.Component {
-      getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
+    return null;
+  }
 
-      render = () => {
-        return (
-          <Loads defer load={this.getRandomDog}>
-            {({ response, error, load, isIdle, isRejected, isPending, isResolved }) => (
-              <Box>
-                {isIdle && <Button onClick={load}>Load dog</Button>}
-                {isPending && <Spinner size="large" />}
-                {isResolved && (
-                  <Box>
-                    <Box>
-                      <Image src={response.data.message} width="300px" alt="Dog" />
-                    </Box>
-                    <Button onClick={load}>Load another</Button>
-                  </Box>
-                )}
-                {isRejected && <Alert type="danger">{error.message}</Alert>}
-              </Box>
-            )}
-          </Loads>
-        );
-      };
-    }
-    return <DogApp />;
-  })
-  .add('custom delay', () => {
-    class DogApp extends React.Component {
-      getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
+  return (
+    <Box>
+      <Component />
+      <Cache />
+    </Box>
+  );
+});
 
-      render = () => {
-        return (
-          <Loads defer delay={1000} load={this.getRandomDog}>
-            {({ response, error, load, isIdle, isRejected, isPending, isResolved }) => (
-              <Box>
-                {isIdle && <Button onClick={load}>Load dog</Button>}
-                {isPending && <Spinner size="large" />}
-                {isResolved && (
-                  <Box>
-                    <Box>
-                      <Image src={response.data.message} width="300px" alt="Dog" />
-                    </Box>
-                    <Button onClick={load}>Load another</Button>
-                  </Box>
-                )}
-                {isRejected && <Alert type="danger">{error.message}</Alert>}
-              </Box>
-            )}
-          </Loads>
-        );
-      };
-    }
-    return <DogApp />;
-  })
-  .add('no delay', () => {
-    class DogApp extends React.Component {
-      getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
+storiesOf('useGetStates', module).add('basic', () => {
+  function Component() {
+    const getSomething = React.useCallback(async () => {
+      return new Promise(res => setTimeout(() => res('This is something.'), 1000));
+    }, []);
+    const somethingRecord = useLoads('something', getSomething);
 
-      render = () => {
-        return (
-          <Loads defer delay={0} load={this.getRandomDog}>
-            {({ response, error, load, isIdle, isRejected, isPending, isResolved }) => (
-              <Box>
-                {isIdle && <Button onClick={load}>Load dog</Button>}
-                {isPending && <Spinner size="large" />}
-                {isResolved && (
-                  <Box>
-                    <Box>
-                      <Image src={response.data.message} width="300px" alt="Dog" />
-                    </Box>
-                    <Button onClick={load}>Load another</Button>
-                  </Box>
-                )}
-                {isRejected && <Alert type="danger">{error.message}</Alert>}
-              </Box>
-            )}
-          </Loads>
-        );
-      };
-    }
-    return <DogApp />;
-  })
-  .add('with error', () => {
-    class DogApp extends React.Component {
-      getRandomDog = () => axios.get('https://dog.ceo/api/breeds/sss/random');
+    const getAnother = React.useCallback(async () => {
+      return new Promise(res => setTimeout(() => res('This is another.'), 5000));
+    }, []);
+    const anotherRecord = useLoads('another', getAnother, { timeout: 3000 });
 
-      render = () => {
-        return (
-          <Loads defer load={this.getRandomDog}>
-            {({ response, error, load, isIdle, isRejected, isPending, isResolved }) => (
-              <Box>
-                {isIdle && <Button onClick={load}>Load dog</Button>}
-                {isPending && <Spinner size="large" />}
-                {isResolved && (
-                  <Box>
-                    <Box>
-                      <Image src={response.data.message} width="300px" alt="Dog" />
-                    </Box>
-                    <Button onClick={load}>Load another</Button>
-                  </Box>
-                )}
-                {isRejected && <Alert type="danger">{error.message}</Alert>}
-              </Box>
-            )}
-          </Loads>
-        );
-      };
-    }
-    return <DogApp />;
-  })
-  .add('with timeout', () => {
-    class DogApp extends React.Component {
-      getRandomDog = () => new Promise(res => setTimeout(() => res('this is data'), 2000));
+    const states = useGetStates(somethingRecord, anotherRecord);
 
-      render = () => {
-        return (
-          <Loads defer timeout={1000} load={this.getRandomDog}>
-            {({ response, error, load, isIdle, isTimeout, isPending, isResolved }) => (
-              <Box>
-                {isIdle && <Button onClick={load}>Load dog</Button>}
-                {(isPending || isTimeout) && <Spinner size="large" />}
-                {isTimeout && 'taking a while'}
-                {isResolved && <Box>{response}</Box>}
-              </Box>
-            )}
-          </Loads>
-        );
-      };
-    }
-    return <DogApp />;
-  })
-  .add('with function arguments', () => {
-    class DogApp extends React.Component {
-      getRandomDog = breed => axios.get(`https://dog.ceo/api/breed/${breed}/images/random`);
+    return (
+      <Box>
+        {states.isPending && 'Pending...'}
+        {states.isPendingSlow && ' Taking a while...'}
+        {states.isResolved && `Both records have resolved. ${somethingRecord.response} ${anotherRecord.response}`}
+      </Box>
+    );
+  }
+  return <Component />;
+});
 
-      render = () => {
-        return (
-          <Loads defer load={this.getRandomDog}>
-            {({ response, error, load, isIdle, isRejected, isPending, isResolved }) => (
-              <Box>
-                {isIdle && <Button onClick={() => load('beagle')}>Load beagle</Button>}
-                {isPending && <Spinner size="large" />}
-                {isResolved && (
-                  <Box>
-                    <Box>
-                      <Image src={response.data.message} width="300px" alt="Dog" />
-                    </Box>
-                    <Button onClick={() => load('beagle')}>Load another</Button>
-                  </Box>
-                )}
-                {isRejected && <Alert type="danger">{error.message}</Alert>}
-              </Box>
-            )}
-          </Loads>
-        );
-      };
-    }
-    return <DogApp />;
-  })
-  .add('with state components', () => {
-    class DogApp extends React.Component {
-      getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
+storiesOf('cache', module).add('cache.clear', () => {
+  function Component() {
+    return (
+      <Box>
+        <Button onClick={() => cache.records.clear()}>Clear cache</Button>
+      </Box>
+    );
+  }
 
-      render = () => {
-        return (
-          <Loads defer load={this.getRandomDog}>
-            <Loads.Idle>{({ load }) => <Button onClick={load}>Load dog</Button>}</Loads.Idle>
-            <Loads.Pending>
-              <Spinner size="large" />
-            </Loads.Pending>
-            <Loads.Resolved>
-              {({ response, load }) => (
-                <Box>
-                  <Box>{response && <Image src={response.data.message} width="300px" alt="Dog" />}</Box>
-                  <Button onClick={load}>Load another</Button>
-                </Box>
-              )}
-            </Loads.Resolved>
-            <Loads.Rejected>
-              {({ error }) => <Alert type="danger">{error ? error.message : 'error'}</Alert>}
-            </Loads.Rejected>
-          </Loads>
-        );
-      };
-    }
-    return <DogApp />;
-  })
-  .add('with dependant useLoads', () => {
-    class DogApp extends React.Component {
-      getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
-
-      saveDog = async () => new Promise(res => res('Saved.'));
-
-      render = () => {
-        return (
-          <Loads defer load={this.getRandomDog}>
-            {getRandomDogLoader => (
-              <Loads defer load={this.saveDog}>
-                {saveDogLoader => (
-                  <Box>
-                    <getRandomDogLoader.Idle>
-                      <Button onClick={getRandomDogLoader.load}>Load dog</Button>
-                    </getRandomDogLoader.Idle>
-                    <getRandomDogLoader.Pending>
-                      <Spinner size="large" />
-                    </getRandomDogLoader.Pending>
-                    <getRandomDogLoader.Resolved>
-                      <Box>
-                        <Box>
-                          {getRandomDogLoader.response && (
-                            <Image src={getRandomDogLoader.response.data.message} width="300px" alt="Dog" />
-                          )}
-                        </Box>
-                        <Set>
-                          <Button onClick={getRandomDogLoader.load}>Load another</Button>
-                          <saveDogLoader.Idle>
-                            <Button isPending={saveDogLoader.isPending} onClick={saveDogLoader.load}>
-                              Save dog
-                            </Button>
-                          </saveDogLoader.Idle>
-                        </Set>
-                        <saveDogLoader.Resolved>
-                          <Box>{saveDogLoader.response}</Box>
-                        </saveDogLoader.Resolved>
-                      </Box>
-                    </getRandomDogLoader.Resolved>
-                    <getRandomDogLoader.Rejected>
-                      {getRandomDogLoader.error && <Alert type="danger">{getRandomDogLoader.error.message}</Alert>}
-                    </getRandomDogLoader.Rejected>
-                  </Box>
-                )}
-              </Loads>
-            )}
-          </Loads>
-        );
-      };
-    }
-    return <DogApp />;
-  })
-  .add('with update fn', () => {
-    class DogApp extends React.Component {
-      getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
-
-      getRandomDoberman = () => axios.get('https://dog.ceo/api/breed/doberman/images/random');
-
-      render = () => {
-        return (
-          <Loads load={this.getRandomDog} update={this.getRandomDoberman}>
-            {({ response, load, update, isPending, isResolved }) => (
-              <Box>
-                {isPending && <Spinner size="large" />}
-                {isResolved && (
-                  <Box>
-                    <Box>
-                      <Image src={response.data.message} width="300px" alt="Dog" />
-                    </Box>
-                    <Button onClick={load}>Load another random dog</Button>
-                    <Button onClick={update}>Load doberman</Button>
-                  </Box>
-                )}
-              </Box>
-            )}
-          </Loads>
-        );
-      };
-    }
-    return <DogApp />;
-  })
-  .add('with update fns', () => {
-    class DogApp extends React.Component {
-      getRandomDog = () => axios.get('https://dog.ceo/api/breeds/image/random');
-
-      getRandomDoberman = () => axios.get('https://dog.ceo/api/breed/doberman/images/random');
-
-      getRandomPoodle = () => axios.get('https://dog.ceo/api/breed/poodle/images/random');
-
-      render = () => {
-        return (
-          <Loads load={this.getRandomDog} update={[this.getRandomDoberman, this.loadPoodle]}>
-            {({ response, load, update: [loadDoberman, loadPoodle], isPending, isResolved }) => (
-              <Box>
-                {isPending && <Spinner size="large" />}
-                {isResolved && (
-                  <Box>
-                    <Box>
-                      <Image src={response.data.message} width="300px" alt="Dog" />
-                    </Box>
-                    <Button onClick={load}>Load another random dog</Button>
-                    <Button onClick={loadDoberman}>Load doberman</Button>
-                    <Button onClick={loadPoodle}>Load poodle</Button>
-                  </Box>
-                )}
-              </Box>
-            )}
-          </Loads>
-        );
-      };
-    }
-    return <DogApp />;
-  });
+  return <Component />;
+});
