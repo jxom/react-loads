@@ -46,7 +46,7 @@
   - [useDeferredLoads](#usedeferredloads)
   - [useCache](#usecache)
   - [useGetStates](#usegetstates)
-  - [&lt;Provider&gt;](#ltprovidergt)
+  - [&lt;Provider&gt;](#provider)
   - [createResource](#createresource)
   - [preload (experimental)](#preload-experimental-1)
   - [Config](#config)
