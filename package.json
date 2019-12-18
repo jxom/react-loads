@@ -1,6 +1,6 @@
 {
   "name": "react-loads-next",
-  "version": "9.0.0-beta.4",
+  "version": "9.0.0-beta.5",
   "description": "A simple React component to handle loading state",
   "main": "lib/index.js",
   "module": "es/index.js",
