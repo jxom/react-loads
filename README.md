@@ -46,7 +46,7 @@
   - [useDeferredLoads](#usedeferredloads)
   - [useCache](#usecache)
   - [useGetStates](#usegetstates)
-  - [&lt;Provider&gt;](#ltprovidergt)
+  - [&lt;Provider&gt;](#provider)
   - [createResource](#createresource)
   - [preload (experimental)](#preload-experimental-1)
   - [Config](#config)
@@ -142,7 +142,7 @@ class RandomDog extends React.Component {
 - Render-as-you-fetch
   - [Basic](./examples/render-as-you-fetch/basic)
   - [Resources](./examples/render-as-you-fetch/with-resources)
-- [Stories](#TODO)
+- [Stories](https://jxom.github.io/react-loads/)
 
 ## Guides
 
