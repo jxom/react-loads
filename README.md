@@ -966,11 +966,70 @@ A set of [configuration options](#TODO)
 
 ### `useCache`
 
-TODO
+A hook which enables you to retrieve a record from the cache.
+
+```jsx
+// Including `context` only
+const randomDogRecord = useCache('randomDog');
+
+// Including `context` & `variables`
+const dogRecord = useCache('dog', { variables: [0] });
+```
+
+#### Parameters
+
+##### `context`
+
+The unique identifier of the record to retrieve.
+
+##### `variables`
+
+An array of variables (parameters).
+
+#### Returns
+
+##### `response`
+
+> `any`
+
+Response of the cached record.
+
+##### `error`
+
+> `any`
+
+Error of the cached record.
+
+##### `state`
+
+> `any`
+
+State of the cached record.
 
 ### `useGetStates`
 
-TODO
+A hook which composes a set of records, and gives you a singular state.
+
+Without using `useGetStates`, you may run into situations like this:
+
+```jsx
+const randomDogRecord = useLoads('randomDog', fetchRandomDog);
+const dogFriendsRecord = useLoads('dogFriends', fetchDogFriends);
+
+<div>
+  {(randomDogRecord.isPending || dogFriendsRecord.isPending) && 'Loading...'}
+  {randomDogRecord.isResolved && dogFriendsRecord.isResolved && 'Loaded!'}
+</div>
+```
+
+But, if you compose your records inside `useGetStates`, you can clean up your state variables:
+
+```jsx
+const randomDogRecord = useLoads('randomDog', fetchRandomDog);
+const dogFriendsLoader = useLoads('dogFriends', fetchDogFriends);
+
+const { isPending, isResolved, isRejected } = useGetStates(randomDogRecord, dogFriendsRecord);
+```
 
 ### `<Provider>`
 
@@ -980,7 +1039,7 @@ TODO
 
 TODO
 
-### `preload`
+### `preload` (experimental)
 
 TODO
 
@@ -1071,11 +1130,11 @@ A load policy allows you to specify whether or not you want your data to be reso
 
 - `"cache-only"`: `useLoads` will only return data from the cache. It will not invoke the async function.
 
-- `"cache-first"`: If a value for the promise already exists in the Loads cache, then `useLoads` will return the value that is in the cache, otherwise it will invoke the promise.
+- `"cache-first"`: If a value for the loader already exists in the Loads cache, then `useLoads` will return the value that is in the cache, otherwise it will invoke the async function.
 
-- `"cache-and-load"`: This is the default value and means that `useLoads` will return with the cached value if found, but regardless of whether or not a value exists in the cache, it will always invoke the promise.
+- `"cache-and-load"`: This is the default value and means that `useLoads` will return with the cached value if found, but regardless of whether or not a value exists in the cache, it will always invoke the async function.
 
-- `"load-only"`: This means that `useLoads` will not return the cached data altogether, and will only return the data resolved from the promise.
+- `"load-only"`: This means that `useLoads` will not return the cached data altogether, and will only return the data resolved from the async function.
 
 #### `onReject`
 
