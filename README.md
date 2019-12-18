@@ -745,45 +745,6 @@ export default function RandomDog() {
 
 ### Preloading (experimental)
 
-
-#### Without Suspense
-
-```jsx
-import * as Loads from 'react-loads';
-
-function DogImage({ dogLoader }) {
-  const { response, error, isPending, isResolved, isRejected } = dogLoader.useLoads();
-  return (
-    <div>
-      {isPending && 'Loading...'}
-      {isResolved && <img src={response.imgSrc} />}
-      {isRejected && `Oh no! ${error.message}`}
-    </div>
-  )
-}
-
-function App() {
-  const [dogLoader, setDogLoader] = React.useState();
-  const [currentId, setCurrentId] = React.useState();
-
-  const handleClickLoad = React.useCallback(() => {
-    const nextId = (currentId || 0) + 1;
-    const dogLoader = Loads.preload('dog', fetchDog, { variables: [nextId] });
-    setId(nextId);
-    setDogLoader(dogLoader);
-  })
-
-  return (
-    <button onClick={handleClickLoad}>Load next dog</button>
-    {dogLoader && (
-      <DogImage dogLoader={dogLoader} />
-    )}
-  )
-}
-```
-
-#### With Suspense
-
 ```jsx
 import * as Loads from 'react-loads';
 
