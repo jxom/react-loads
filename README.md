@@ -10,7 +10,7 @@
 - **Automated caching & revalidation** to maximise user experience between page transitions
 - **React Suspense** support
 - **SSR** support
-- **Preload** support to [implement the "render-as-you-fetch" pattern](#TODO)
+- **Preload** support to [implement the "render-as-you-fetch" pattern](https://reactjs.org/docs/concurrent-mode-suspense.html#approach-3-render-as-you-fetch-using-suspense)
 - **Polling** support to load data every x seconds
 - **Request deduping** to minimise over-fetching of your data
 - **Focus revalidation** to re-fetch your data when the browser window is focused
@@ -21,11 +21,10 @@
 
 ## Table of Contents
 
+- [Features](#features)
+- [Table of Contents](#table-of-contents)
 - [Installation](#installation)
 - [Quick start](#quick-start)
-  - [With Hooks](#with-hooks)
-  - [With Render Props](#with-render-props)
-  - [More examples](#more-examples)
 - [Guides](#guides)
   - [Starting out](#starting-out)
   - [Deferring](#deferring)
@@ -49,7 +48,7 @@
   - [useGetStates](#usegetstates)
   - [&lt;Provider&gt;](#ltprovidergt)
   - [createResource](#createresource)
-  - [preload](#preload)
+  - [preload (experimental)](#preload-experimental-1)
   - [Config](#config)
 - [Happy customers](#happy-customers)
 - [Acknowledgments](#acknowledgments)
@@ -136,13 +135,13 @@ class RandomDog extends React.Component {
 
 ### More examples
 
-- [Basic](#TODO)
-- [Top movies](#TODO)
-- [Resources](#TODO)
-- [Typescript](#TODO)
-- [Render-as-you-fetch]()
-  - [Basic](#TODO)
-  - [Resources](#TODO)
+- [Basic](./examples/basic)
+- [Top movies](./examples/top-movies)
+- [Resources](./examples/with-resources)
+- [Typescript](./examples/with-typescript)
+- Render-as-you-fetch
+  - [Basic](./examples/render-as-you-fetch/basic)
+  - [Resources](./examples/render-as-you-fetch/with-resources)
 - [Stories](#TODO)
 
 ## Guides
@@ -158,12 +157,12 @@ Let's focus on the `useLoads` hook for now, we will explain `useDeferredLoads` i
 
 The `useLoads` hook accepts 3 parameters:
 
-- A [**"context key"**](#TODO) in the form of a **string**.
+- A [**"context key"**](#optionscontext) in the form of a **string**.
   - It will help us with identifying/storing data, deduping your requests & updating other `useLoad`'s sharing the same context
   - Think of it as the namespace for your data
-- An [**"async function"**](#TODO) in the form of a **function that returns a promise**
+- An [**"async function"**](#optionsfn) in the form of a **function that returns a promise**
   - This will be the function to resolve the data
-- An optional [**"config"**](#TODO) in the form of an **object**
+- An optional [**"config"**](#config) in the form of an **object**
 
 ```jsx
 import React from 'react';
@@ -213,7 +212,7 @@ It also returns a `response` variable if your function resolves, and an `error` 
 
 If you want to reload your data, `useLoads` also returns a `load` variable, which you can invoke.
 
-The `useLoads` hook returns [some other variables](#TODO) as well.
+The `useLoads` hook returns [some other variables](#returns) as well.
 
 ### Deferring
 
@@ -292,7 +291,7 @@ export default function App() {
 
 > Warning: The `config` prop must be memoized. Either memoize it using `React.useMemo` or put it outside of the function component.
 
-[See the full set of configuration options here](#TODO)
+[See the full set of configuration options here](#config-1)
 
 #### On a `useLoads` level
 
@@ -302,7 +301,7 @@ By setting configuration on a `useLoads` level, you are overriding any defaults 
 const { ... } = useLoads('randomDog', fetchRandomDog, { dedupingInterval: 1000, timeout: 3000 });
 ```
 
-[See the full set of configuration options here](#TODO)
+[See the full set of configuration options here](#config-1)
 
 ### Variables
 
@@ -405,7 +404,7 @@ React Loads will automatically revalidate whenever the cache key (`context` or `
 const { ... } = useLoads(props.context, fetchDog, { variables: [props.id] });
 ```
 
-You can change the caching behaviour by specifying a [`cacheStrategy` config option](#TODO). By default, this is set to `"context-and-variables"`, meaning that the cache key will be a combination of the `context` + `variables`.
+You can change the caching behaviour by specifying a [`cacheStrategy` config option](#cachestrategy). By default, this is set to `"context-and-variables"`, meaning that the cache key will be a combination of the `context` + `variables`.
 
 ```jsx
 // The response of this will be stored against a `dog` key, ignoring the variables.
@@ -415,7 +414,7 @@ const { ... } = useLoads('dog', fetchDog, { cacheStrategy: 'context-only', varia
 
 #### Stale data & revalidation
 
-By default, React Loads automatically revalidates data in the cache after **5 minutes**. That is, when the `useLoads` is invoked and React Loads detects that the data is stale (hasn't been updated for 5 minutes), then `useLoads` will invoke the async function and update the cache with new data. You can change the revalidation time using the [`revalidateTime` config option](#TODO).
+By default, React Loads automatically revalidates data in the cache after **5 minutes**. That is, when the `useLoads` is invoked and React Loads detects that the data is stale (hasn't been updated for 5 minutes), then `useLoads` will invoke the async function and update the cache with new data. You can change the revalidation time using the [`revalidateTime` config option](#revalidatetime).
 
 ```jsx
 // Set it globally:
@@ -441,7 +440,7 @@ export default function RandomDog() {
 
 #### Cache expiry
 
-React Loads doesn't set a cache expiration by default. If you would like to set one, you can use the [`cacheTime` config option](#TODO).
+React Loads doesn't set a cache expiration by default. If you would like to set one, you can use the [`cacheTime` config option](#cachetime).
 
 ```jsx
 // Set it globally:
@@ -480,11 +479,11 @@ export default function RandomDog() {
 }
 ```
 
-By default, the timeout is **5 seconds**, you can change this with the [`timeout` config option](#TODO).
+By default, the timeout is **5 seconds**, you can change this with the [`timeout` config option](#timeout).
 
 ### Polling
 
-React Loads supports request polling (reload data every `x` seconds) with the [`pollingInterval` config option](#TODO).
+React Loads supports request polling (reload data every `x` seconds) with the [`pollingInterval` config option](#pollingInterval).
 
 ```jsx
 // Calls fetchRandomDog every 3 seconds.
@@ -493,11 +492,11 @@ const { ... } = useLoads('randomDog', fetchRandomDog, { pollingInterval: 3000 })
 
 ### Deduping
 
-By default, all your requests are deduped on an interval of **500 milliseconds**. Meaning that if React Loads sees more than one request of the same cache key in under 500 milliseconds, it will not invoke the other requests. You can change the deduping interval with the [`dedupingInterval` config option](#TODO).
+By default, all your requests are deduped on an interval of **500 milliseconds**. Meaning that if React Loads sees more than one request of the same cache key in under 500 milliseconds, it will not invoke the other requests. You can change the deduping interval with the [`dedupingInterval` config option](#dedupingInterval).
 
 ### Suspense
 
-To use React Loads with Suspense, you can set the [`suspense` config option](#TODO) to `true`.
+To use React Loads with Suspense, you can set the [`suspense` config option](#suspense) to `true`.
 
 ```jsx
 // Set it globally:
@@ -631,7 +630,7 @@ function MyComponent() {
 
 You can attach more than one loading function to a resource. **But it's return value must be the same schema, as every response will update the cache.**
 
-You can also provide an array of 2 items to the resource creator (seen below with `delete`); the first item being the async function, and the second being the [config](#TODO).
+You can also provide an array of 2 items to the resource creator (seen below with `delete`); the first item being the async function, and the second being the [config](#config-1).
 
 Here is an extended example using a resource with multiple async functions, split into two files (`resources/users.js` & `index.js`):
 
@@ -711,8 +710,6 @@ function MyComponent(props) {
   )
 }
 ```
-
-Check out a [full example here](#TODO)
 
 ### External cache providers
 
@@ -837,7 +834,7 @@ A function that returns a promise to retrieve your data.
 
 > `object` | optional
 
-A set of [configuration options](#TODO)
+A set of [configuration options](#config-1)
 
 #### Returns
 
@@ -960,7 +957,7 @@ A function that returns a promise to retrieve your data.
 
 > `object` | optional
 
-A set of [configuration options](#TODO)
+A set of [configuration options](#config-1)
 
 #### Returns
 
@@ -1059,7 +1056,7 @@ export default function App() {
 
 > `Object`
 
-An object of [configuration options](#TODO)
+An object of [configuration options](#config-1)
 
 ### `createResource`
 
@@ -1155,7 +1152,7 @@ A function that returns a promise to retrieve your data.
 
 > `object` | optional
 
-A set of [configuration options](#TODO)
+A set of [configuration options](#config-1)
 
 #### Returns
 
