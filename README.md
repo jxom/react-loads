@@ -92,6 +92,8 @@ export default function RandomDog() {
 }
 ```
 
+[See the CodeSandbox example](https://codesandbox.io/s/react-loads-basic-example-38biz)
+
 The `useLoads` function accepts three arguments: a **context key**, an **async function**, and a **config object** (not used in this example). The **context key** will store the response of the `fetchRandomDog` function in the React Loads cache against the key. The **async function** is a function that returns a promise, and is used to fetch your data.
 
 The `useLoads` function also returns a set of values: `response`, `error`, and a finite set of states (`isIdle`, `isPending`, `isResolved`, `isRejected`, and a few others). If your **async function** resolves, it will update the `response` & `isResolved` values. If it rejects, it will update the `error` value.
@@ -129,6 +131,8 @@ class RandomDog extends React.Component {
   }
 }
 ```
+
+[See the CodeSandbox example](https://codesandbox.io/s/react-loads-basic-example-class-component-3vg8v)
 
 ### More examples
 
@@ -195,6 +199,8 @@ export default function RandomDog() {
 }
 ```
 
+[See the CodeSandbox example](https://codesandbox.io/s/react-loads-basic-example-38biz)
+
 The `useLoads` hook represents a finite state machine and returns a set of state variables:
 
 - `isIdle` if the async function hasn't been invoked yet (relevant for `useDeferredLoads`)
@@ -227,6 +233,7 @@ export default function RandomDog() {
     response,
     error,
     load,
+    isIdle,
     isPending,
     isReloading,
     isResolved,
@@ -247,6 +254,8 @@ export default function RandomDog() {
   )
 }
 ```
+
+[See the CodeSandbox example](https://codesandbox.io/s/react-loads-basic-example-usedeferredloads-ev3vi)
 
 In the above example, the dog image is fetched via the `load` variable returned from `useDeferredLoads`.
 
@@ -309,6 +318,8 @@ export default function DogImage(props) {
 }
 ```
 
+[See the CodeSandbox example](https://codesandbox.io/s/react-loads-variables-o6l5d)
+
 The `variables` attribute accepts an array of values. If your async function accepts more than one argument, you can pass through just as many values to `variables` as the function accepts:
 
 ```jsx
@@ -355,6 +366,8 @@ export default function RandomDog(props) {
 }
 ```
 
+[See the CodeSandbox example](https://codesandbox.io/s/react-loads-conditional-fetching-bi8b2)
+
 ### Dependant loaders
 
 There may be a case where one `useLoads` depends on the data of another `useLoads`, where you don't want subsequent `useLoads` to invoke the async function until the first `useLoads` resolves.
@@ -363,12 +376,14 @@ If you pass a function to `variables` and the function throws (due to `dog` bein
 
 ```jsx
 export default function RandomDog(props) {
-  const { response: dog } = useLoads('dog', fetchDog);
+  const { response: dog } = useLoads('randomDog', fetchRandomDog);
   const { response: friends } = useLoads('dogFriends', fetchDogFriends, {
     variables: () => [dog.id]
   })
 }
 ```
+
+[See the CodeSandbox example](https://codesandbox.io/s/react-loads-dependant-loaders-9hojp)
 
 ### Caching
 
@@ -551,9 +566,9 @@ export default function RandomDog(props) {
 
   return (
     <div>
-      {isPending && 'Loading...'}
-      {isResolved && <img src={response.imgSrc} />}
-      {isRejected && `Oh no! ${error.message}`}
+      {dogRecord.isPending && 'Loading...'}
+      {dogRecord.isResolved && <img src={dogRecord.response.imgSrc} />}
+      {dogRecord.isRejected && `Oh no! ${dogRecord.error.message}`}
       <button
         onClick={() => updateDogRecord.load(props.id, { imgSrc: 'cooldog.png' })}
       >
@@ -1017,23 +1032,128 @@ Available values:
   - Caches your data against a combination of the `context` key & `variables`.
 
 #### `cacheTime`
+
+> `number` | Default: `0`
+
+Time (in milliseconds) that the data remains in the cache. After this time, the cached data will be removed.
+
 #### `dedupingInterval`
+
+> `number` | Default: `500`
+
+Interval (in milliseconds) that requests will be deduped in this time span.
+
 #### `delay`
+
+> `number` | Default: `0`
+
+Time (in milliseconds) before the component transitions to the `"pending"` state upon invoking `fn`.
+
 #### `defer`
+
+> `boolean`
+
+If set to `true`, the async function (`fn`) won't be called automatically and will be deferred until later.
+
+If `defer` is set to true, the initial state will be `idle`.
+
 #### `initialResponse`
+
+> `any`
+
+Set initial data for the request. Useful for SSR.
+
 #### `loadPolicy`
+
+> `string` | Default: `"cache-and-load"`
+
+A load policy allows you to specify whether or not you want your data to be resolved from the Loads cache and how it should load the data.
+
+- `"cache-only"`: `useLoads` will only return data from the cache. It will not invoke the async function.
+
+- `"cache-first"`: If a value for the promise already exists in the Loads cache, then `useLoads` will return the value that is in the cache, otherwise it will invoke the promise.
+
+- `"cache-and-load"`: This is the default value and means that `useLoads` will return with the cached value if found, but regardless of whether or not a value exists in the cache, it will always invoke the promise.
+
+- `"load-only"`: This means that `useLoads` will not return the cached data altogether, and will only return the data resolved from the promise.
+
 #### `onReject`
+
+> `function(error)`
+
+A hook that is invoked when the async function (`fn`) rejects.
+
 #### `onResolve`
+
+> `function(response)`
+
+A hook that is invoked when the async function (`fn`) resolves.
+
 #### `pollingInterval`
+
+> `number`
+
+If set, then `useLoads` will invoke the async function (`fn`) every `x` amount of seconds.
+
 #### `pollWhenHidden`
+
+> `boolean` | Default: `false`
+
+If truthy, then `useLoads` will continue to poll when the window is not focused.
+
 #### `rejectRetryInterval`
+
+> `number | function(count)`
+
+If set, and `useLoads` rejects, then `useLoads` will continue to try and resolve `fn` every `x` seconds. If a function is given, you can determine the interval time with that.
+
+Example:
+
+```js
+// Retry every 1000 milliseconds.
+rejectRetryInterval: 1000
+
+// Retry every "error count" * "2000 milliseconds".
+rejectRetryInterval: count => count * 2000
+```
+
 #### `revalidateTime`
+
+> `number` | Default: `300000` (5 minutes)
+
+Time that the data in the cache remains "fresh". After this time, data in the cache will be marked as "stale", meaning that the data will have to be reloaded on next invocation.
+
 #### `revalidateOnWindowFocus`
+
+> `boolean` | Default: `false`
+
+If truthy, `useLoads` will load the async function (`fn`), when the browser window is focused again.
+
 #### `suspense`
+
+> `boolean` | Default: `false`
+
+If truthy, this will enable React Suspense mode.
+
 #### `throwError`
+
+> `boolean` | Default: `false`
+
+If truthy and the async function (`fn`) rejects, then `useLoads` or `load` will throw the error.
+
 #### `timeout`
-#### `update`
+
+> `number` | Default: `5000` (5 seconds)
+
+Number of milliseconds before the component transitions to the `isPendingSlow` or `isReloadingSlow` state. Set to `0` to disable.
+
+Note: `useLoads` will still continue to try and resolve while in the `isPendingSlow` state
+
 #### `variables`
+
+> `Array<any>`
+
+An array of variables (parameters) to pass to your async function (`fn`).
 
 ## Happy customers
 
