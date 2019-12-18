@@ -1133,7 +1133,41 @@ resource.preload(config)
 
 ### `preload` (experimental)
 
-> TODO
+```jsx
+const loader = preload(context, fn, config);
+```
+
+#### Parameters
+
+`context`
+
+> `string` | optional
+
+A unique identifier for the request. This is optional for `useDeferredLoads`.
+
+`fn`
+
+> `function`
+
+A function that returns a promise to retrieve your data.
+
+`config`
+
+> `object` | optional
+
+A set of [configuration options](#TODO)
+
+#### Returns
+
+`useLoads`
+
+A `useLoads` hook which can be invoked in your function component.
+
+The arguments are a bit different to the standalone `useLoads` hook - it only optionally accepts a `config` object, and not a `context` or an async function (`fn`).
+
+```jsx
+loader.useLoads(config)
+```
 
 ### Config
 
