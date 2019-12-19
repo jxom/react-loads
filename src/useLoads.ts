@@ -346,7 +346,7 @@ export function useLoads<Response, Err>(
       };
     },
     [
-      variables,
+      variablesHash,
       isSameVariables,
       cacheKey,
       loadPolicy,
