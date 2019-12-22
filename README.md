@@ -80,7 +80,13 @@ async function fetchRandomDog() {
 }
 
 export default function RandomDog() {
-  const { response, error, isPending, isResolved, isRejected } = Loads.useLoads('randomDog', fetchRandomDog);
+  const { 
+    response, 
+    error, 
+    isPending, 
+    isResolved, 
+    isRejected 
+  } = Loads.useLoads('randomDog', fetchRandomDog);
   return (
     <div>
       {isPending && 'Loading...'}
