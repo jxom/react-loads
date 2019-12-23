@@ -5,7 +5,7 @@ export function useGetStates(...records: any[]) {
   const isPending = React.useMemo(() => records.some(record => record.isPending), [records]);
   const isPendingSlow = React.useMemo(() => records.some(record => record.isPendingSlow), [records]);
   const isResolved = React.useMemo(() => !records.some(record => !record.isResolved && !record.isIdle), [records]);
-  const isRejected = React.useMemo(() => !records.some(record => record.isRejected), [records]);
+  const isRejected = React.useMemo(() => records.some(record => record.isRejected), [records]);
   const isReloading = React.useMemo(() => records.some(record => record.isReloading), [records]);
   const isReloadingSlow = React.useMemo(() => records.some(record => record.isReloadingSlow), [records]);
 
