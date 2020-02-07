@@ -57,7 +57,7 @@
     "@medipass/eslint-config-react-medipass": "8.4.1",
     "@storybook/react": "5.0.11",
     "@types/jest": "24.0.6",
-    "axios": "0.18.0",
+    "axios": "0.19.2",
     "babel-eslint": "10.0.1",
     "babel-jest": "24.0.0",
     "babel-loader": "8.0.5",
