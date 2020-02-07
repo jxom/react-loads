@@ -3,8 +3,8 @@ import { ContextArg, FnArg, ConfigArg } from './types';
 
 export function useDeferredLoads<Response, Err>(
   contextOrFn: ContextArg | FnArg<Response>,
-  fnOrConfig: FnArg<Response> | ConfigArg<Response, Err>,
-  maybeConfig: ConfigArg<Response, Err>
+  fnOrConfig?: FnArg<Response> | ConfigArg<Response, Err>,
+  maybeConfig?: ConfigArg<Response, Err>
 ) {
   let context = contextOrFn as ContextArg | null;
   let config = maybeConfig;

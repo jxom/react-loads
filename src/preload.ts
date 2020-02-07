@@ -8,9 +8,9 @@ import { ContextArg, ConfigArg, FnArg, LoadFunction, LoadingState, OptimisticCal
 export function preload<Response, Err>(
   context: ContextArg,
   promiseOrFn: FnArg<Response>,
-  localConfig: ConfigArg<Response, Err> = {}
+  localConfig?: ConfigArg<Response, Err>
 ) {
-  const config = { ...defaultConfig, ...localConfig };
+  const config = { ...defaultConfig, ...(localConfig || {}) };
   const {
     cacheTime,
     cacheProvider,

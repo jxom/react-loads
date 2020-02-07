@@ -31,10 +31,10 @@ const IDLE_RECORD = { error: undefined, response: undefined, state: STATES.IDLE 
 export function useLoads<Response, Err>(
   context: ContextArg | null,
   fn: FnArg<Response>,
-  localConfig: ConfigArg<Response, Err> = {}
+  localConfig?: ConfigArg<Response, Err>
 ) {
   const globalConfig = React.useContext(LoadsConfigContext);
-  const config = { ...globalConfig, ...localConfig };
+  const config = { ...globalConfig, ...(localConfig || {}) };
   const {
     cacheProvider,
     cacheStrategy,
