@@ -28,7 +28,7 @@ export type LoadsConfig<Response, Err> = {
   update?: LoadFunction<Response>;
   variables?: Array<unknown> | (() => Array<unknown>);
 };
-export type LoadFunction<Response> = (opts?: any) => Promise<Response>;
+export type LoadFunction<Response> = (...opts: any) => Promise<Response>;
 export type LoadPolicy = 'cache-first' | 'cache-and-load' | 'load-only' | 'cache-only';
 export type LoadingState =
   | 'idle'
