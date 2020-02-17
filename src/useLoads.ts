@@ -325,7 +325,7 @@ export function useLoads<Response, Err>(
             handleData({
               count,
               record: { response: undefined, error, state: STATES.REJECTED },
-              shouldBroadcast: true
+              shouldBroadcast: false
             });
 
             onReject && onReject(error);
