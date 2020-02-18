@@ -15,10 +15,12 @@ export function preload<Response, Err>(
     cacheTime,
     cacheProvider,
     cacheStrategy,
+    dedupingInterval,
     loadPolicy,
     onResolve,
     onReject,
     rejectRetryInterval,
+    revalidateTime,
     suspense,
     throwError,
     variables
@@ -55,7 +57,15 @@ export function preload<Response, Err>(
       cachedRecord = cache.records.get(cacheKey);
     }
 
-    if (cachedRecord && loadPolicy === LOAD_POLICIES.CACHE_FIRST) return;
+    if (cachedRecord) {
+      // @ts-ignore
+      const isStale = Math.abs(new Date() - cachedRecord.updated) >= revalidateTime;
+      const isDuplicate =
+        // @ts-ignore
+        Math.abs(new Date() - cachedRecord.updated) < dedupingInterval;
+      const isCachedWithCacheFirst = !isStale && loadPolicy === LOAD_POLICIES.CACHE_FIRST;
+      if (isDuplicate || isCachedWithCacheFirst) return;
+    }
 
     let promise = promiseOrFn(...args);
     if (typeof promise === 'function') {
