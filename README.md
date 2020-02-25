@@ -799,7 +799,9 @@ function App() {
 The `preload` function is designed to implement the ["render-as-you-fetch" pattern](https://reactjs.org/docs/concurrent-mode-suspense.html#approach-3-render-as-you-fetch-using-suspense). Ideally, `preload` can be invoked when preparing your routes, or inside an event handler, where you can then use the `useLoads` function inside your component.
 
 [Basic example](https://codesandbox.io/s/react-loads-preloading-example-render-as-you-fetch-vvulq)
+
 [Event handler example](https://codesandbox.io/s/jakes-top-actors-concurrent-event-handler-bqus6)
+
 [Routing example](https://codesandbox.io/s/jakes-top-actors-concurrent-routing-gy6wz)
 
 ## API
