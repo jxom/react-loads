@@ -10,7 +10,7 @@
 - **Automated caching & revalidation** to maximise user experience between page transitions
 - **React Suspense** support
 - **SSR** support
-- **Preload** support to [implement the "render-as-you-fetch" pattern](https://reactjs.org/docs/concurrent-mode-suspense.html#approach-3-render-as-you-fetch-using-suspense)
+- **Preloading** support
 - **Polling** support to load data every x seconds
 - **Request deduping** to minimise over-fetching of your data
 - **Focus revalidation** to re-fetch your data when the browser window is focused
