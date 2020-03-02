@@ -10,7 +10,7 @@
 - **Automated caching & revalidation** to maximise user experience between page transitions
 - **React Suspense** support
 - **SSR** support
-- **Preload** support to [implement the "render-as-you-fetch" pattern](https://reactjs.org/docs/concurrent-mode-suspense.html#approach-3-render-as-you-fetch-using-suspense)
+- **Preloading** support
 - **Polling** support to load data every x seconds
 - **Request deduping** to minimise over-fetching of your data
 - **Focus revalidation** to re-fetch your data when the browser window is focused
@@ -798,7 +798,11 @@ function App() {
 
 The `preload` function is designed to implement the ["render-as-you-fetch" pattern](https://reactjs.org/docs/concurrent-mode-suspense.html#approach-3-render-as-you-fetch-using-suspense). Ideally, `preload` can be invoked when preparing your routes, or inside an event handler, where you can then use the `useLoads` function inside your component.
 
-[See the CodeSandbox example](https://codesandbox.io/s/react-loads-preloading-example-render-as-you-fetch-vvulq)
+[Basic example](https://codesandbox.io/s/react-loads-preloading-example-render-as-you-fetch-vvulq)
+
+[Event handler example](https://codesandbox.io/s/jakes-top-actors-concurrent-event-handler-bqus6)
+
+[Routing example](https://codesandbox.io/s/jakes-top-actors-concurrent-routing-gy6wz)
 
 ## API
 
