@@ -18,6 +18,7 @@ export type LoadsConfig<Response, Err> = {
   onReject?: (error: Err) => void;
   onResolve?: (response: Response) => void;
   pollingInterval?: number;
+  pollWhile?: boolean | ((record: Record<Response, Err>) => boolean);
   pollWhenHidden?: boolean;
   rejectRetryInterval?: number | ((count: number) => number);
   revalidateTime?: number;

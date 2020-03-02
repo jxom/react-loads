@@ -46,6 +46,7 @@ export function useLoads<Response, Err>(
     onReject,
     onResolve,
     pollingInterval,
+    pollWhile,
     pollWhenHidden,
     rejectRetryInterval,
     revalidateOnWindowFocus,
@@ -352,12 +353,12 @@ export function useLoads<Response, Err>(
       loadPolicy,
       fn,
       isSameContext,
+      defer,
       initialResponse,
       delay,
       timeout,
       suspense,
       cacheProvider,
-      defer,
       revalidateTime,
       dedupingInterval,
       handleOptimisticData,
@@ -450,11 +451,18 @@ export function useLoads<Response, Err>(
     [cacheKey, defer, handleData, load, revalidateOnWindowFocus]
   );
 
+  let shouldPoll = !defer;
+  if (shouldPoll && pollWhile) {
+    if (typeof pollWhile === 'function') {
+      shouldPoll = pollWhile(record);
+    } else {
+      shouldPoll = pollWhile;
+    }
+  }
   useInterval(() => {
     if (!utils.isDocumentVisible() && !pollWhenHidden) return;
-    if (defer) return;
     load({ isManualInvoke: true })();
-  }, pollingInterval);
+  }, shouldPoll ? pollingInterval : undefined);
 
   const states = React.useMemo(
     () => ({

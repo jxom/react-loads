@@ -80,12 +80,12 @@ async function fetchRandomDog() {
 }
 
 export default function RandomDog() {
-  const { 
-    response, 
-    error, 
-    isPending, 
-    isResolved, 
-    isRejected 
+  const {
+    response,
+    error,
+    isPending,
+    isResolved,
+    isRejected
   } = Loads.useLoads('randomDog', fetchRandomDog);
   return (
     <div>
@@ -494,6 +494,25 @@ React Loads supports request polling (reload data every `x` seconds) with the [`
 ```jsx
 // Calls fetchRandomDog every 3 seconds.
 const { ... } = useLoads('randomDog', fetchRandomDog, { pollingInterval: 3000 });
+```
+
+You can also add a [`pollWhile` config option](#pollWhile) if you wish to control the behaviour of when the polling should run.
+
+```jsx
+// Calls fetchRandomDog every 3 seconds while `shouldPoll` is truthy.
+const shouldPoll = shouldTheDogBePollingRightNow();
+const { ... } = useLoads('randomDog', fetchRandomDog, { pollingInterval: 3000, pollWhile: shouldPoll });
+```
+
+You can also access the `record` as the first parameter of `pollWhile` if you provide a function.
+
+```jsx
+// Calls processImage every 3 seconds while it's status is 'processing'.
+const { ... } = useLoads(
+  'randomDog',
+  fetchRandomDog,
+  { pollingInterval: 3000, pollWhile: record => record?.response?.status === 'processing' }
+);
 ```
 
 ### Deduping
@@ -1286,6 +1305,12 @@ A hook that is invoked when the async function (`fn`) resolves.
 > `number`
 
 If set, then `useLoads` will invoke the async function (`fn`) every `x` amount of seconds.
+
+#### `pollWhile`
+
+> `boolean | function(record)`
+
+If set, then `useLoads` will poll while the condition is truthy.
 
 #### `pollWhenHidden`
 
