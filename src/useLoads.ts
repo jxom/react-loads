@@ -452,7 +452,8 @@ export function useLoads<Response, Err>(
 
   useInterval(() => {
     if (!utils.isDocumentVisible() && !pollWhenHidden) return;
-    load()();
+    if (defer) return;
+    load({ isManualInvoke: true })();
   }, pollingInterval);
 
   const states = React.useMemo(
