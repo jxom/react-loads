@@ -28,28 +28,6 @@ exports[`context (cache) with deferred load renders the cached data correctly on
 </div>
 `;
 
-exports[`context (cache) with load on mount on error initially renders & caches data correctly 1`] = `
-<div>
-  <span>
-    error
-  </span>
-  <span>
-    mockError
-  </span>
-</div>
-`;
-
-exports[`context (cache) with load on mount on error renders the cached data correctly on subsequent load 1`] = `
-<div>
-  <span>
-    error
-  </span>
-  <span>
-    mockError
-  </span>
-</div>
-`;
-
 exports[`context (cache) with load on mount on success initially renders & caches data correctly 1`] = `
 <div>
   <span>
@@ -105,14 +83,6 @@ exports[`states with deferred load renders loading indicator correctly (default 
 </div>
 `;
 
-exports[`states with deferred load renders loading indicator correctly (delay = 300) 1`] = `
-<div>
-  <button>
-    load
-  </button>
-</div>
-`;
-
 exports[`states with deferred load renders success correctly when the function has been resolved 1`] = `
 <div>
   <button>
@@ -154,7 +124,12 @@ exports[`states with deferred load renders timeout indicator correctly 1`] = `
   <button>
     load
   </button>
-  timeout
+  <div>
+    loading
+  </div>
+  <div>
+    timeout
+  </div>
 </div>
 `;
 
@@ -184,6 +159,11 @@ exports[`states with load on initial render renders success correctly when the f
 
 exports[`states with load on initial render renders timeout indicator correctly 1`] = `
 <div>
-  timeout
+  <div>
+    loading
+  </div>
+  <div>
+    timeout
+  </div>
 </div>
 `;
