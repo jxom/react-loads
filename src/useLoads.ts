@@ -488,6 +488,9 @@ export function useLoads<Response, Err>(
         load()();
       }
     }
+    if (states.isRejected) {
+      throw record.error;
+    }
   }
 
   return React.useMemo(
