@@ -108,9 +108,9 @@ export function useLoads<Response, Err>(
         case STATES.IDLE:
           return IDLE_RECORD;
         case STATES.PENDING:
-          return { ...state, state: STATES.PENDING };
+          return { response: undefined, error: undefined, state: STATES.PENDING };
         case STATES.PENDING_SLOW:
-          return { ...state, state: STATES.PENDING_SLOW };
+          return { response: undefined, error: undefined, state: STATES.PENDING_SLOW };
         case STATES.RESOLVED:
           return { isCached: action.isCached, error: undefined, response: action.response, state: STATES.RESOLVED };
         case STATES.REJECTED:
@@ -299,7 +299,7 @@ export function useLoads<Response, Err>(
           });
         }
 
-        const isReloading = isSameContext && (count > 1 || (cachedRecord && !defer) || initialResponse);
+        const isReloading = context && isSameContext && (count > 1 || (cachedRecord && !defer) || initialResponse);
         if (delay > 0) {
           setDelayTimeout(() => handleLoading({ isReloading, promise }), delay);
         } else {
@@ -352,6 +352,7 @@ export function useLoads<Response, Err>(
       cacheKey,
       loadPolicy,
       fn,
+      context,
       isSameContext,
       defer,
       initialResponse,
@@ -467,8 +468,8 @@ export function useLoads<Response, Err>(
   const states = React.useMemo(
     () => ({
       isIdle: record.state === STATES.IDLE && Boolean(!record.response),
-      isPending: (record.state === STATES.PENDING || record.state === STATES.PENDING_SLOW) && Boolean(!record.response),
-      isPendingSlow: record.state === STATES.PENDING_SLOW && Boolean(!record.response),
+      isPending: record.state === STATES.PENDING || record.state === STATES.PENDING_SLOW,
+      isPendingSlow: record.state === STATES.PENDING_SLOW,
       isResolved: record.state === STATES.RESOLVED || Boolean(record.response),
       isRejected: record.state === STATES.REJECTED,
       isReloading: record.state === STATES.RELOADING || record.state === STATES.RELOADING_SLOW,
