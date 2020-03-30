@@ -108,9 +108,9 @@ export function useLoads<Response, Err>(
         case STATES.IDLE:
           return IDLE_RECORD;
         case STATES.PENDING:
-          return { response: undefined, error: undefined, state: STATES.PENDING };
+          return { ...state, state: STATES.PENDING };
         case STATES.PENDING_SLOW:
-          return { response: undefined, error: undefined, state: STATES.PENDING_SLOW };
+          return { ...state, state: STATES.PENDING_SLOW };
         case STATES.RESOLVED:
           return { isCached: action.isCached, error: undefined, response: action.response, state: STATES.RESOLVED };
         case STATES.REJECTED:
