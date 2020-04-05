@@ -11,6 +11,7 @@ export type LoadsConfig<Response, Err> = {
   cacheTime?: number;
   context?: string;
   dedupingInterval?: number;
+  dedupeManualLoad?: boolean;
   delay?: number;
   defer?: boolean;
   initialResponse?: Response;

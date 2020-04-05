@@ -40,6 +40,7 @@ export function useLoads<Response, Err>(
     cacheStrategy,
     cacheTime,
     dedupingInterval,
+    dedupeManualLoad,
     delay,
     initialResponse: _initialResponse,
     loadPolicy,
@@ -249,6 +250,19 @@ export function useLoads<Response, Err>(
           args = variables;
         }
 
+        let cachedRecord;
+        if (cacheKey) {
+          cachedRecord = cache.records.get<Response, Err>(cacheKey, { cacheProvider });
+        }
+
+        if (cachedRecord) {
+          const isDuplicate =
+            // @ts-ignore
+            Math.abs(new Date() - cachedRecord.updated) < dedupingInterval &&
+            (!opts.isManualInvoke || dedupeManualLoad);
+          if (isDuplicate) return;
+        }
+
         counter.current = counter.current + 1;
         const count = counter.current;
 
@@ -260,21 +274,16 @@ export function useLoads<Response, Err>(
           }
         }
 
-        let cachedRecord;
         if (cacheKey && loadPolicy !== LOAD_POLICIES.LOAD_ONLY) {
-          cachedRecord = cache.records.get<Response, Err>(cacheKey, { cacheProvider });
           if (!defer && cachedRecord) {
             dispatch({ type: cachedRecord.state, isCached: true, ...cachedRecord });
 
             if (cachedRecord.state === STATES.RESOLVED || cachedRecord.state === STATES.REJECTED) {
               // @ts-ignore
               const isStale = Math.abs(new Date() - cachedRecord.updated) >= revalidateTime;
-              const isDuplicate =
-                // @ts-ignore
-                Math.abs(new Date() - cachedRecord.updated) < dedupingInterval && !opts.isManualInvoke;
               const isCachedWithCacheFirst =
                 !isStale && !opts.isManualInvoke && loadPolicy === LOAD_POLICIES.CACHE_FIRST;
-              if (isDuplicate || isCachedWithCacheFirst) return;
+              if (isCachedWithCacheFirst) return;
             }
           }
         }
@@ -358,10 +367,11 @@ export function useLoads<Response, Err>(
       initialResponse,
       delay,
       timeout,
-      suspense,
       cacheProvider,
-      revalidateTime,
       dedupingInterval,
+      dedupeManualLoad,
+      suspense,
+      revalidateTime,
       handleOptimisticData,
       setDelayTimeout,
       handleLoading,
