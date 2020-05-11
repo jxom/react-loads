@@ -119,7 +119,7 @@ export function useLoads<Response, Err>(
         case STATES.RELOADING:
           return { ...state, state: STATES.RELOADING };
         case STATES.RELOADING_SLOW:
-          return { ...state, state: STATES.RELOADING };
+          return { ...state, state: STATES.RELOADING_SLOW };
         default:
           return state;
       }
