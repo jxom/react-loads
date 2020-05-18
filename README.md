@@ -18,6 +18,7 @@
 - **Finite set of state variables** to avoid cryptic ternaries and impossible states
 - **External cache** support
 - **Optimistic responses**
+- Pretty small – **5kB gzipped**
 
 ## Table of Contents
 
