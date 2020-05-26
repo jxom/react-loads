@@ -574,9 +574,9 @@ storiesOf('useLoads', module)
   })
   .add('with debounce', () => {
     function Component() {
-      const [value, setValue] = React.useState('');
+      const [value, setValue] = React.useState('poodle');
 
-      const getRandomDog = React.useCallback(() => axios.get('https://dog.ceo/api/breeds/image/random'), []);
+      const getRandomDog = React.useCallback(({ value }) => axios.get(`https://dog.ceo/api/breed/${value}/images/random`), []);
       const randomDogRecord = useLoads('debounce', getRandomDog, {
         debounce: 1000,
         variables: [{ value }]
@@ -584,18 +584,19 @@ storiesOf('useLoads', module)
 
       return (
         <Box>
-          <input onChange={e => setValue(e.target.value)} value={value} />
+          <input placeholder="Search for a dog..." onChange={e => setValue(e.target.value)} value={value} />
           {randomDogRecord.isPending && <Spinner size="large" />}
-          {randomDogRecord.isResolved && (
-            <Box>
+          {randomDogRecord.isResolved &&
+            randomDogRecord.response && (
               <Box>
-                <Image src={randomDogRecord.response.data.message} width="300px" alt="Dog" />
+                <Box>
+                  <Image src={randomDogRecord.response.data.message} width="300px" alt="Dog" />
+                </Box>
+                <Button onClick={randomDogRecord.load} isLoading={randomDogRecord.isReloading}>
+                  Load another
+                </Button>
               </Box>
-              <Button onClick={randomDogRecord.load} isLoading={randomDogRecord.isReloading}>
-                Load another
-              </Button>
-            </Box>
-          )}
+            )}
           {randomDogRecord.isRejected && <Alert type="danger">{randomDogRecord.error.message}</Alert>}
         </Box>
       );
