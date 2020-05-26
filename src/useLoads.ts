@@ -39,6 +39,7 @@ export function useLoads<Response, Err>(
     cacheProvider,
     cacheStrategy,
     cacheTime,
+    debounce,
     dedupingInterval,
     dedupeManualLoad,
     delay,
@@ -72,7 +73,8 @@ export function useLoads<Response, Err>(
   const variablesHash = React.useMemo(() => JSON.stringify(variables), [variables]);
   const cacheKey = utils.getCacheKey({ context, variablesHash, cacheStrategy });
 
-  const counter = React.useRef<number>(0);
+  const loadCount = React.useRef<number>(0);
+  const debounceCount = React.useRef<number>(0);
   const prevCacheKey = usePrevious(cacheKey);
   const isSameContext = !prevCacheKey || prevCacheKey === cacheKey;
   const prevVariablesHash = usePrevious(JSON.stringify(variables));
@@ -160,7 +162,7 @@ export function useLoads<Response, Err>(
       record: Record<Response, Err>;
       shouldBroadcast: boolean;
     }) => {
-      if (hasMounted.current && (!count || count === counter.current)) {
+      if (hasMounted.current && (!count || count === loadCount.current)) {
         // @ts-ignore
         clearDelayTimeout();
         // @ts-ignore
@@ -238,8 +240,16 @@ export function useLoads<Response, Err>(
   );
 
   const load = React.useCallback(
-    (opts: { isManualInvoke?: boolean; fn?: LoadFunction<Response> } = {}) => {
+    (
+      opts: {
+        count?: number;
+        isManualInvoke?: boolean;
+        setInvocationTimestamp?: boolean;
+        fn?: LoadFunction<Response>;
+      } = {}
+    ) => {
       return (..._args: any) => {
+        const { setInvocationTimestamp = true } = opts;
         if (!opts.isManualInvoke && variables && isSameVariables) {
           return;
         }
@@ -248,6 +258,31 @@ export function useLoads<Response, Err>(
         let args = _args.filter((arg: any) => arg.constructor.name !== 'Class');
         if (variables && (!args || args.length === 0)) {
           args = variables;
+        }
+
+        if (context && debounce > 0) {
+          const now = new Date().getTime();
+
+          if (setInvocationTimestamp) {
+            cache.invocationTimestamps.set(context, now);
+            cache.invocationTimestamps.set('latest', now);
+          }
+          const latestInvocationTimestamp = cache.invocationTimestamps.get(context || 'latest');
+
+          if (latestInvocationTimestamp) {
+            if (Math.abs(now - latestInvocationTimestamp) < debounce) {
+              debounceCount.current = debounceCount.current + 1;
+              setTimeout(
+                () => load({ count: debounceCount.current, setInvocationTimestamp: false, ...opts })(..._args),
+                debounce
+              );
+              return;
+            }
+            if (debounceCount.current !== (opts.count || 0)) {
+              return;
+            }
+          }
+          debounceCount.current = 0;
         }
 
         let cachedRecord;
@@ -263,8 +298,8 @@ export function useLoads<Response, Err>(
           if (isDuplicate) return;
         }
 
-        counter.current = counter.current + 1;
-        const count = counter.current;
+        loadCount.current = loadCount.current + 1;
+        const count = loadCount.current;
 
         if (cacheKey) {
           const isSuspended = cache.suspenders.get(cacheKey);
@@ -308,7 +343,8 @@ export function useLoads<Response, Err>(
           });
         }
 
-        const isReloading = context && isSameContext && (count > 1 || (cachedRecord && !defer) || initialResponse);
+        const isReloading =
+          (context && isSameContext && (count > 1 || (cachedRecord && !defer) || initialResponse)) || debounce > 0;
         if (delay > 0) {
           setDelayTimeout(() => handleLoading({ isReloading, promise }), delay);
         } else {
@@ -341,7 +377,7 @@ export function useLoads<Response, Err>(
             onReject && onReject(error);
 
             if (rejectRetryInterval) {
-              const count = Math.min(counter.current || 0, 8);
+              const count = Math.min(loadCount.current || 0, 8);
               const timeout =
                 typeof rejectRetryInterval === 'function'
                   ? rejectRetryInterval(count)
@@ -358,10 +394,11 @@ export function useLoads<Response, Err>(
     [
       variablesHash,
       isSameVariables,
+      context,
+      debounce,
       cacheKey,
       loadPolicy,
       fn,
-      context,
       isSameContext,
       defer,
       initialResponse,
@@ -402,11 +439,11 @@ export function useLoads<Response, Err>(
 
   React.useEffect(
     () => {
-      if (!cachedRecord && cacheKey && !initialResponse) {
+      if (!cachedRecord && cacheKey && !initialResponse && debounce <= 0) {
         reset();
       }
     },
-    [cachedRecord, cacheKey, initialResponse, reset]
+    [cachedRecord, cacheKey, initialResponse, reset, debounce]
   );
 
   React.useEffect(

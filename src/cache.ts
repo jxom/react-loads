@@ -3,6 +3,10 @@ import { CacheProvider, LoadsConfig, Record } from './types';
 
 ////////////////////////////////////////////////////////
 
+export const invocationTimestamps = new Map();
+
+////////////////////////////////////////////////////////
+
 const recordsCache = new Map();
 export const records = {
   clear(opts?: { cacheProvider?: CacheProvider | void }) {

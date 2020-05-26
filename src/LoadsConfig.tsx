@@ -5,6 +5,7 @@ import { LoadsConfig } from './types';
 export const defaultConfig = {
   cacheTime: 0,
   cacheStrategy: CACHE_STRATEGIES.CONTEXT_AND_VARIABLES,
+  debounce: 0,
   dedupingInterval: 500,
   delay: 0,
   defer: false,
