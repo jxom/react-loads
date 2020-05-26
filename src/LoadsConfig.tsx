@@ -6,6 +6,7 @@ export const defaultConfig = {
   cacheTime: 0,
   cacheStrategy: CACHE_STRATEGIES.CONTEXT_AND_VARIABLES,
   debounce: 0,
+  debounceCache: true,
   dedupingInterval: 500,
   delay: 0,
   defer: false,

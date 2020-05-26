@@ -40,6 +40,7 @@ export function useLoads<Response, Err>(
     cacheStrategy,
     cacheTime,
     debounce,
+    debounceCache,
     dedupingInterval,
     dedupeManualLoad,
     delay,
@@ -344,7 +345,8 @@ export function useLoads<Response, Err>(
         }
 
         const isReloading =
-          (context && isSameContext && (count > 1 || (cachedRecord && !defer) || initialResponse)) || debounce > 0;
+          (context && isSameContext && (count > 1 || (cachedRecord && !defer) || initialResponse)) ||
+          (debounce > 0 && debounceCache);
         if (delay > 0) {
           setDelayTimeout(() => handleLoading({ isReloading, promise }), delay);
         } else {
@@ -402,6 +404,7 @@ export function useLoads<Response, Err>(
       isSameContext,
       defer,
       initialResponse,
+      debounceCache,
       delay,
       timeout,
       cacheProvider,
@@ -439,11 +442,11 @@ export function useLoads<Response, Err>(
 
   React.useEffect(
     () => {
-      if (!cachedRecord && cacheKey && !initialResponse && debounce <= 0) {
+      if (!cachedRecord && cacheKey && !initialResponse && !debounceCache) {
         reset();
       }
     },
-    [cachedRecord, cacheKey, initialResponse, reset, debounce]
+    [cachedRecord, cacheKey, initialResponse, reset, debounceCache]
   );
 
   React.useEffect(

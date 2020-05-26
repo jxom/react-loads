@@ -576,7 +576,10 @@ storiesOf('useLoads', module)
     function Component() {
       const [value, setValue] = React.useState('poodle');
 
-      const getRandomDog = React.useCallback(({ value }) => axios.get(`https://dog.ceo/api/breed/${value}/images/random`), []);
+      const getRandomDog = React.useCallback(
+        ({ value }) => axios.get(`https://dog.ceo/api/breed/${value}/images/random`),
+        []
+      );
       const randomDogRecord = useLoads('debounce', getRandomDog, {
         debounce: 1000,
         variables: [{ value }]
