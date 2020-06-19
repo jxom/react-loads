@@ -19,7 +19,7 @@ const makeExternalPredicate = externalArr => {
 };
 
 const getExternal = (umd, pkg) => {
-  const external = [...Object.keys(pkg.peerDependencies), 'prop-types'];
+  const external = [...Object.keys(pkg.peerDependencies)];
   const allExternal = [...external, ...Object.keys(pkg.dependencies)];
   return makeExternalPredicate(umd ? external : allExternal);
 };
@@ -61,8 +61,7 @@ const getOutput = (umd, pkg) =>
         exports: 'named',
         globals: {
           react: 'React',
-          'react-dom': 'ReactDOM',
-          'prop-types': 'PropTypes'
+          'react-dom': 'ReactDOM'
         }
       }
     : [
