@@ -17,6 +17,7 @@
       "noImplicitReturns": true,
       "noUnusedLocals": false,
       "noUnusedParameters": true,
-      "stripInternal": true
+      "stripInternal": true,
+      "skipLibCheck": true
     }
   }
