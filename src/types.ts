@@ -30,7 +30,7 @@ export type LoadsConfig<Response, Err> = {
   throwError?: boolean;
   timeout?: number;
   update?: LoadFunction<Response>;
-  variables?: Array<unknown> | (() => Array<unknown>);
+  variables?: Array<any> | (() => Array<any>);
 };
 export type LoadFunction<Response> = (...opts: any) => Promise<Response>;
 export type LoadPolicy = 'cache-first' | 'cache-and-load' | 'load-only' | 'cache-only';
