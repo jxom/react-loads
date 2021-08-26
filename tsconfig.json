@@ -1,6 +1,6 @@
 {
     "include": ["src/**/*"],
-    "exclude": ["src/**/*.test.tsx",],
+    "exclude": ["src/**/*.test.tsx", "node_modules"],
     "compilerOptions": {
       "baseUrl": "",
       "paths": {
